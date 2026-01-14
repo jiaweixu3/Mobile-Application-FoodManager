@@ -9,6 +9,6 @@ We are a team of 4 people:
 - Javier Mascareña Gonzalez j2mascar@uwaterloo.ca
 - Álvaro del Cañizo Angurel adelcani@uwaterloo.ca
 - Jiawei Xu j695xu@uwaterloo.ca
-- Sara Perez Bueno sperezbu@uwaterloo.ca
+- Sandra Perez Bueno sperezbu@uwaterloo.ca
 
 Our [team contract](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Team-Contract) includes details on how we will work together.
