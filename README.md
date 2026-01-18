@@ -1,6 +1,9 @@
-**Mobile Application**
+**FoodManager**
 
-We do not have the main idea yet, but when we have we will give more details. 
+FoodManager is an app which tracks bought food and groceries.
+ It handles expiry date for each food item with different color levels warning the user with what food expires soon,
+ items can be manually included.
+ Moreover, it automatically updates atheshopping list when quantity of an item is low
 
 Team 102-13
 
