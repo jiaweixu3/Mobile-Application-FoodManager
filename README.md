@@ -17,3 +17,5 @@ We are a team of 4 people:
 Our [team contract](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Team-Contract) includes details on how we will work together.
 
 Our [project proposal](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Project-Proposal) includes details about the project structure
+
+Our [team meeting minutes](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Meeting-Minutes) includes details about what was discussed in each of the meetings
