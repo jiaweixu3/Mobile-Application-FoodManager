@@ -14,36 +14,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.foodmanager.ui.theme.DarkBlue
+import com.example.foodmanager.ui.theme.LightBlue
 import org.jetbrains.compose.resources.painterResource
-
+import androidx.compose.material3.Surface
 import foodmanager.composeapp.generated.resources.Res
 import foodmanager.composeapp.generated.resources.compose_multiplatform
+
+import com.example.foodmanager.ui.theme.FoodManagerTheme
 
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
-                }
-            }
+    FoodManagerTheme {
+        // Applies the Dark Color to the back of the page
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = DarkBlue
+        )
+        // Actual content of the app
+        {
+            Text("Food Manager")
         }
     }
 }
