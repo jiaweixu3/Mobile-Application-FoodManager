@@ -20,7 +20,6 @@ import org.jetbrains.compose.resources.painterResource
 import androidx.compose.material3.Surface
 import foodmanager.composeapp.generated.resources.Res
 import foodmanager.composeapp.generated.resources.compose_multiplatform
-
 import com.example.foodmanager.ui.theme.FoodManagerTheme
 
 @Composable
