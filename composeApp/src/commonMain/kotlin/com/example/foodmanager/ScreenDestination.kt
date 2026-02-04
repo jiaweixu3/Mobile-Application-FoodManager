@@ -12,4 +12,4 @@ sealed interface ScreenDestination {
     @Serializable
     data object ShoppingList: ScreenDestination
     @Serializable
-    data object AddItem : ScreenDestination
+    data object AddItem : ScreenDestination}

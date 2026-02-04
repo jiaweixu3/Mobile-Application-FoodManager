@@ -3,11 +3,13 @@ package com.example.foodmanager
 // Kotlin file which describes the basic appearance of the screens of the app
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 
 
 @Composable
 fun InventoryScreen(){
-    Text("This displays the Inventory Screen")
+    Text(text = "This displays the Inventory Screen",
+        color = Color.White)
 }
 
 @Composable
@@ -17,5 +19,5 @@ fun ShoppingListScreen(){
 
 @Composable
 fun AddingItemScreen(){
-
+    Text("This adds a new item")
 }
