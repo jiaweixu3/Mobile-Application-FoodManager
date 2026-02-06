@@ -4,8 +4,10 @@ package com.example.foodmanager
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 
+@Preview
 @Composable
 fun InventoryScreen(){
     Text(text = "This displays the Inventory Screen",

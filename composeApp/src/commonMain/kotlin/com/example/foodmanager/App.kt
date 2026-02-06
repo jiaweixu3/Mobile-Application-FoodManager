@@ -10,24 +10,24 @@ import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import com.example.foodmanager.ui.theme.DarkBlue
 import com.example.foodmanager.ui.theme.LightBlue
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.material3.Surface
 import androidx.compose.ui.graphics.BlendMode.Companion.Screen
-import androidx.navigation.NavHost
-import androidx.navigation.compose.rememberNavController
 import foodmanager.composeapp.generated.resources.Res
 import foodmanager.composeapp.generated.resources.compose_multiplatform
 import com.example.foodmanager.ui.theme.FoodManagerTheme
+import org.jetbrains.compose.ui.tooling.preview.Preview
+
 
 @Composable
-@Preview
 fun App() {
     FoodManagerTheme {
         // Applies the Dark Color to the back of the page
