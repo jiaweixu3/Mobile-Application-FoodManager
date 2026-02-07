@@ -21,8 +21,6 @@ import com.example.foodmanager.ui.theme.LightBlue
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.material3.Surface
 import androidx.compose.ui.graphics.BlendMode.Companion.Screen
-import foodmanager.composeapp.generated.resources.Res
-import foodmanager.composeapp.generated.resources.compose_multiplatform
 import com.example.foodmanager.ui.theme.FoodManagerTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
