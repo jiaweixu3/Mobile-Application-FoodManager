@@ -32,6 +32,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material3.Icon
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.example.foodmanager.ui.theme.ShoppingListScreen
+import com.example.foodmanager.model.ShoppingItem
+import com.example.foodmanager.viewmodel.ShoppingViewModel
 
 
 // Storing all screens in the app in a list, for simplified looping
