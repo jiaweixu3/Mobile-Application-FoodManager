@@ -25,7 +25,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.graphics.BlendMode.Companion.Screen
 import com.example.foodmanager.ui.theme.FoodManagerTheme
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.onClick
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -35,7 +34,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.foodmanager.ui.theme.ShoppingListScreen
 import com.example.foodmanager.model.ShoppingItem
 import com.example.foodmanager.viewmodel.ShoppingViewModel
-
+import com.example.foodmanager.ui.AddingItemScreen
 
 // Storing all screens in the app in a list, for simplified looping
 val screens = listOf(
@@ -91,7 +90,7 @@ fun App() {
             ) {
                 composable<ScreenDestination.Inventory> { InventoryScreen() }
                 composable<ScreenDestination.ShoppingList> { ShoppingListScreen() }
-                composable<ScreenDestination.AddItem> { AddingItemScreen() }
+                composable<ScreenDestination.AddItem> { AddingItemScreen(navController) }
             }
 
         }
