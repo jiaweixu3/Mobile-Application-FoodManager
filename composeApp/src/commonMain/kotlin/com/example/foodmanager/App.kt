@@ -32,9 +32,20 @@ fun App() {
                 item = FoodItem(
                     id = "2",
                     name = "Apples",
-                    expiryDate = "2026-02-05",
+                    expiryDate = "2026-02-10",
                     amount = 5.0,
                     unit = "pcs",
+                    category = "Pantry"
+                )
+            )
+
+            FoodCard(
+                item = FoodItem(
+                    id = "3",
+                    name = "Meat",
+                    expiryDate = "2026-03-05",
+                    amount = 1.0,
+                    unit = "kg",
                     category = "Pantry"
                 )
             )

@@ -23,11 +23,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.foodmanager.model.FoodItem
-/*import kotlinx.datetime.Clock
+import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.daysUntil
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.TimeZone*/
+import kotlinx.datetime.TimeZone
 
 @Composable
 fun FoodCard(
@@ -117,7 +117,7 @@ fun FoodCard(
 }
 
 fun calculateDaysRemaining(expiryDate: String): Int {
-    /*try {
+    try {
         // Convert the String into a Date object
         val expiryDate = LocalDate.parse(expiryDate)
         // Get current date
@@ -128,13 +128,5 @@ fun calculateDaysRemaining(expiryDate: String): Int {
     } catch (e: Exception) {
         // Return 0 if the format of the date is wrong
         return 0
-    }*/
-
-    // Has to be updated by library crashes
-    return when (expiryDate) {
-        "2026-02-01" -> -5
-        "2026-02-05" -> 2
-        "2026-03-15" -> 30
-        else -> 10
     }
 }
