@@ -3,6 +3,8 @@ package com.example.foodmanager.ui.inventory
 import androidx.lifecycle.ViewModel
 import com.example.foodmanager.model.FoodItem
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class InventoryViewModel: ViewModel() {
     private val _inventory = MutableStateFlow(
@@ -20,7 +22,7 @@ class InventoryViewModel: ViewModel() {
             FoodItem(
                 id = "2",
                 name = "Spinach",
-                expiryDate = "2026-02-05",
+                expiryDate = "2026-02-10",
                 amount = 200.0,
                 unit = "g",
                 category = "Fridge"
@@ -35,4 +37,7 @@ class InventoryViewModel: ViewModel() {
             )
         )
     )
+
+    // Public read-only
+    val inventory: StateFlow<List<FoodItem>> = _inventory.asStateFlow()
 }
