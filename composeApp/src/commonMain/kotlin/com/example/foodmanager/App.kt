@@ -1,40 +1,43 @@
-package com.example.foodmanager
+package com.example.foodmanager // Make sure this package matches yours!
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.foodmanager.ui.theme.DarkBlue
-import com.example.foodmanager.ui.theme.LightBlue
-import org.jetbrains.compose.resources.painterResource
-import androidx.compose.material3.Surface
-import foodmanager.composeapp.generated.resources.Res
-import foodmanager.composeapp.generated.resources.compose_multiplatform
-
-import com.example.foodmanager.ui.theme.FoodManagerTheme
+import androidx.compose.ui.unit.dp
+import com.example.foodmanager.model.FoodItem
+import com.example.foodmanager.ui.inventory.FoodCard
 
 @Composable
-@Preview
 fun App() {
-    FoodManagerTheme {
-        // Applies the Dark Color to the back of the page
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = DarkBlue
-        )
-        // Actual content of the app
-        {
-            Text("Food Manager")
+    MaterialTheme {
+        // Temporary column to stack a few cards
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            // Expired Milk
+            FoodCard(
+                item = FoodItem(
+                    id = "1",
+                    name = "Milk",
+                    expiryDate = "2026-02-01",
+                    amount = 1.0,
+                    unit = "L",
+                    category = "Fridge"
+                )
+            )
+
+            // Apples
+            FoodCard(
+                item = FoodItem(
+                    id = "2",
+                    name = "Apples",
+                    expiryDate = "2026-02-05",
+                    amount = 5.0,
+                    unit = "pcs",
+                    category = "Pantry"
+                )
+            )
         }
     }
 }
