@@ -1,9 +1,13 @@
 package com.example.foodmanager
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.example.foodmanager.model.FoodItem
+import com.example.foodmanager.ui.inventory.FoodCard
+import com.example.foodmanager.ui.inventory.InventoryScreen
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,7 +21,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import com.example.foodmanager.ui.theme.DarkBlue
 import com.example.foodmanager.ui.theme.LightBlue
 import org.jetbrains.compose.resources.painterResource
@@ -96,4 +99,3 @@ fun App() {
         }
     }
 }
-
