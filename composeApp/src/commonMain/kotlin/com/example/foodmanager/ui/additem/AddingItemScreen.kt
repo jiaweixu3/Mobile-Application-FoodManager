@@ -1,4 +1,4 @@
-package com.example.foodmanager.ui
+package com.example.foodmanager.ui.additem
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 import com.example.foodmanager.ui.theme.DarkBlue
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -178,8 +181,8 @@ fun AddingItemScreen(
 
 // Auxiliary function to turn milliseconds to dates
 fun dateFormat(millis: Long): String {
-    val formatter = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
-    return formatter.format(java.util.Date(millis))
+    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    return formatter.format(Date(millis))
 }
 
 

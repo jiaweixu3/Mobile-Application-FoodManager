@@ -1,31 +1,16 @@
 package com.example.foodmanager
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.example.foodmanager.model.FoodItem
-import com.example.foodmanager.ui.inventory.FoodCard
 import com.example.foodmanager.ui.inventory.InventoryScreen
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import com.example.foodmanager.ui.theme.DarkBlue
-import com.example.foodmanager.ui.theme.LightBlue
-import org.jetbrains.compose.resources.painterResource
-import androidx.compose.material3.Surface
-import androidx.compose.ui.graphics.BlendMode.Companion.Screen
 import com.example.foodmanager.ui.theme.FoodManagerTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.NavigationBar
@@ -34,10 +19,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material3.Icon
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import com.example.foodmanager.ui.theme.ShoppingListScreen
-import com.example.foodmanager.model.ShoppingItem
-import com.example.foodmanager.viewmodel.ShoppingViewModel
-import com.example.foodmanager.ui.AddingItemScreen
+import com.example.foodmanager.ui.shopping.ShoppingListScreen
+import com.example.foodmanager.ui.additem.AddingItemScreen
 
 // Storing all screens in the app in a list, for simplified looping
 val screens = listOf(

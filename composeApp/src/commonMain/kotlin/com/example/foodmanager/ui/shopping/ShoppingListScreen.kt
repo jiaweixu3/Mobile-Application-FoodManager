@@ -1,4 +1,4 @@
-package com.example.foodmanager.ui.theme
+package com.example.foodmanager.ui.shopping
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,7 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel // <--- Ensure this is imported
 import androidx.compose.ui.Modifier
-import com.example.foodmanager.viewmodel.ShoppingViewModel
+import com.example.foodmanager.ui.shopping.ShoppingViewModel
 
 @Composable
 fun ShoppingListScreen() {

@@ -1,4 +1,4 @@
-package com.example.foodmanager.ui.theme
+package com.example.foodmanager.ui.shopping
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
