@@ -64,14 +64,14 @@ object MockDb {
     ))
     val shoppingitems = _shoppingitems.asStateFlow()
 
-    fun addShoppingItem(newItem: ShoppingItem){
-        _shoppingitems.value = _shoppingitems.value.plus(newItem)
+    fun addShoppingItem(newShoppingItem: ShoppingItem){
+        _shoppingitems.value = _shoppingitems.value.plus(newShoppingItem)
     }
 
     fun deleteShoppingItem(item_id: Int){
         _shoppingitems.value = _shoppingitems.value.filter { it.id != item_id } // Delete elements with the same id
     }
 
-    fun updateShoppingItem(updatedItem: ShoppingItem){
-        _shoppingitems.value = _shoppingitems.value.map {if (it.id == updatedItem.id) updatedItem else it}}
+    fun updateShoppingItem(updatedShoppingItem: ShoppingItem){
+        _shoppingitems.value = _shoppingitems.value.map {if (it.id == updatedShoppingItem.id) updatedShoppingItem else it}}
 }
