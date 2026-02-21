@@ -10,7 +10,7 @@ class InventoryViewModel: ViewModel() {
     private val _inventory = MutableStateFlow(
         listOf(
             FoodItem(
-                id = "1",
+                id = 1,
                 name = "Milk",
                 expiryDate = "2026-02-01",
                 amount = 1.0,
@@ -20,7 +20,7 @@ class InventoryViewModel: ViewModel() {
                 photoUrl = "milk.jpg"
             ),
             FoodItem(
-                id = "2",
+                id = 2,
                 name = "Spinach",
                 expiryDate = "2026-02-10",
                 amount = 200.0,
@@ -28,7 +28,7 @@ class InventoryViewModel: ViewModel() {
                 category = "Fridge"
             ),
             FoodItem(
-                id = "3",
+                id = 3,
                 name = "Canned Beans",
                 expiryDate = "2026-03-15",
                 amount = 2.0,
