@@ -15,8 +15,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-
-import com.example.foodmanager.ui.theme.DarkBlue
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -41,7 +39,7 @@ fun AddingItemScreen(
 
     // User Interface
     Scaffold(
-        containerColor = DarkBlue,
+
         topBar = {
             CenterAlignedTopAppBar(title = { Text("Add New Item") })
         }
@@ -54,7 +52,7 @@ fun AddingItemScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Issue 13: Basic Input Form Layout
+
             // Product name handling
             OutlinedTextField(
                 value = productName,

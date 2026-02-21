@@ -9,7 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color // <--- This is the important import
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.foodmanager.model.ShoppingItem
 
@@ -30,11 +30,10 @@ fun ShoppingListRow(
             onCheckedChange = onCheckedChange
         )
 
-        // HERE IS THE FIX:
         Text(
             text = item.name,
             modifier = Modifier.padding(start = 16.dp),
-            color = Color.Black // <--- This forces the text to be Black
+            color = Color.Black
         )
     }
 }
