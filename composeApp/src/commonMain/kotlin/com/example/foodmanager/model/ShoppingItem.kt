@@ -1,7 +1,7 @@
 package com.example.foodmanager.model
 
 data class ShoppingItem(
-    val id: Int,
+    val id: String, // Switched to String to match the FoodItem id
     val name: String,
-    var isChecked: Boolean = false
+    val isChecked: Boolean = false
 )
