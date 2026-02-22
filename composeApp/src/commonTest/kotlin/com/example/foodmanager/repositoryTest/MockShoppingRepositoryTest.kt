@@ -8,6 +8,7 @@ import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.flow.first
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 //This file defines the unit tests for the Shopping Repository created in issues 5 and 6 sprint 2
 // The current tests work with an initial hardcoded list of 5 items, if this changes, all tests should be changed accordingly
@@ -18,6 +19,7 @@ internal class MockShoppingRepositoryTest {
         MockDb.resetShoppingState() // Resetting list back to original size
     }
 
+    // Shopping List is correctly obtained
     @Test
     fun testInitialShopping() = runTest {
         val current_Inventory = repository.getShoppingList().first()
@@ -27,6 +29,7 @@ internal class MockShoppingRepositoryTest {
 
     }
 
+    // Adding a shop item
     @Test
     fun testAddShoppingItem() = runTest {
         val new_item = ShoppingItem(id = 6, name = "sausage")
@@ -37,6 +40,27 @@ internal class MockShoppingRepositoryTest {
         assertEquals(6, current_Inventory.size, "Our new shopping list has 6 items")
     }
 
+    // Adding a shop item, different cases
+    @Test
+    fun testAddDuplicatesShoppingItem() = runTest {
+        val new_item = ShoppingItem(id = 1, name = "aPPleS")
+        repository.addShoppingItem(new_item)
+        val current_Inventory = repository.getShoppingList().first()
+
+        assertEquals(5, current_Inventory.size, "Our new shopping list has 5 items")
+    }
+
+    // Adding an empty element should not increase the size
+    @Test
+    fun testAddEmptyShoppingItem() = runTest {
+        val new_item = ShoppingItem(id = 7, name = "")
+        repository.addShoppingItem(new_item)
+        val current_Inventory = repository.getShoppingList().first()
+
+        assertEquals(5, current_Inventory.size, "Our new shopping list has 5 items")
+    }
+
+    // Deleting a Shop Item
     @Test
     fun testDeleteShoppingItem() = runTest {
         val food_id = 1
@@ -46,6 +70,7 @@ internal class MockShoppingRepositoryTest {
         assertEquals(4, current_Inventory.size, "Our new shopping list has 4 items")
     }
 
+    // Deleting an item which does not exist will not yield problems
     @Test
     fun testDeleteNonExistentShoppingItem() = runTest {
         val food_id = 100
@@ -54,6 +79,20 @@ internal class MockShoppingRepositoryTest {
 
         assertEquals(5, current_Inventory.size, "Our new shopping list should not change in size")
     }
+
+    // Empty Shopping List will not yield problems
+    @Test
+    fun testEmptyShoppingList() = runTest {
+        repository.deleteShoppingItem(1)
+        repository.deleteShoppingItem(2)
+        repository.deleteShoppingItem(3)
+        repository.deleteShoppingItem(4)
+        repository.deleteShoppingItem(5)
+        val current_Inventory = repository.getShoppingList().first()
+
+        assertEquals(0, current_Inventory.size, "Our shopping list is now empty")
+    }
+
 
     @Test
     fun testUpdateShoppingItem() = runTest {
@@ -67,5 +106,16 @@ internal class MockShoppingRepositoryTest {
         assertEquals(true, updatedItem.isChecked, "Apples now appear on the shopping list")
     }
 
+    // Updating an item which does not exist will not affect it
+    @Test
+    fun testUpdateNonExistentFoodItem() = runTest {
+        val updated_item = ShoppingItem(id = 100, name = "Orange Juice")
+        repository.updateShoppingItem(updated_item)
+        val current_Inventory = repository.getShoppingList().first()
 
+        assertEquals(5, current_Inventory.size, "Our inventory should have 5 items")
+
+        val updatedItem = current_Inventory.find { it.id == updated_item.id }
+        assertNull(updatedItem, "Orange Juice is not in the inventory")
+    }
 }
