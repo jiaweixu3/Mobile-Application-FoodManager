@@ -26,12 +26,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import com.example.foodmanager.ui.auth.LoginScreen
+import com.example.foodmanager.ui.settings.SettingsScreen
 
 // Storing all screens in the app in a list, for simplified looping
 val screens = listOf(
     ScreenDestination.Inventory,
     ScreenDestination.ShoppingList,
-    ScreenDestination.AddItem
+    ScreenDestination.AddItem,
+    ScreenDestination.Settings
 )
 
 @Composable
@@ -39,12 +41,17 @@ fun App() {
     // Variable which tracks state whether the user is logged in or not
     var isloggedin by remember {mutableStateOf(false)}
     FoodManagerTheme {
+        // Handling log in and log out logic
         if (!isloggedin) {
             LoginScreen {
                 isloggedin = true
             }
         } else {
-            MainAppLayout()
+            MainAppLayout(
+                isloggedout = { // If we log out
+                    isloggedin = false
+                }
+            )
         }
     }
 }
@@ -52,7 +59,7 @@ fun App() {
 
 // Defines the main app layout
 @Composable
-fun MainAppLayout(){
+fun MainAppLayout(isloggedout: () -> Unit = {}) {
     // Implementing NavHost to be able to navigate between different screens
     val navController = rememberNavController()
 
@@ -98,6 +105,7 @@ fun MainAppLayout(){
             composable<ScreenDestination.Inventory> { InventoryScreen() }
             composable<ScreenDestination.ShoppingList> { ShoppingListScreen() }
             composable<ScreenDestination.AddItem> { AddingItemScreen(navController) }
+            composable<ScreenDestination.Settings> { SettingsScreen(logoutSuccess = {isloggedout()}) }
         }
 
     }
