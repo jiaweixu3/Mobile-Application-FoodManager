@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.filled.Settings
 
 
 // Sealed allows for a fixed number of screen, avoids future bugs as well as it checks all elements
@@ -33,5 +34,11 @@ sealed interface ScreenDestination {
     data object AddItem : ScreenDestination{
         override val title = "AddItem"
         override val icon = Icons.Filled.Add
+    }
+
+    @Serializable
+    data object Settings: ScreenDestination{
+        override val title = "Settings"
+        override val icon = Icons.Filled.Settings
     }
 }
