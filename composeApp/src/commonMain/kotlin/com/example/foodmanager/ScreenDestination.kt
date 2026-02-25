@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 
 // Sealed allows for a fixed number of screen, avoids future bugs as well as it checks all elements
+// Log In screen is not considered here as it is not included in NavHost, it is before other screens
 sealed interface ScreenDestination {
     // All screens must have a title and an image, for easier navigation
     val title: String
