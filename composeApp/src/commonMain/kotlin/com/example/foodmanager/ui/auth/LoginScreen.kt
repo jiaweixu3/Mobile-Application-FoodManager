@@ -20,6 +20,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import foodmanager.composeapp.generated.resources.Res
+import foodmanager.composeapp.generated.resources.foodmanager
+import org.jetbrains.compose.resources.painterResource
+
+
+
+
+
 
 
 @Composable
@@ -34,6 +44,12 @@ fun LoginScreen(loginSuccess: () -> Unit) { //loginSuccess is the function for a
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ){
+        // Food Manager Icon
+        Image(
+            painter = painterResource(Res.drawable.foodmanager),
+            contentDescription = "App Logo",
+            modifier = Modifier.size(200.dp)
+        )
         // Title
         Text(text = "Food Manager",
             style = MaterialTheme.typography.headlineLarge)

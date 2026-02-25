@@ -21,6 +21,11 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.foodmanager.ui.shopping.ShoppingListScreen
 import com.example.foodmanager.ui.additem.AddingItemScreen
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import com.example.foodmanager.ui.auth.LoginScreen
 
 // Storing all screens in the app in a list, for simplified looping
 val screens = listOf(
@@ -31,54 +36,70 @@ val screens = listOf(
 
 @Composable
 fun App() {
+    // Variable which tracks state whether the user is logged in or not
+    var isloggedin by remember {mutableStateOf(false)}
     FoodManagerTheme {
-        // Implementing NavHost to be able to navigate between different screens
-        val navController = rememberNavController()
-
-        // Stores the value of the current screen
-        val currentscreen_ = navController.currentBackStackEntryAsState()
-        val currentscreen = currentscreen_.value?.destination
-
-        // Scaffold allows for navigating between screens
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = DarkBlue,
-
-            // Creates a bar at the bottom which allows for switching between elements
-            bottomBar = { NavigationBar {
-                // Creating an item for each of the screens
-                screens.forEach { screen ->
-                    NavigationBarItem(
-                        label = {Text(screen.title)},
-                        icon = {Icon(screen.icon, contentDescription = screen.title)},
-                        selected = currentscreen?.hasRoute(screen::class) == true , // Selected if the user is currently in this screen
-                        onClick = { // Defines how the app will change screens when being clicked
-                            navController.navigate(screen){
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true // Stores previous state
-                                }
-                                launchSingleTop = true // Avoids multiple copies of the same destination
-                                restoreState = true
-                            }
-                        }
-                    )
-                }
+        if (!isloggedin) {
+            LoginScreen {
+                isloggedin = true
             }
-
-            }
-
-        ) { innerPadding: PaddingValues ->
-
-            NavHost(
-                navController = navController,
-                startDestination = ScreenDestination.Inventory,
-                modifier = Modifier.padding(innerPadding)
-            ) {
-                composable<ScreenDestination.Inventory> { InventoryScreen() }
-                composable<ScreenDestination.ShoppingList> { ShoppingListScreen() }
-                composable<ScreenDestination.AddItem> { AddingItemScreen(navController) }
-            }
-
+        } else {
+            MainAppLayout()
         }
     }
+}
+
+
+// Defines the main app layout
+@Composable
+fun MainAppLayout(){
+    // Implementing NavHost to be able to navigate between different screens
+    val navController = rememberNavController()
+
+    // Stores the value of the current screen
+    val currentscreen_ = navController.currentBackStackEntryAsState()
+    val currentscreen = currentscreen_.value?.destination
+
+    // Scaffold allows for navigating between screens
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = DarkBlue,
+
+        // Creates a bar at the bottom which allows for switching between elements
+        bottomBar = { NavigationBar {
+            // Creating an item for each of the screens
+            screens.forEach { screen ->
+                NavigationBarItem(
+                    label = {Text(screen.title)},
+                    icon = {Icon(screen.icon, contentDescription = screen.title)},
+                    selected = currentscreen?.hasRoute(screen::class) == true , // Selected if the user is currently in this screen
+                    onClick = { // Defines how the app will change screens when being clicked
+                        navController.navigate(screen){
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true // Stores previous state
+                            }
+                            launchSingleTop = true // Avoids multiple copies of the same destination
+                            restoreState = true
+                        }
+                    }
+                )
+            }
+        }
+
+        }
+
+    ) { innerPadding: PaddingValues ->
+
+        NavHost(
+            navController = navController,
+            startDestination = ScreenDestination.Inventory,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable<ScreenDestination.Inventory> { InventoryScreen() }
+            composable<ScreenDestination.ShoppingList> { ShoppingListScreen() }
+            composable<ScreenDestination.AddItem> { AddingItemScreen(navController) }
+        }
+
+    }
+
 }
