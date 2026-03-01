@@ -1,33 +1,38 @@
 package com.example.foodmanager.ui.shopping
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.foodmanager.model.ShoppingItem
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.foodmanager.repository.ShoppingListRepository
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class ShoppingViewModel : ViewModel() {
-    private val _items = MutableStateFlow(
-        listOf(
-            ShoppingItem(1, "Apples", false),
-            ShoppingItem(2, "Bananas", true),
-            ShoppingItem(3, "Milk", false),
-            ShoppingItem(4, "Eggs", true),
-            ShoppingItem(5, "Bread", false)
+
+class ShoppingViewModel(private val repository: ShoppingListRepository) : ViewModel() {
+
+    // 1. "Use of getShoppingList() into the UI state"
+    // This converts the Flow from MockDb into a StateFlow the UI can watch.
+    val items: StateFlow<List<ShoppingItem>> = repository.getShoppingList()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList() // Starts empty until MockDb loads
         )
-    )
-    val items: StateFlow<List<ShoppingItem>> = _items.asStateFlow()
 
+    // 2. "Refactor code to update the item's state in the MockDB"
     fun toggleItem(item: ShoppingItem) {
-        _items.update { currentList ->
-            currentList.map {
-                if (it.id == item.id) {
-                    it.copy(isChecked = !it.isChecked)
-                } else {
-                    it
-                }
-            }
+        viewModelScope.launch {
+            val updatedItem = item.copy(isChecked = !item.isChecked)
+            repository.updateShoppingItem(updatedItem)
+        }
+    }
+
+    // Add this for your delete functionality if needed
+    fun deleteItem(id: Int) {
+        viewModelScope.launch {
+            repository.deleteShoppingItem(id)
         }
     }
 }

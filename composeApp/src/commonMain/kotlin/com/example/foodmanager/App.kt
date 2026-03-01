@@ -27,6 +27,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import com.example.foodmanager.ui.auth.LoginScreen
 import com.example.foodmanager.ui.settings.SettingsScreen
+import com.example.foodmanager.repository.MockShoppingRepository
+import com.example.foodmanager.ui.shopping.ShoppingViewModel
+
 
 // Storing all screens in the app in a list, for simplified looping
 val screens = listOf(
@@ -62,6 +65,11 @@ fun App() {
 fun MainAppLayout(isloggedout: () -> Unit = {}) {
     // Implementing NavHost to be able to navigate between different screens
     val navController = rememberNavController()
+
+    // 2. Initialize the connection here so it persists while the app is open
+    // Since we aren't using a Factory yet, we manually inject the Mock Repository
+    val shoppingRepository = remember { MockShoppingRepository() }
+    val shoppingViewModel = remember { ShoppingViewModel(repository = shoppingRepository) }
 
     // Stores the value of the current screen
     val currentscreen_ = navController.currentBackStackEntryAsState()
@@ -103,11 +111,17 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable<ScreenDestination.Inventory> { InventoryScreen() }
-            composable<ScreenDestination.ShoppingList> { ShoppingListScreen() }
+
+
+            composable<ScreenDestination.ShoppingList> {
+                ShoppingListScreen(
+                    navController = navController,
+                    viewModel = shoppingViewModel
+                )
+            }
+
             composable<ScreenDestination.AddItem> { AddingItemScreen(navController) }
             composable<ScreenDestination.Settings> { SettingsScreen(logoutSuccess = {isloggedout()}) }
         }
-
     }
-
 }
