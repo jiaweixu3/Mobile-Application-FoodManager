@@ -22,20 +22,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.foodmanager.domain.calculateDaysRemaining
 import com.example.foodmanager.model.FoodItem
-import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.daysUntil
-import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.TimeZone
 
 @Composable
 fun FoodCard(
     item: FoodItem,
     modifier: Modifier = Modifier
 ) {
-    // Calculate days until expiration
-    val daysRemaining = calculateDaysRemaining(item.expiryDate)
+    // Calculate days until expiration (FoodItem overload for testability)
+    val daysRemaining = calculateDaysRemaining(item)
 
     // Color status
     val statusColor = when {
@@ -113,20 +109,5 @@ fun FoodCard(
                 )
             }
         }
-    }
-}
-
-fun calculateDaysRemaining(expiryDate: String): Int {
-    try {
-        // Convert the String into a Date object
-        val expiryDate = LocalDate.parse(expiryDate)
-        // Get current date
-        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-        // Return the difference between both
-        return today.daysUntil(expiryDate)
-
-    } catch (e: Exception) {
-        // Return 0 if the format of the date is wrong
-        return 0
     }
 }
