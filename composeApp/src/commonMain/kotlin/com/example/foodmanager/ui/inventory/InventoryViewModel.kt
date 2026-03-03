@@ -11,20 +11,50 @@ import kotlinx.coroutines.launch
 // Import the interface
 import com.example.foodmanager.repository.InventoryRepository
 
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+
+
 class InventoryViewModel(
-    // Put the interface in the constructor
     private val repository: InventoryRepository
 ) : ViewModel() {
 
+    // Raw data from repository
     private val _inventory = MutableStateFlow<List<FoodItem>>(emptyList())
     val inventory: StateFlow<List<FoodItem>> = _inventory.asStateFlow()
 
+    // Selected storage location (Fridge, Pantry, etc.). null = show all
+    private val _selectedLocation = MutableStateFlow<String?>(null)
+    val selectedLocation: StateFlow<String?> = _selectedLocation.asStateFlow()
+
+    // Public list the UI should show: sorted by expiry and filtered by location
+    val visibleInventory: StateFlow<List<FoodItem>> =
+        combine(_inventory, _selectedLocation) { items, location ->
+            val filtered = if (location == null) {
+                items
+            } else {
+                items.filter { it.category == location }
+            }
+
+            // Dates are stored as "YYYY-MM-DD", so String sort works chronologically
+            filtered.sortedBy { it.expiryDate }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = emptyList()
+        )
+
     init {
-        // Call the getInventory function from the repository
         viewModelScope.launch {
             repository.getInventory().collect { items ->
                 _inventory.value = items
             }
         }
+    }
+
+    // Call this from the UI to change location filter
+    fun setLocationFilter(location: String?) {
+        _selectedLocation.value = location
     }
 }

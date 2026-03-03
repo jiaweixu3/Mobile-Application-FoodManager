@@ -28,6 +28,9 @@
     import com.example.foodmanager.repository.MockInventoryRepository
     import androidx.compose.runtime.remember
 
+    import androidx.compose.foundation.clickable
+    import androidx.compose.ui.text.style.TextDecoration
+
     @Composable
     fun SummaryBox(
         count: Int,
@@ -72,7 +75,7 @@
         }
 
         // Collect data
-        val inventoryList by viewModel.inventory.collectAsState()
+        val inventoryList by viewModel.visibleInventory.collectAsState()
 
         // Calculate counts
         val expiredCount = inventoryList.count { calculateDaysRemaining(it.expiryDate) < 0 }
@@ -114,6 +117,31 @@
                         backgroundColor = Color(0xFFE53935),
                         modifier = Modifier.weight(1f)
                     )
+                }
+
+                // Storage filtering
+                val locations = listOf("All", "Fridge", "Pantry")
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    val selectedLocation by viewModel.selectedLocation.collectAsState()
+
+                    locations.forEach { label ->
+                        val value = if (label == "All") null else label
+                        Text(
+                            text = label,
+                            fontSize = 14.sp,
+                            fontWeight = if (selectedLocation == value) FontWeight.Bold else FontWeight.Normal,
+                            textDecoration = if (selectedLocation == value) TextDecoration.Underline else TextDecoration.None,
+                            modifier = Modifier.clickable {
+                                viewModel.setLocationFilter(value)
+                            }
+                        )
+                    }
                 }
 
                 LazyColumn(
