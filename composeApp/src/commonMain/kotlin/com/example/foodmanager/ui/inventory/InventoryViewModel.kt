@@ -9,12 +9,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 // Import the interface
+import com.example.foodmanager.domain.sortAndFilterInventory
 import com.example.foodmanager.repository.InventoryRepository
-
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-
 
 class InventoryViewModel(
     private val repository: InventoryRepository
@@ -31,14 +30,7 @@ class InventoryViewModel(
     // Public list the UI should show: sorted by expiry and filtered by location
     val visibleInventory: StateFlow<List<FoodItem>> =
         combine(_inventory, _selectedLocation) { items, location ->
-            val filtered = if (location == null) {
-                items
-            } else {
-                items.filter { it.category == location }
-            }
-
-            // Dates are stored as "YYYY-MM-DD", so String sort works chronologically
-            filtered.sortedBy { it.expiryDate }
+            sortAndFilterInventory(items, location)
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,

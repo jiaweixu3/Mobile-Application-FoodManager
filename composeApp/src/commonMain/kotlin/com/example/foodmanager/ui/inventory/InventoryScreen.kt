@@ -25,6 +25,7 @@
     import androidx.compose.ui.unit.dp
     import androidx.compose.ui.unit.sp
 
+    import com.example.foodmanager.domain.calculateDaysRemaining
     import com.example.foodmanager.repository.MockInventoryRepository
     import androidx.compose.runtime.remember
 
@@ -78,9 +79,9 @@
         val inventoryList by viewModel.visibleInventory.collectAsState()
 
         // Calculate counts
-        val expiredCount = inventoryList.count { calculateDaysRemaining(it.expiryDate) < 0 }
-        val warningCount = inventoryList.count { calculateDaysRemaining(it.expiryDate) in 0..3 }
-        val freshCount = inventoryList.count { calculateDaysRemaining(it.expiryDate) > 3 }
+        val expiredCount = inventoryList.count { calculateDaysRemaining(it) < 0 }
+        val warningCount = inventoryList.count { calculateDaysRemaining(it) in 0..3 }
+        val freshCount = inventoryList.count { calculateDaysRemaining(it) > 3 }
 
         Scaffold(
             topBar = {
