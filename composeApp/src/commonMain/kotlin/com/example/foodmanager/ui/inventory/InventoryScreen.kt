@@ -24,7 +24,9 @@
     import androidx.compose.ui.text.font.FontWeight
     import androidx.compose.ui.unit.dp
     import androidx.compose.ui.unit.sp
-    import androidx.lifecycle.viewmodel.compose.viewModel
+
+    import com.example.foodmanager.repository.MockInventoryRepository
+    import androidx.compose.runtime.remember
 
     @Composable
     fun SummaryBox(
@@ -64,8 +66,10 @@
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun InventoryScreen() {
-        // Get the ViewModel
-        val viewModel: InventoryViewModel = viewModel { InventoryViewModel() }
+        // Pass MockInventoryRepository into the ViewModel
+        val viewModel = remember {
+            InventoryViewModel(MockInventoryRepository())
+        }
 
         // Collect data
         val inventoryList by viewModel.inventory.collectAsState()
