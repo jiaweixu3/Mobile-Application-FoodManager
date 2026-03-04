@@ -18,28 +18,52 @@ import androidx.navigation.NavController
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.foodmanager.viewmodel.AddItemViewModel
+import com.example.foodmanager.viewmodel.AddItemUiEvent
+import com.example.foodmanager.repository.MockInventoryRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddingItemScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: AddItemViewModel =
+        viewModel { AddItemViewModel(MockInventoryRepository()) }
 ) {
 
     var productName by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
     var expiryDate by remember { mutableStateOf("") }
+    var expiryDateMs by remember { mutableStateOf<Long?>(null) }
     var selectedCategory by remember { mutableStateOf("Other") }
+
     var showDatePicker by remember { mutableStateOf(false) }
     var expandedDropdown by remember { mutableStateOf(false) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val focusManager = LocalFocusManager.current
 
     val categories = listOf("Vegetables", "Fruits", "Meat", "Dairy", "Bread", "Pasta", "Rice",
-        "Frozen","Others")
+        "Frozen","Other")
+
+    // Collect events from the ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AddItemUiEvent.ShowError -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                is AddItemUiEvent.NavigateBack -> {
+                    navController.popBackStack()
+                }
+            }
+        }
+    }
 
     // User Interface
     Scaffold(
-
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(title = { Text("Add New Item") })
         }
@@ -141,7 +165,7 @@ fun AddingItemScreen(
 
                 // Save Button. The print is for debugging purposes, will be removed.
                 Button(onClick = {
-                    println("Saving -> Product: $productName, Quantity: $quantity, Category: $selectedCategory, Date: $expiryDate")
+                    viewModel.saveItem(productName, quantity, selectedCategory, expiryDateMs)
                 }) {
                     Text("Save Item")
                 }
@@ -160,6 +184,7 @@ fun AddingItemScreen(
                     showDatePicker = false
                     val selectedMillis = datePickerState.selectedDateMillis
                     if (selectedMillis != null) {
+                        expiryDateMs = selectedMillis
                         expiryDate = dateFormat(selectedMillis)
                     }
                 }) {
@@ -182,20 +207,4 @@ fun dateFormat(millis: Long): String {
     val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     return formatter.format(Date(millis))
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

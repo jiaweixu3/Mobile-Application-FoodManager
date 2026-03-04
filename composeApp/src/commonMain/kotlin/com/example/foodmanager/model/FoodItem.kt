@@ -3,7 +3,7 @@ package com.example.foodmanager.model
 data class FoodItem(
     val id: Int,
     val name: String,
-    val expiryDate: String, // YY-MM-DD format
+    val expiryDate: String, // YYYY-MM-DD format
     val amount: Double,
     val unit: String,
     val category: String,

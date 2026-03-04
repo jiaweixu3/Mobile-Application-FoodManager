@@ -1,4 +1,4 @@
-    package com.example.foodmanager.ui.inventory
+package com.example.foodmanager.ui.inventory
 
     import androidx.compose.foundation.layout.Arrangement
     import androidx.compose.foundation.layout.Column
@@ -79,6 +79,11 @@
         }
     }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InventoryScreen() {
+    // Get the ViewModel
+    val viewModel: InventoryViewModel = viewModel { InventoryViewModel(MockInventoryRepository()) }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -217,3 +222,4 @@
             }
         }
     }
+}
