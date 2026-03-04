@@ -27,6 +27,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import com.example.foodmanager.ui.auth.LoginScreen
 import com.example.foodmanager.ui.settings.SettingsScreen
+import com.example.foodmanager.repository.MockShoppingRepository
+import com.example.foodmanager.ui.shopping.ShoppingViewModel
+import com.example.foodmanager.domain.MarkAsBoughtUseCase
+import com.example.foodmanager.repository.MockInventoryRepository
+import com.example.foodmanager.domain.ConsumeFoodItemUseCase
+import com.example.foodmanager.ui.inventory.InventoryViewModel
 
 // Storing all screens in the app in a list, for simplified looping
 val screens = listOf(
@@ -62,6 +68,40 @@ fun App() {
 fun MainAppLayout(isloggedout: () -> Unit = {}) {
     // Implementing NavHost to be able to navigate between different screens
     val navController = rememberNavController()
+
+
+    // Instantiate your actual Mock repositories
+    val shoppingRepo = MockShoppingRepository()
+    val inventoryRepo = MockInventoryRepository()
+
+    //  Create the Use Case and pass in the repositories you just created
+    val markAsBoughtUseCase = MarkAsBoughtUseCase(
+        shoppingRepository = shoppingRepo,
+        inventoryRepository = inventoryRepo
+    )
+
+    // Create the ViewModel with both dependencies
+    val shoppingViewModel = ShoppingViewModel(
+        repository = shoppingRepo,
+        markAsBoughtUseCase = markAsBoughtUseCase
+    )
+
+    val consumeFoodItemUseCase = ConsumeFoodItemUseCase(
+        inventoryRepository = inventoryRepo,
+        shoppingRepository = shoppingRepo
+    )
+
+    //  Create the use case
+    val consumeUseCase = ConsumeFoodItemUseCase(inventoryRepo, shoppingRepo)
+
+    // Create the ViewModel
+    // In App.kt
+    val inventoryViewModel = InventoryViewModel(
+        repository = inventoryRepo,        // Changed from inventoryRepository
+        shoppingRepository = shoppingRepo, // Add this line
+        consumeFoodItemUseCase = consumeUseCase
+    )
+
 
     // Stores the value of the current screen
     val currentscreen_ = navController.currentBackStackEntryAsState()
@@ -103,11 +143,17 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable<ScreenDestination.Inventory> { InventoryScreen() }
-            composable<ScreenDestination.ShoppingList> { ShoppingListScreen() }
+
+
+            composable<ScreenDestination.ShoppingList> {
+                ShoppingListScreen(
+                    navController = navController,
+                    viewModel = shoppingViewModel
+                )
+            }
+
             composable<ScreenDestination.AddItem> { AddingItemScreen(navController) }
             composable<ScreenDestination.Settings> { SettingsScreen(logoutSuccess = {isloggedout()}) }
         }
-
     }
-
 }

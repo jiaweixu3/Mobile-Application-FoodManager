@@ -123,14 +123,14 @@ object MockDb {
     }
 
 
-    // Food Items for the shopping list, set to private so they will not be overwritten
     private val _shoppingitems = MutableStateFlow(
         listOf(
-            ShoppingItem(1, "Apples", false),
-            ShoppingItem(2, "Bananas", true),
-            ShoppingItem(3, "Milk", false),
-            ShoppingItem(4, "Eggs", true),
-            ShoppingItem(5, "Bread", false)
+            // order MUST be: id, name, amount (Double), unit (String), category (String), isChecked (Boolean)
+            ShoppingItem(1, "Apples", 6.0, "pcs", "Fruits", false),
+            ShoppingItem(2, "Bananas", 1.0, "kg", "Fruits", true),
+            ShoppingItem(3, "Milk", 1.0, "Litre", "Dairy", false),
+            ShoppingItem(4, "Eggs", 12.0, "u", "Meat", true),
+            ShoppingItem(5, "Bread", 1.0, "Loaf", "Bread", false)
         )
     )
     val shoppingitems = _shoppingitems.asStateFlow()
@@ -161,11 +161,12 @@ object MockDb {
     // Resetting Shopping State for Unit Tests, to avoid dependencies
     fun resetShoppingState() {
         _shoppingitems.value = listOf(
-            ShoppingItem(1, "Apples", false),
-            ShoppingItem(2, "Bananas", true),
-            ShoppingItem(3, "Milk", false),
-            ShoppingItem(4, "Eggs", true),
-            ShoppingItem(5, "Bread", false)
+            // Use the same 6-parameter format here to fix the compilation error
+            ShoppingItem(1, "Apples", 6.0, "pcs", "Fruits", false),
+            ShoppingItem(2, "Bananas", 1.0, "kg", "Fruits", true),
+            ShoppingItem(3, "Milk", 1.0, "Litre", "Dairy", false),
+            ShoppingItem(4, "Eggs", 12.0, "u", "Meat", true),
+            ShoppingItem(5, "Bread", 1.0, "Loaf", "Bread", false)
         )
     }
 }
