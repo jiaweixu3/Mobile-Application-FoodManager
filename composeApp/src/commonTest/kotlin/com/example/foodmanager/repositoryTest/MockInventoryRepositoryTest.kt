@@ -1,8 +1,8 @@
 package com.example.foodmanager.repositoryTest
 
 import com.example.foodmanager.data.MockDb
-import com.example.foodmanager.model.FoodItem
-import com.example.foodmanager.repository.MockInventoryRepository
+import com.example.foodmanager.domain.model.FoodItem
+import com.example.foodmanager.data.repository.MockInventoryRepository
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlinx.coroutines.test.runTest

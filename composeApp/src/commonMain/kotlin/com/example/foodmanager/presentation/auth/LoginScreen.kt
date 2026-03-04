@@ -1,4 +1,4 @@
-package com.example.foodmanager.ui.auth
+package com.example.foodmanager.presentation.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

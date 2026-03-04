@@ -1,10 +1,11 @@
-package com.example.foodmanager.domain
+package com.example.foodmanager.domain.useCase
 
-import com.example.foodmanager.model.FoodItem
-import com.example.foodmanager.model.ShoppingItem
-import com.example.foodmanager.repository.InventoryRepository
-import com.example.foodmanager.repository.ShoppingListRepository
+import com.example.foodmanager.data.repository.InventoryRepository
+import com.example.foodmanager.data.repository.ShoppingListRepository
+import com.example.foodmanager.domain.model.FoodItem
+import com.example.foodmanager.domain.model.ShoppingItem
 
+// This file handles when a user consumes a food item
 class ConsumeFoodItemUseCase(
     private val inventoryRepository: InventoryRepository,
     private val shoppingRepository: ShoppingListRepository
@@ -17,7 +18,7 @@ class ConsumeFoodItemUseCase(
     ) {
         val newAmount = foodItem.amount - amountConsumed
 
-        // Update or Delete from Inventory
+        // Update or Delete from Inventory depending on the current amount
         if (newAmount <= 0.0) {
             inventoryRepository.deleteFoodItem(foodItem.id)
         } else {
@@ -25,9 +26,7 @@ class ConsumeFoodItemUseCase(
             inventoryRepository.updateFoodItem(updatedFoodItem)
         }
 
-        // REMOVED: val isLow = newAmount <= 1.0
-
-        // UPDATED: Now we only check if the user explicitly asked to add it
+        // If user asks to add it to the shopping list, we include it
         if (addToShoppingList) {
             val newShoppingItem = ShoppingItem(
                 id = (1000..9999).random(),

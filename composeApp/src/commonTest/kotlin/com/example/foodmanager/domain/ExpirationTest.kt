@@ -1,6 +1,6 @@
 package com.example.foodmanager.domain
 
-import com.example.foodmanager.model.FoodItem
+import com.example.foodmanager.domain.model.FoodItem
 import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -47,9 +47,9 @@ internal class ExpirationTest {
             unit = "L",
             category = "Fridge"
         )
-        // Uses current system date; we only verify it returns an integer (no throw)
+        // Uses current system date; we only verify it returns an integer
         val result = calculateDaysRemaining(item)
-        // Result depends on "today" at run time; just ensure it's consistent with string version
+        // Result depends on "today" at run time
         assertEquals(calculateDaysRemaining(item.expiryDate), result)
     }
 }

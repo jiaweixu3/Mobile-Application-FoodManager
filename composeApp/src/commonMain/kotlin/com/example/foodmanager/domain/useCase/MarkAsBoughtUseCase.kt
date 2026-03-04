@@ -1,37 +1,35 @@
-package com.example.foodmanager.domain
+package com.example.foodmanager.domain.useCase
 
-import com.example.foodmanager.model.ShoppingItem
-import com.example.foodmanager.model.FoodItem
-import com.example.foodmanager.repository.ShoppingListRepository
-import com.example.foodmanager.repository.InventoryRepository
+import com.example.foodmanager.data.repository.InventoryRepository
+import com.example.foodmanager.data.repository.ShoppingListRepository
+import com.example.foodmanager.domain.model.FoodItem
+import com.example.foodmanager.domain.model.ShoppingItem
 import kotlinx.coroutines.flow.first
 
+// Handles when an item is marked as bought
 class MarkAsBoughtUseCase(
     private val shoppingRepository: ShoppingListRepository,
     private val inventoryRepository: InventoryRepository
 ) {
     suspend operator fun invoke(item: ShoppingItem) {
-        // 1. Remove from Shopping List
+        // Removing from shopping list
         shoppingRepository.deleteShoppingItem(item.id)
 
-        // 2. Get current inventory using your specific method name
-        // .first() takes the most recent list emitted by the Flow
+        // Obtaining the current inventory
         val currentPantry = inventoryRepository.getInventory().first()
 
-        // 3. Search for a matching name
-        // Explicitly naming the parameter 'foodItem' helps the compiler with type inference
+        // Looking for the same item
         val existingItem = currentPantry.find { foodItem: FoodItem ->
             foodItem.name.equals(item.name, ignoreCase = true)
         }
 
+        // If item exists, we update amount, if not, we create a new inventory entry
         if (existingItem != null) {
-            // MATCH FOUND: Merge the quantities
             val updatedItem = existingItem.copy(
                 amount = existingItem.amount + item.amount
             )
             inventoryRepository.updateFoodItem(updatedItem)
         } else {
-            // NO MATCH: Create a new inventory entry
             val newFoodItem = FoodItem(
                 id = (1000..9999).random(),
                 name = item.name,

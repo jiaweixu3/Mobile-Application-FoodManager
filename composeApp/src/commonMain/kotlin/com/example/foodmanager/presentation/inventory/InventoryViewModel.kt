@@ -1,21 +1,20 @@
-package com.example.foodmanager.ui.inventory
+package com.example.foodmanager.presentation.inventory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodmanager.model.FoodItem
+import com.example.foodmanager.domain.model.FoodItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-import com.example.foodmanager.domain.sortAndFilterInventory
-import com.example.foodmanager.repository.InventoryRepository
+import com.example.foodmanager.domain.useCase.sortAndFilterInventory
+import com.example.foodmanager.data.repository.InventoryRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import com.example.foodmanager.domain.ConsumeFoodItemUseCase
-import com.example.foodmanager.repository.ShoppingListRepository
-import com.example.foodmanager.model.ShoppingItem
+import com.example.foodmanager.domain.useCase.ConsumeFoodItemUseCase
+import com.example.foodmanager.data.repository.ShoppingListRepository
 import kotlinx.coroutines.flow.first
 
 class InventoryViewModel(

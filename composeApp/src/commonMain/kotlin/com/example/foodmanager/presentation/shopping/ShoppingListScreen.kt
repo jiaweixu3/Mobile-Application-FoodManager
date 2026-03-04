@@ -1,4 +1,4 @@
-package com.example.foodmanager.ui.shopping
+package com.example.foodmanager.presentation.shopping
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,16 +14,15 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.navigation.NavController
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
-import com.example.foodmanager.model.ShoppingItem
+import com.example.foodmanager.domain.model.ShoppingItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoppingListScreen(
     navController: NavController,
-    // Pass the ViewModel here
     viewModel: ShoppingViewModel
 ) {
-    //  Observe the state from the ViewModel/MockDb
+    //  Obtaining values from ViewModel and MockDB.
     val shoppingList by viewModel.items.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
@@ -60,7 +59,6 @@ fun ShoppingListScreen(
             // Check if any items in the list are currently checked
             val hasCheckedItems = shoppingList.any { it.isChecked }
 
-            // We use a Surface/Box to give it a solid background behind the list
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shadowElevation = 8.dp
@@ -101,6 +99,7 @@ fun ShoppingListScreen(
             }
         }
 
+        // If button is clicked for adding an item, displaying the dialog box
         if (showAddDialog) {
             AlertDialog(
                 onDismissRequest = { showAddDialog = false },
@@ -212,6 +211,7 @@ fun ShoppingListScreen(
         }
     }
 }
+
 
 
 @Composable

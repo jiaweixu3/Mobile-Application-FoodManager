@@ -1,6 +1,6 @@
-package com.example.foodmanager.domain
+package com.example.foodmanager.domain.useCase
 
-import com.example.foodmanager.model.FoodItem
+import com.example.foodmanager.domain.model.FoodItem
 
 /**
  * Sorts inventory by expiry date (soonest first) and optionally filters by product category
