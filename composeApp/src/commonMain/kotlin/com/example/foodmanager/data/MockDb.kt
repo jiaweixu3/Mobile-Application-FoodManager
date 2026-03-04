@@ -16,8 +16,8 @@ object MockDb {
                 name = "Milk",
                 expiryDate = "2026-02-01",
                 amount = 1.0,
-                unit = "Carton",
-                category = "Fridge",
+                unit = "Litre",
+                category = "Dairy",
                 barcode = "123456789",
                 photoUrl = "milk.jpg"
             ),
@@ -27,7 +27,7 @@ object MockDb {
                 expiryDate = "2026-02-10",
                 amount = 200.0,
                 unit = "g",
-                category = "Fridge"
+                category = "Vegetables"
             ),
             FoodItem(
                 id = 3,
@@ -35,7 +35,7 @@ object MockDb {
                 expiryDate = "2026-03-15",
                 amount = 2.0,
                 unit = "Cans",
-                category = "Pantry"
+                category = "Pasta"
             )
         )
     )
@@ -98,8 +98,8 @@ object MockDb {
                 name = "Milk",
                 expiryDate = "2026-02-01",
                 amount = 1.0,
-                unit = "Carton",
-                category = "Fridge",
+                unit = "Litre",
+                category = "Dairy",
                 barcode = "123456789",
                 photoUrl = "milk.jpg"
             ),
@@ -109,7 +109,7 @@ object MockDb {
                 expiryDate = "2026-02-10",
                 amount = 200.0,
                 unit = "g",
-                category = "Fridge"
+                category = "Vegetables"
             ),
             FoodItem(
                 id = 3,
@@ -117,7 +117,7 @@ object MockDb {
                 expiryDate = "2026-03-15",
                 amount = 2.0,
                 unit = "Cans",
-                category = "Pantry"
+                category = "Pasta"
             )
         )
     }

@@ -5,7 +5,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * Unit tests for inventory sorting by expiry and filtering by storage location.
+ * Unit tests for inventory sorting by expiry and filtering by product category.
  * Handles cases such as same-day expiring items.
  */
 internal class InventorySortFilterTest {
@@ -22,9 +22,9 @@ internal class InventorySortFilterTest {
     @Test
     fun sortAndFilterInventory_noFilter_returnsSortedByExpiry() {
         val items = listOf(
-            item(1, "Late", "2026-04-01", "Pantry"),
-            item(2, "Soon", "2026-02-15", "Fridge"),
-            item(3, "Mid", "2026-03-01", "Fridge")
+            item(1, "Late", "2026-04-01", "Pasta"),
+            item(2, "Soon", "2026-02-15", "Meat"),
+            item(3, "Mid", "2026-03-01", "Meat")
         )
         val result = sortAndFilterInventory(items, null)
         assertEquals(3, result.size)
@@ -36,8 +36,8 @@ internal class InventorySortFilterTest {
     @Test
     fun sortAndFilterInventory_sameDayExpiring_stableOrder() {
         val items = listOf(
-            item(1, "First", "2026-03-10", "Fridge"),
-            item(2, "Second", "2026-03-10", "Fridge")
+            item(1, "First", "2026-03-10", "Dairy"),
+            item(2, "Second", "2026-03-10", "Dairy")
         )
         val result = sortAndFilterInventory(items, null)
         assertEquals(2, result.size)
@@ -49,13 +49,13 @@ internal class InventorySortFilterTest {
     }
 
     @Test
-    fun sortAndFilterInventory_filterFridge_onlyFridgeItems() {
+    fun sortAndFilterInventory_filterMeat_onlyMeatItems() {
         val items = listOf(
-            item(1, "Milk", "2026-02-01", "Fridge"),
-            item(2, "Beans", "2026-03-15", "Pantry"),
-            item(3, "Spinach", "2026-02-10", "Fridge")
+            item(1, "Milk", "2026-02-01", "Dairy"),
+            item(2, "Steak", "2026-03-15", "Meat"),
+            item(3, "Chicken", "2026-02-10", "Meat")
         )
-        val result = sortAndFilterInventory(items, "Fridge")
+        val result = sortAndFilterInventory(items, "Meat")
         assertEquals(2, result.size)
         assertEquals("Milk", result[0].name)
         assertEquals("Spinach", result[1].name)
@@ -64,11 +64,11 @@ internal class InventorySortFilterTest {
     @Test
     fun sortAndFilterInventory_filterPantry_onlyPantryItems() {
         val items = listOf(
-            item(1, "Milk", "2026-02-01", "Fridge"),
-            item(2, "Beans", "2026-03-15", "Pantry"),
-            item(3, "Rice", "2026-04-01", "Pantry")
+            item(1, "Milk", "2026-02-01", "Dairy"),
+            item(2, "Spaghetti", "2026-03-15", "Pasta"),
+            item(3, "Penne", "2026-04-01", "Pasta")
         )
-        val result = sortAndFilterInventory(items, "Pantry")
+        val result = sortAndFilterInventory(items, "Pasta")
         assertEquals(2, result.size)
         assertEquals("Beans", result[0].name)
         assertEquals("Rice", result[1].name)
@@ -77,9 +77,9 @@ internal class InventorySortFilterTest {
     @Test
     fun sortAndFilterInventory_filterWithNoMatch_returnsEmpty() {
         val items = listOf(
-            item(1, "Milk", "2026-02-01", "Fridge")
+            item(1, "Milk", "2026-02-01", "Dairy")
         )
-        val result = sortAndFilterInventory(items, "Pantry")
+        val result = sortAndFilterInventory(items, "Pasta")
         assertEquals(0, result.size)
     }
 

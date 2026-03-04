@@ -3,7 +3,6 @@ package com.example.foodmanager
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.example.foodmanager.ui.inventory.InventoryScreen
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,6 +31,7 @@ import com.example.foodmanager.ui.shopping.ShoppingViewModel
 import com.example.foodmanager.domain.MarkAsBoughtUseCase
 import com.example.foodmanager.repository.MockInventoryRepository
 import com.example.foodmanager.domain.ConsumeFoodItemUseCase
+import com.example.foodmanager.ui.inventory.InventoryScreen
 import com.example.foodmanager.ui.inventory.InventoryViewModel
 
 // Storing all screens in the app in a list, for simplified looping
@@ -94,11 +94,10 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
     //  Create the use case
     val consumeUseCase = ConsumeFoodItemUseCase(inventoryRepo, shoppingRepo)
 
-    // Create the ViewModel
-    // In App.kt
+    // Create the Inventory ViewModel used by the Inventory screen
     val inventoryViewModel = InventoryViewModel(
-        repository = inventoryRepo,        // Changed from inventoryRepository
-        shoppingRepository = shoppingRepo, // Add this line
+        repository = inventoryRepo,
+        shoppingRepository = shoppingRepo,
         consumeFoodItemUseCase = consumeUseCase
     )
 
@@ -142,7 +141,9 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
             startDestination = ScreenDestination.Inventory,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable<ScreenDestination.Inventory> { InventoryScreen() }
+            composable<ScreenDestination.Inventory> {
+                InventoryScreen(viewModel = inventoryViewModel)
+            }
 
 
             composable<ScreenDestination.ShoppingList> {

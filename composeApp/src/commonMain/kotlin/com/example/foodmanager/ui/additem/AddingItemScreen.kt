@@ -36,16 +36,21 @@ fun AddingItemScreen(
     var expiryDate by remember { mutableStateOf("") }
     var expiryDateMs by remember { mutableStateOf<Long?>(null) }
     var selectedCategory by remember { mutableStateOf("Other") }
+    var selectedUnit by remember { mutableStateOf("units") }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var expandedDropdown by remember { mutableStateOf(false) }
+    var expandedUnitDropdown by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
     val focusManager = LocalFocusManager.current
 
-    val categories = listOf("Vegetables", "Fruits", "Meat", "Dairy", "Bread", "Pasta", "Rice",
-        "Frozen","Other")
+    val categories = listOf(
+        "Vegetables", "Fruits", "Meat", "Dairy", "Bread", "Pasta", "Rice",
+        "Frozen", "Other"
+    )
+    val quantityTypes = listOf("grams", "kilograms", "millilitres", "litres", "units", "pieces")
 
     // Collect events from the ViewModel
     LaunchedEffect(Unit) {
@@ -103,7 +108,7 @@ fun AddingItemScreen(
                 )
             )
 
-            // Issue 15. Category Selector
+            // Category Selector
             Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = selectedCategory,
@@ -136,7 +141,40 @@ fun AddingItemScreen(
                 }
             }
 
-            // Issue 14. Date Picker
+            // Quantity type selector (grams, litres, units, etc.)
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = selectedUnit,
+                    onValueChange = {},
+                    label = { Text("Quantity Type") },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true,
+                    trailingIcon = {
+                        Icon(
+                            Icons.Filled.ArrowDropDown,
+                            "Select Quantity Type",
+                            Modifier.clickable { expandedUnitDropdown = true }
+                        )
+                    }
+                )
+
+                DropdownMenu(
+                    expanded = expandedUnitDropdown,
+                    onDismissRequest = { expandedUnitDropdown = false }
+                ) {
+                    quantityTypes.forEach { unit ->
+                        DropdownMenuItem(
+                            text = { Text(unit) },
+                            onClick = {
+                                selectedUnit = unit
+                                expandedUnitDropdown = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            // Date Picker
 
             Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
@@ -163,9 +201,9 @@ fun AddingItemScreen(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Save Button. The print is for debugging purposes, will be removed.
+                // Save Button.
                 Button(onClick = {
-                    viewModel.saveItem(productName, quantity, selectedCategory, expiryDateMs)
+                    viewModel.saveItem(productName, quantity, selectedCategory, selectedUnit, expiryDateMs)
                 }) {
                     Text("Save Item")
                 }
