@@ -1,4 +1,4 @@
-package com.example.foodmanager.presentation.inventory
+package com.example.foodmanager.ui.inventory
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

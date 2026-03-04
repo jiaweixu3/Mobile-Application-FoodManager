@@ -1,4 +1,4 @@
-package com.example.foodmanager.presentation.theme
+package com.example.foodmanager.ui.theme
 
 import androidx.compose.material3.Typography
 

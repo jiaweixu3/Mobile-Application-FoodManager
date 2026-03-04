@@ -1,4 +1,4 @@
-package com.example.foodmanager.presentation.shopping
+package com.example.foodmanager.ui.shopping
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

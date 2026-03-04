@@ -1,4 +1,4 @@
-package com.example.foodmanager.presentation.settings
+package com.example.foodmanager.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

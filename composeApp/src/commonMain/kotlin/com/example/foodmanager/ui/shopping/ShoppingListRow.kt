@@ -1,4 +1,4 @@
-package com.example.foodmanager.presentation.shopping
+package com.example.foodmanager.ui.shopping
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

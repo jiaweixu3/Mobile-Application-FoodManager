@@ -44,7 +44,6 @@ internal class InventorySortFilterTest {
         assertEquals(2, result.size)
         assertEquals("2026-03-10", result[0].expiryDate)
         assertEquals("2026-03-10", result[1].expiryDate)
-        // Stable sort: original order preserved when keys equal
         assertEquals("First", result[0].name)
         assertEquals("Second", result[1].name)
     }
@@ -58,8 +57,8 @@ internal class InventorySortFilterTest {
         )
         val result = sortAndFilterInventory(items, "Meat")
         assertEquals(2, result.size)
-        assertEquals("Milk", result[0].name)
-        assertEquals("Spinach", result[1].name)
+        assertEquals("Chicken", result[0].name)
+        assertEquals("Steak", result[1].name)
     }
 
     @Test
@@ -71,8 +70,8 @@ internal class InventorySortFilterTest {
         )
         val result = sortAndFilterInventory(items, "Pasta")
         assertEquals(2, result.size)
-        assertEquals("Beans", result[0].name)
-        assertEquals("Rice", result[1].name)
+        assertEquals("Spaghetti", result[0].name)
+        assertEquals("Penne", result[1].name)
     }
 
     @Test
