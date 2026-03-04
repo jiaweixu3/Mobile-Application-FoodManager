@@ -18,11 +18,10 @@ import com.example.foodmanager.model.ShoppingItem
 @Composable
 fun ShoppingListScreen(
     navController: NavController,
-    // 1. Pass the ViewModel here
+    // Pass the ViewModel here
     viewModel: ShoppingViewModel
 ) {
-    // 2. Observe the state from the ViewModel/MockDb
-    // This replaces the local 'remember { mutableStateListOf }'
+    //  Observe the state from the ViewModel/MockDb
     val shoppingList by viewModel.items.collectAsState()
 
     Scaffold(
@@ -37,12 +36,34 @@ fun ShoppingListScreen(
             )
         },
         floatingActionButton = {
-            // Updated to navigate to your actual Add Item route if needed
             FloatingActionButton(onClick = { /* navController.navigate("addItem") */ }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Item")
             }
+        },
+
+        bottomBar = {
+            // Check if any items in the list are currently checked
+            val hasCheckedItems = shoppingList.any { it.isChecked }
+
+            // We use a Surface/Box to give it a solid background behind the list
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shadowElevation = 8.dp
+            ) {
+                Button(
+                    onClick = { viewModel.markCheckedItemsAsBought() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    // The button will be grayed out if nothing is checked
+                    enabled = hasCheckedItems
+                ) {
+                    Text("Mark Checked as Bought")
+                }
+            }
         }
     ) { paddingValues ->
+        // ... The rest of your code stays exactly the same!
         if (shoppingList.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                 Text("Your shopping list is empty!")
@@ -59,7 +80,6 @@ fun ShoppingListScreen(
                     ShoppingItemRow(
                         item = item,
                         onCheckedChange = {
-                            // 3. Update the state in MockDB through the ViewModel
                             viewModel.toggleItem(item)
                         }
                     )
@@ -69,8 +89,7 @@ fun ShoppingListScreen(
     }
 }
 
-// ShoppingItemRow stays mostly the same, but it's now "stateless"
-// because it just reports clicks back to the ViewModel.
+
 @Composable
 fun ShoppingItemRow(item: ShoppingItem, onCheckedChange: (Boolean) -> Unit) {
     Card(

@@ -1,35 +1,33 @@
 package com.example.foodmanager.ui.inventory
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.foodmanager.domain.calculateDaysRemaining
 import com.example.foodmanager.model.FoodItem
+import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 
 @Composable
 fun FoodCard(
     item: FoodItem,
+    viewModel: InventoryViewModel, // Added
     modifier: Modifier = Modifier
 ) {
+    var showConsumeDialog by remember { mutableStateOf(false) }
+    val suggestedItem by viewModel.suggestedItem.collectAsState()
     // Calculate days until expiration (FoodItem overload for testability)
     val daysRemaining = calculateDaysRemaining(item)
 
@@ -107,7 +105,117 @@ fun FoodCard(
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { showConsumeDialog = true }, // Flips the "switch" to show popup
+                    modifier = Modifier.height(36.dp)
+                ) {
+                    Text("Consume", fontSize = 12.sp)
+                }
             }
         }
     }
+    // Show the dialog if the state is true
+    if (showConsumeDialog) {
+        ConsumeItemDialog(
+            foodItem = item,
+            onDismiss = { showConsumeDialog = false },
+            onConfirm = { consumed, buy, addToList -> // 3 parameters now
+                // 5. Update the ViewModel call with the 4th argument (buy)
+                viewModel.consumeItem(item, consumed, addToList, buy)
+                showConsumeDialog = false
+            }
+        )
+    }
+}
+
+// 5. The Dialog Composable
+@Composable
+fun ConsumeItemDialog(
+    foodItem: FoodItem,
+    onDismiss: () -> Unit,
+    onConfirm: (consumed: Double, buyAmount: Double, addToList: Boolean) -> Unit
+) {
+    var consumedAmountText by remember { mutableStateOf("1.0") }
+    var buyAmountText by remember { mutableStateOf("1.0") }
+    var addToShoppingList by remember { mutableStateOf(false) }
+
+    // Validation logic
+    val consumedValue = consumedAmountText.toDoubleOrNull() ?: 0.0
+    val isError = consumedValue > foodItem.amount
+    val isInputValid = consumedAmountText.isNotEmpty() && consumedValue > 0 && !isError
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Consume ${foodItem.name}") },
+        text = {
+            Column {
+                Text(
+                    text = "Current amount: ${foodItem.amount} ${foodItem.unit}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (isError) MaterialTheme.colorScheme.error else Color.Unspecified
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = consumedAmountText,
+                    onValueChange = { consumedAmountText = it },
+                    label = { Text("Amount used") },
+                    isError = isError,
+                    supportingText = {
+                        if (isError) {
+                            Text("Cannot exceed ${foodItem.amount} ${foodItem.unit}")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = addToShoppingList,
+                        onCheckedChange = { addToShoppingList = it }
+                    )
+                    Text("Add to shopping list?")
+                }
+
+                // Only shows if the checkbox is checked
+                if (addToShoppingList) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = buyAmountText,
+                        onValueChange = { buyAmountText = it },
+                        label = { Text("Quantity to buy next") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                enabled = isInputValid, // Button only works if input is valid
+                onClick = {
+                    val consumed = consumedAmountText.toDoubleOrNull() ?: 0.0
+                    val buy = buyAmountText.toDoubleOrNull() ?: 1.0
+                    onConfirm(consumed, buy, addToShoppingList)
+                }
+            ) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }

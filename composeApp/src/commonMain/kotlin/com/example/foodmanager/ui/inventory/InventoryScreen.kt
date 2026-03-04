@@ -32,6 +32,19 @@
     import androidx.compose.foundation.clickable
     import androidx.compose.ui.text.style.TextDecoration
 
+    import com.example.foodmanager.domain.ConsumeFoodItemUseCase
+    import com.example.foodmanager.repository.MockShoppingRepository
+    import androidx.compose.material3.AlertDialog
+    import androidx.compose.material3.Button
+    import androidx.compose.material3.TextButton
+    import androidx.compose.foundation.layout.Spacer
+    import androidx.compose.material3.OutlinedTextField
+    import androidx.compose.runtime.mutableStateOf
+    import androidx.compose.runtime.setValue
+    import androidx.compose.runtime.getValue
+    import androidx.compose.foundation.text.KeyboardOptions
+    import androidx.compose.ui.text.input.KeyboardType
+
     @Composable
     fun SummaryBox(
         count: Int,
@@ -72,11 +85,18 @@
     fun InventoryScreen() {
         // Pass MockInventoryRepository into the ViewModel
         val viewModel = remember {
-            InventoryViewModel(MockInventoryRepository())
+            val inventoryRepo = MockInventoryRepository()
+            val shoppingRepo = MockShoppingRepository()
+            InventoryViewModel(
+                repository = inventoryRepo,
+                shoppingRepository = shoppingRepo,
+                consumeFoodItemUseCase = ConsumeFoodItemUseCase(inventoryRepo, shoppingRepo)
+            )
         }
 
         // Collect data
         val inventoryList by viewModel.visibleInventory.collectAsState()
+        val suggestedItem by viewModel.suggestedItem.collectAsState()
 
         // Calculate counts
         val expiredCount = inventoryList.count { calculateDaysRemaining(it) < 0 }
@@ -85,7 +105,7 @@
 
         Scaffold(
             topBar = {
-                CenterAlignedTopAppBar(title = { Text("My Pantry")})
+                CenterAlignedTopAppBar(title = { Text("My Pantry") })
             }
         ) { innerPadding ->
             Column(
@@ -148,12 +168,52 @@
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize(),
-                        contentPadding = PaddingValues(vertical = 8.dp)
+                    contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
                     items(inventoryList) { foodItem ->
-                        FoodCard(item = foodItem)
+                        FoodCard(item = foodItem, viewModel = viewModel)
                     }
                 }
+            }
+
+            suggestedItem?.let { foodToRestock ->
+                var buyQuantity by remember { mutableStateOf("1.0") }
+
+                AlertDialog(
+                    onDismissRequest = { viewModel.dismissSuggestion() },
+                    title = { Text("Out of ${foodToRestock.name}!") },
+                    text = {
+                        Column {
+                            Text("Add ${foodToRestock.name} to your shopping list?")
+                            Spacer(modifier = Modifier.padding(8.dp))
+                            OutlinedTextField(
+                                value = buyQuantity,
+                                onValueChange = { newValue -> buyQuantity = newValue },
+                                label = { Text("Quantity to buy") },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                val qty = buyQuantity.toDoubleOrNull() ?: 1.0
+                                // Use the renamed variable 'foodToRestock'
+                                viewModel.consumeItem(foodToRestock, 0.0, true, qty)
+                                viewModel.dismissSuggestion()
+                            }
+                        ) {
+                            Text("Add to List")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { viewModel.dismissSuggestion() }) {
+                            Text("No thanks")
+                        }
+                    }
+                )
             }
         }
     }

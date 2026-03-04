@@ -29,7 +29,10 @@ import com.example.foodmanager.ui.auth.LoginScreen
 import com.example.foodmanager.ui.settings.SettingsScreen
 import com.example.foodmanager.repository.MockShoppingRepository
 import com.example.foodmanager.ui.shopping.ShoppingViewModel
-
+import com.example.foodmanager.domain.MarkAsBoughtUseCase
+import com.example.foodmanager.repository.MockInventoryRepository
+import com.example.foodmanager.domain.ConsumeFoodItemUseCase
+import com.example.foodmanager.ui.inventory.InventoryViewModel
 
 // Storing all screens in the app in a list, for simplified looping
 val screens = listOf(
@@ -66,10 +69,39 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
     // Implementing NavHost to be able to navigate between different screens
     val navController = rememberNavController()
 
-    // 2. Initialize the connection here so it persists while the app is open
-    // Since we aren't using a Factory yet, we manually inject the Mock Repository
-    val shoppingRepository = remember { MockShoppingRepository() }
-    val shoppingViewModel = remember { ShoppingViewModel(repository = shoppingRepository) }
+
+    // Instantiate your actual Mock repositories
+    val shoppingRepo = MockShoppingRepository()
+    val inventoryRepo = MockInventoryRepository()
+
+    //  Create the Use Case and pass in the repositories you just created
+    val markAsBoughtUseCase = MarkAsBoughtUseCase(
+        shoppingRepository = shoppingRepo,
+        inventoryRepository = inventoryRepo
+    )
+
+    // Create the ViewModel with both dependencies
+    val shoppingViewModel = ShoppingViewModel(
+        repository = shoppingRepo,
+        markAsBoughtUseCase = markAsBoughtUseCase
+    )
+
+    val consumeFoodItemUseCase = ConsumeFoodItemUseCase(
+        inventoryRepository = inventoryRepo,
+        shoppingRepository = shoppingRepo
+    )
+
+    //  Create the use case
+    val consumeUseCase = ConsumeFoodItemUseCase(inventoryRepo, shoppingRepo)
+
+    // Create the ViewModel
+    // In App.kt
+    val inventoryViewModel = InventoryViewModel(
+        repository = inventoryRepo,        // Changed from inventoryRepository
+        shoppingRepository = shoppingRepo, // Add this line
+        consumeFoodItemUseCase = consumeUseCase
+    )
+
 
     // Stores the value of the current screen
     val currentscreen_ = navController.currentBackStackEntryAsState()
