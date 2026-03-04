@@ -6,7 +6,7 @@ data class FoodItem(
     val expiryDate: String, // YYYY-MM-DD format
     val amount: Double,
     val unit: String,
-    val category: String,
+    val category: String, // e.g. "Pasta", "Meat", "Dairy"
 
     // Nullable fields
     val barcode: String? = null,

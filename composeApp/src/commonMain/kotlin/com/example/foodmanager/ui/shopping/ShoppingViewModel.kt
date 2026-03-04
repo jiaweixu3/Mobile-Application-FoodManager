@@ -38,6 +38,22 @@ class ShoppingViewModel(
         }
     }
 
+    // Adds a brand new item directly to the shopping list
+    fun addItem(name: String, amount: Double, unit: String, category: String) {
+        if (name.isBlank() || amount <= 0.0) return
+        viewModelScope.launch {
+            val newItem = ShoppingItem(
+                id = (1000..9999).random(),
+                name = name,
+                amount = amount,
+                unit = unit,
+                category = category,
+                isChecked = false
+            )
+            repository.addShoppingItem(newItem)
+        }
+    }
+
     // Moves checked items to inventory
     fun markCheckedItemsAsBought() {
         viewModelScope.launch {

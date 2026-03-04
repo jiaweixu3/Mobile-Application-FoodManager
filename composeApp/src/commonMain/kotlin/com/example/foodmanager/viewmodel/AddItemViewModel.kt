@@ -28,7 +28,7 @@ class AddItemViewModel(
     private val _uiEvent = MutableSharedFlow<AddItemUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    fun saveItem(name: String, quantity: String, category: String, expiryDateMs: Long?) {
+    fun saveItem(name: String, quantity: String, category: String, unit: String, expiryDateMs: Long?) {
         // 1. Validate the input data
         val validation = validateFoodItem.execute(name, quantity, expiryDateMs)
 
@@ -53,9 +53,9 @@ class AddItemViewModel(
             name = name,
             expiryDate = dateString,
             amount = quantity.toDoubleOrNull() ?: 0.0,
-            unit = "units",
+            unit = unit,
             category = category
-            )
+        )
 
         viewModelScope.launch {
             try {

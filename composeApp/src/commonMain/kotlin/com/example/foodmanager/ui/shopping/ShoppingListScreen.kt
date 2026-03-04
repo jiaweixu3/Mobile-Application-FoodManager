@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.navigation.NavController
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import com.example.foodmanager.model.ShoppingItem
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,6 +25,19 @@ fun ShoppingListScreen(
 ) {
     //  Observe the state from the ViewModel/MockDb
     val shoppingList by viewModel.items.collectAsState()
+    var showAddDialog by remember { mutableStateOf(false) }
+    var newName by remember { mutableStateOf("") }
+    var newQuantity by remember { mutableStateOf("") }
+    var newUnit by remember { mutableStateOf("units") }
+    var newCategory by remember { mutableStateOf("Other") }
+    var expandedUnit by remember { mutableStateOf(false) }
+    var expandedCategory by remember { mutableStateOf(false) }
+
+    val quantityTypes = listOf("grams", "kilograms", "millilitres", "litres", "units", "pieces")
+    val categoryOptions = listOf(
+        "Vegetables", "Fruits", "Meat", "Dairy", "Bread", "Pasta", "Rice",
+        "Frozen", "Other"
+    )
 
     Scaffold(
         topBar = {
@@ -36,8 +51,8 @@ fun ShoppingListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { /* navController.navigate("addItem") */ }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Item")
+            FloatingActionButton(onClick = { showAddDialog = true }) {
+                Icon(Icons.Default.Add, contentDescription = "Create shopping item")
             }
         },
 
@@ -63,7 +78,6 @@ fun ShoppingListScreen(
             }
         }
     ) { paddingValues ->
-        // ... The rest of your code stays exactly the same!
         if (shoppingList.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                 Text("Your shopping list is empty!")
@@ -85,6 +99,116 @@ fun ShoppingListScreen(
                     )
                 }
             }
+        }
+
+        if (showAddDialog) {
+            AlertDialog(
+                onDismissRequest = { showAddDialog = false },
+                title = { Text("Create shopping item") },
+                text = {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = newName,
+                            onValueChange = { newName = it },
+                            label = { Text("Item name") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = newQuantity,
+                            onValueChange = { newQuantity = it },
+                            label = { Text("Quantity") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+                        OutlinedTextField(
+                            value = newUnit,
+                            onValueChange = {},
+                            label = { Text("Quantity type") },
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true,
+                            trailingIcon = {
+                                Box {
+                                    IconButton(onClick = { expandedUnit = true }) {
+                                        Icon(
+                                            Icons.Default.ArrowDropDown,
+                                            contentDescription = "Select quantity type"
+                                        )
+                                    }
+                                    DropdownMenu(
+                                        expanded = expandedUnit,
+                                        onDismissRequest = { expandedUnit = false }
+                                    ) {
+                                        quantityTypes.forEach { unit ->
+                                            DropdownMenuItem(
+                                                text = { Text(unit) },
+                                                onClick = {
+                                                    newUnit = unit
+                                                    expandedUnit = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        )
+                        OutlinedTextField(
+                            value = newCategory,
+                            onValueChange = {},
+                            label = { Text("Category") },
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true,
+                            trailingIcon = {
+                                Box {
+                                    IconButton(onClick = { expandedCategory = true }) {
+                                        Icon(
+                                            Icons.Default.ArrowDropDown,
+                                            contentDescription = "Select category"
+                                        )
+                                    }
+                                    DropdownMenu(
+                                        expanded = expandedCategory,
+                                        onDismissRequest = { expandedCategory = false }
+                                    ) {
+                                        categoryOptions.forEach { cat ->
+                                            DropdownMenuItem(
+                                                text = { Text(cat) },
+                                                onClick = {
+                                                    newCategory = cat
+                                                    expandedCategory = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val qty = newQuantity.toDoubleOrNull() ?: 0.0
+                            viewModel.addItem(newName.trim(), qty, newUnit, newCategory.trim())
+                            showAddDialog = false
+                            newName = ""
+                            newQuantity = ""
+                            newUnit = "units"
+                            newCategory = "Other"
+                        }
+                    ) {
+                        Text("Add")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showAddDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }
