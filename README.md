@@ -21,3 +21,5 @@ Our [project proposal](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wi
 Our [team meeting minutes](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Meeting-Minutes) includes details about what was discussed in each of the meetings
 
 Our milestone for [Sprint 1](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/2) is included here.
+
+Our milestone for [Sprint 2](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/3) is included here
