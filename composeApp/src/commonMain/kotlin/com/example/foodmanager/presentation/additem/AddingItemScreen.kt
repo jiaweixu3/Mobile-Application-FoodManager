@@ -1,4 +1,4 @@
-package com.example.foodmanager.ui.additem
+package com.example.foodmanager.presentation.additem
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,9 +19,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.foodmanager.viewmodel.AddItemViewModel
-import com.example.foodmanager.viewmodel.AddItemUiEvent
-import com.example.foodmanager.repository.MockInventoryRepository
+import com.example.foodmanager.data.repository.MockInventoryRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -124,6 +122,7 @@ fun AddingItemScreen(
                         )
                     }
                 )
+
 
                 DropdownMenu(
                     expanded = expandedDropdown,

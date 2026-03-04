@@ -1,10 +1,10 @@
-package com.example.foodmanager.ui.shopping
+package com.example.foodmanager.presentation.shopping
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodmanager.domain.MarkAsBoughtUseCase
-import com.example.foodmanager.model.ShoppingItem
-import com.example.foodmanager.repository.ShoppingListRepository
+import com.example.foodmanager.domain.useCase.MarkAsBoughtUseCase
+import com.example.foodmanager.domain.model.ShoppingItem
+import com.example.foodmanager.data.repository.ShoppingListRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn

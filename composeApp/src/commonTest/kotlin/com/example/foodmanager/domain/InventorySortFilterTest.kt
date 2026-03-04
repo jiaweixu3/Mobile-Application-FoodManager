@@ -1,6 +1,7 @@
 package com.example.foodmanager.domain
 
-import com.example.foodmanager.model.FoodItem
+import com.example.foodmanager.domain.model.FoodItem
+import com.example.foodmanager.domain.useCase.sortAndFilterInventory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

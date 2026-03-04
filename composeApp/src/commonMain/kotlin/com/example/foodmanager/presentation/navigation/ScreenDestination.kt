@@ -1,15 +1,15 @@
-package com.example.foodmanager
+package com.example.foodmanager.presentation.navigation
 
-// This file defines where to find each of the screens for navigation
-// Uses Serializable as data type passing is safer and sealed to avoid compilation errors
-
-import kotlinx.serialization.Serializable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.material.icons.filled.Settings
+import kotlinx.serialization.Serializable
+
+// This file defines where to find each of the screens for navigation
+// Uses Serializable as data type passing is safer and sealed to avoid compilation errors
 
 
 // Sealed allows for a fixed number of screen, avoids future bugs as well as it checks all elements

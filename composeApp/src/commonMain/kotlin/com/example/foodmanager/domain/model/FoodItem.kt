@@ -1,4 +1,4 @@
-package com.example.foodmanager.model
+package com.example.foodmanager.domain.model
 
 data class FoodItem(
     val id: Int,

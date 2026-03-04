@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 package com.example.foodmanager.domain
 
-import com.example.foodmanager.model.FoodItem
+import com.example.foodmanager.domain.model.FoodItem
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone

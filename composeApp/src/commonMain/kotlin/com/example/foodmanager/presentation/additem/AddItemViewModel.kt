@@ -1,11 +1,11 @@
-package com.example.foodmanager.viewmodel
+package com.example.foodmanager.presentation.additem
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodmanager.domain.ValidateFoodItemUseCase
-import com.example.foodmanager.domain.ValidationResult
-import com.example.foodmanager.model.FoodItem
-import com.example.foodmanager.repository.InventoryRepository
+import com.example.foodmanager.domain.useCase.ValidateFoodItemUseCase
+import com.example.foodmanager.domain.useCase.ValidationResult
+import com.example.foodmanager.domain.model.FoodItem
+import com.example.foodmanager.data.repository.InventoryRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -29,9 +29,10 @@ class AddItemViewModel(
     val uiEvent = _uiEvent.asSharedFlow()
 
     fun saveItem(name: String, quantity: String, category: String, unit: String, expiryDateMs: Long?) {
-        // 1. Validate the input data
+        // Validating the input
         val validation = validateFoodItem.execute(name, quantity, expiryDateMs)
 
+        // If error, we stop the process
         if (validation is ValidationResult.Error) {
             viewModelScope.launch {
                 _uiEvent.emit(AddItemUiEvent.ShowError(validation.message))
@@ -39,8 +40,7 @@ class AddItemViewModel(
             return
         }
 
-        // 2. Create the FoodItem object
-
+        // If success, we create the FoodItem
         val dateString: String = if (expiryDateMs != null) {
             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 .format(Date(expiryDateMs))
@@ -59,10 +59,10 @@ class AddItemViewModel(
 
         viewModelScope.launch {
             try {
-                // 3. Save the item to the repository
+                // Saving the item to the repository
                 repository.addFoodItem(newItem)
 
-                // 4. Navigate back to the inventory screen
+                // Going back to the inventory
                 _uiEvent.emit(AddItemUiEvent.NavigateBack)
             } catch (e: Exception) {
                 _uiEvent.emit(AddItemUiEvent.ShowError("ERROR while saving the data"))

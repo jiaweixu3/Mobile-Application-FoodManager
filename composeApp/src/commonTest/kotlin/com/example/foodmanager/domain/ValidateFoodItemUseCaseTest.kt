@@ -1,5 +1,7 @@
 package com.example.foodmanager.domain
 
+import com.example.foodmanager.domain.useCase.ValidateFoodItemUseCase
+import com.example.foodmanager.domain.useCase.ValidationResult
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -7,10 +9,9 @@ import org.junit.Test
 
 class ValidateFoodItemUseCaseTest {
 
-    // Class under test
+
     private lateinit var validateFoodItem: ValidateFoodItemUseCase
 
-    // Runs before each test to provide a fresh instance
     @Before
     fun setUp() {
         validateFoodItem = ValidateFoodItemUseCase()

@@ -1,9 +1,9 @@
-package com.example.foodmanager.repository
+package com.example.foodmanager.data.repository
 
 // This file defines the basic interfaces and the used functions
 import com.example.foodmanager.data.MockDb
-import com.example.foodmanager.model.ShoppingItem
-import com.example.foodmanager.model.FoodItem
+import com.example.foodmanager.domain.model.ShoppingItem
+import com.example.foodmanager.domain.model.FoodItem
 import kotlinx.coroutines.flow.Flow
 
 // Inventory Repository

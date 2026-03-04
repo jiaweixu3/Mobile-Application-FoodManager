@@ -1,4 +1,4 @@
-package com.example.foodmanager.ui.settings
+package com.example.foodmanager.presentation.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +15,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.graphics.Color
 
+// Defines simple settings screen, for now it only contains log out.
 @OptIn(ExperimentalMaterial3Api::class) // Needed for the Top App Bar to function correctly
 @Composable
 fun SettingsScreen(logoutSuccess: () -> Unit) {

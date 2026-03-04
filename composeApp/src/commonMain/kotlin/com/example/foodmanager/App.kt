@@ -9,8 +9,8 @@ import androidx.compose.material3.Text
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.foodmanager.ui.theme.DarkBlue
-import com.example.foodmanager.ui.theme.FoodManagerTheme
+import com.example.foodmanager.presentation.theme.DarkBlue
+import com.example.foodmanager.presentation.theme.FoodManagerTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -18,21 +18,22 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material3.Icon
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import com.example.foodmanager.ui.shopping.ShoppingListScreen
-import com.example.foodmanager.ui.additem.AddingItemScreen
+import com.example.foodmanager.presentation.shopping.ShoppingListScreen
+import com.example.foodmanager.presentation.additem.AddingItemScreen
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
-import com.example.foodmanager.ui.auth.LoginScreen
-import com.example.foodmanager.ui.settings.SettingsScreen
-import com.example.foodmanager.repository.MockShoppingRepository
-import com.example.foodmanager.ui.shopping.ShoppingViewModel
-import com.example.foodmanager.domain.MarkAsBoughtUseCase
-import com.example.foodmanager.repository.MockInventoryRepository
-import com.example.foodmanager.domain.ConsumeFoodItemUseCase
-import com.example.foodmanager.ui.inventory.InventoryScreen
-import com.example.foodmanager.ui.inventory.InventoryViewModel
+import com.example.foodmanager.presentation.auth.LoginScreen
+import com.example.foodmanager.presentation.settings.SettingsScreen
+import com.example.foodmanager.data.repository.MockShoppingRepository
+import com.example.foodmanager.presentation.shopping.ShoppingViewModel
+import com.example.foodmanager.domain.useCase.MarkAsBoughtUseCase
+import com.example.foodmanager.data.repository.MockInventoryRepository
+import com.example.foodmanager.domain.useCase.ConsumeFoodItemUseCase
+import com.example.foodmanager.presentation.navigation.ScreenDestination
+import com.example.foodmanager.presentation.inventory.InventoryScreen
+import com.example.foodmanager.presentation.inventory.InventoryViewModel
 
 // Storing all screens in the app in a list, for simplified looping
 val screens = listOf(
@@ -70,7 +71,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
     val navController = rememberNavController()
 
 
-    // Instantiate your actual Mock repositories
+    // Initializing the Mock Repositories
     val shoppingRepo = MockShoppingRepository()
     val inventoryRepo = MockInventoryRepository()
 
@@ -86,10 +87,6 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
         markAsBoughtUseCase = markAsBoughtUseCase
     )
 
-    val consumeFoodItemUseCase = ConsumeFoodItemUseCase(
-        inventoryRepository = inventoryRepo,
-        shoppingRepository = shoppingRepo
-    )
 
     //  Create the use case
     val consumeUseCase = ConsumeFoodItemUseCase(inventoryRepo, shoppingRepo)

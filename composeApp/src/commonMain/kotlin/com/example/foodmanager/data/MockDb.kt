@@ -1,7 +1,7 @@
 package com.example.foodmanager.data
 
-import com.example.foodmanager.model.FoodItem
-import com.example.foodmanager.model.ShoppingItem
+import com.example.foodmanager.domain.model.FoodItem
+import com.example.foodmanager.domain.model.ShoppingItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 

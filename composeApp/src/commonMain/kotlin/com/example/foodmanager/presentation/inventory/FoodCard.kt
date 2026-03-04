@@ -1,4 +1,4 @@
-package com.example.foodmanager.ui.inventory
+package com.example.foodmanager.presentation.inventory
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,7 +15,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.foodmanager.domain.calculateDaysRemaining
-import com.example.foodmanager.model.FoodItem
+import com.example.foodmanager.domain.model.FoodItem
 import androidx.compose.runtime.collectAsState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
@@ -28,7 +28,7 @@ fun FoodCard(
 ) {
     var showConsumeDialog by remember { mutableStateOf(false) }
     val suggestedItem by viewModel.suggestedItem.collectAsState()
-    // Calculate days until expiration (FoodItem overload for testability)
+    // Calculate days until expiration
     val daysRemaining = calculateDaysRemaining(item)
 
     // Color status
@@ -107,7 +107,7 @@ fun FoodCard(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
-                    onClick = { showConsumeDialog = true }, // Flips the "switch" to show popup
+                    onClick = { showConsumeDialog = true }, // Shows consume popup box
                     modifier = Modifier.height(36.dp)
                 ) {
                     Text("Consume", fontSize = 12.sp)
@@ -120,8 +120,8 @@ fun FoodCard(
         ConsumeItemDialog(
             foodItem = item,
             onDismiss = { showConsumeDialog = false },
-            onConfirm = { consumed, buy, addToList -> // 3 parameters now
-                // 5. Update the ViewModel call with the 4th argument (buy)
+            onConfirm = { consumed, buy, addToList ->
+                // Updates the viewModel
                 viewModel.consumeItem(item, consumed, addToList, buy)
                 showConsumeDialog = false
             }
@@ -129,7 +129,7 @@ fun FoodCard(
     }
 }
 
-// 5. The Dialog Composable
+// Consume Dialog Composable
 @Composable
 fun ConsumeItemDialog(
     foodItem: FoodItem,
