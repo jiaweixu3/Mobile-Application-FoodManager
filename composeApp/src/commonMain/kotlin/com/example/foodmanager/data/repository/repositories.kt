@@ -5,6 +5,7 @@ import com.example.foodmanager.data.MockDb
 import com.example.foodmanager.domain.model.ShoppingItem
 import com.example.foodmanager.domain.model.FoodItem
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 // Inventory Repository
 interface InventoryRepository {
@@ -25,6 +26,19 @@ interface ShoppingListRepository {
     suspend fun deleteShoppingItem(id: Int)
     suspend fun updateShoppingItem(updatedShoppingItem: ShoppingItem)
 }
+
+// Settings Screen
+interface SettingsRepository {
+    // List of households
+    fun getHouseholdsList(): Flow<List<String>>
+
+    // Current displayed household
+    val getCurrentHousehold: Flow<String?>
+
+    // Storing the current selection
+    suspend fun storeHousehold(household: String)
+}
+
 
 // Creating the classes that implement the interfaces
 
@@ -67,3 +81,17 @@ class MockShoppingRepository : ShoppingListRepository {
     }
 }
 
+// Settings Repository
+class MockSettingsRepository : SettingsRepository {
+
+    override fun getHouseholdsList(): Flow<List<String>> {
+        return MockDb.householditems
+    }
+
+    override val getCurrentHousehold = MockDb.currentHousehold
+
+    override suspend fun storeHousehold(household: String) {
+        MockDb.storeHousehold(household)
+    }
+
+}

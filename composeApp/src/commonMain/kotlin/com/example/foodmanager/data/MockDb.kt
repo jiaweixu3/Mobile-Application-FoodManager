@@ -169,4 +169,30 @@ object MockDb {
             ShoppingItem(5, "Bread", 1.0, "Loaf", "Bread", false)
         )
     }
+
+    // List of households
+    private val _householditems = MutableStateFlow(
+        listOf(
+            "House 1",
+            "House 2",
+            "House 3",
+            "House 4"
+        )
+    )
+
+    val householditems = _householditems.asStateFlow()
+
+    // Current household
+    private val _currentHousehold = MutableStateFlow<String?>(householditems.value.firstOrNull())
+    val currentHousehold = _currentHousehold.asStateFlow()
+
+    fun storeHousehold(newHousehold:String) {
+        if (newHousehold.isBlank()) {
+            return
+        }
+
+        // Selecting as current
+        _currentHousehold.value = newHousehold
+
+    }
 }

@@ -20,30 +20,33 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlin.collections.firstOrNull
 
 // Defines simple settings screen, for now it only contains log out.
 @OptIn(ExperimentalMaterial3Api::class) // Needed for the Top App Bar to function correctly
 @Composable
 fun SettingsScreen(
+    viewModel: SettingsViewModel,
     logoutSuccess: () -> Unit, // Handles logging out logic
     onHouseholdSelected: (String) -> Unit = {} // Handles current household
 ) {
-    // Available households, for now this is mock data
-    val availableHouseholds = listOf<String>()
+    // Available households, collects from Mock Db
+    val availableHouseholds by viewModel.availableHouseholds.collectAsState()
 
 
     // Controls if dropdown menu is active or not
     var expandedDropdown by remember {mutableStateOf(false)}
 
     // Stores current households, first is active by default
-    var currentHousehold by remember { mutableStateOf(availableHouseholds.firstOrNull())}
+    val currentHousehold by viewModel.currentHousehold.collectAsState()
 
     Scaffold(
         topBar = {
@@ -103,7 +106,7 @@ fun SettingsScreen(
                                 // Clicking the button will update the current variables
                                 onClick = {
                                     val selectedHousehold = availableHouseholds[index]
-                                    currentHousehold = selectedHousehold
+                                    viewModel.onHouseholdChanged(selectedHousehold)
                                     expandedDropdown = false
                                     onHouseholdSelected(selectedHousehold)
                                 },
