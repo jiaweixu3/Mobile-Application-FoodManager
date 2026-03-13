@@ -8,6 +8,9 @@ import kotlinx.coroutines.flow.asStateFlow
 
 // using an object as this will be better for both Inventory and Shopping List.
 object MockDb {
+    // Creting the households
+
+
     // Food Items for the inventory, set to private so they will not be overwritten
     private val _fooditems = MutableStateFlow(
         listOf(

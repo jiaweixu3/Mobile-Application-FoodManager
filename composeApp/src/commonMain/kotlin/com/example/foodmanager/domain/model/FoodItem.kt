@@ -2,6 +2,7 @@ package com.example.foodmanager.domain.model
 
 data class FoodItem(
     val id: Int,
+    val inventory_id: Int,
     val name: String,
     val expiryDate: String, // YYYY-MM-DD format
     val amount: Double,
