@@ -30,10 +30,12 @@ import com.example.foodmanager.data.repository.MockShoppingRepository
 import com.example.foodmanager.ui.shopping.ShoppingViewModel
 import com.example.foodmanager.domain.useCase.MarkAsBoughtUseCase
 import com.example.foodmanager.data.repository.MockInventoryRepository
+import com.example.foodmanager.data.repository.MockSettingsRepository
 import com.example.foodmanager.domain.useCase.ConsumeFoodItemUseCase
 import com.example.foodmanager.ui.navigation.ScreenDestination
 import com.example.foodmanager.ui.inventory.InventoryScreen
 import com.example.foodmanager.ui.inventory.InventoryViewModel
+import com.example.foodmanager.ui.settings.SettingsViewModel
 
 // Storing all screens in the app in a list, for simplified looping
 val screens = listOf(
@@ -71,32 +73,46 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
     val navController = rememberNavController()
 
 
-    // Initializing the Mock Repositories
-    val shoppingRepo = MockShoppingRepository()
-    val inventoryRepo = MockInventoryRepository()
+    // Initializing the Mock Repositories, using remember to avoid redrawing
+    val shoppingRepo = remember { MockShoppingRepository()}
+    val inventoryRepo = remember { MockInventoryRepository()}
+    val settingsRepo = remember {MockSettingsRepository()}
 
     //  Create the Use Case and pass in the repositories you just created
-    val markAsBoughtUseCase = MarkAsBoughtUseCase(
-        shoppingRepository = shoppingRepo,
-        inventoryRepository = inventoryRepo
-    )
+    val markAsBoughtUseCase = remember{
+        MarkAsBoughtUseCase(
+            shoppingRepository = shoppingRepo,
+            inventoryRepository = inventoryRepo
+        )
+
+    }
 
     // Create the ViewModel with both dependencies
-    val shoppingViewModel = ShoppingViewModel(
-        repository = shoppingRepo,
-        markAsBoughtUseCase = markAsBoughtUseCase
-    )
+    val shoppingViewModel = remember {
+        ShoppingViewModel(repository = shoppingRepo, markAsBoughtUseCase = markAsBoughtUseCase)
+    }
 
 
     //  Create the use case
-    val consumeUseCase = ConsumeFoodItemUseCase(inventoryRepo, shoppingRepo)
+    val consumeUseCase = remember{
+        ConsumeFoodItemUseCase(inventoryRepo, shoppingRepo)
+    }
 
     // Create the Inventory ViewModel used by the Inventory screen
-    val inventoryViewModel = InventoryViewModel(
-        repository = inventoryRepo,
-        shoppingRepository = shoppingRepo,
-        consumeFoodItemUseCase = consumeUseCase
-    )
+    val inventoryViewModel = remember{
+        InventoryViewModel(
+            repository = inventoryRepo,
+            shoppingRepository = shoppingRepo,
+            consumeFoodItemUseCase = consumeUseCase
+        )
+    }
+
+    // Creating the Settings ViewModel
+    val settingsViewModel = remember{
+        SettingsViewModel(
+            settingsRepository = settingsRepo,
+        )
+    }
 
 
     // Stores the value of the current screen
@@ -151,7 +167,9 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
             }
 
             composable<ScreenDestination.AddItem> { AddingItemScreen(navController) }
-            composable<ScreenDestination.Settings> { SettingsScreen(logoutSuccess = {isloggedout()}) }
+            composable<ScreenDestination.Settings> { SettingsScreen(
+                viewModel = settingsViewModel,
+                logoutSuccess = {isloggedout()}      )           }
         }
     }
 }
