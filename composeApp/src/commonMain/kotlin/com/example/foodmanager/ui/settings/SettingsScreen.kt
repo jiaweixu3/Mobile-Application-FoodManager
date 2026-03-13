@@ -36,7 +36,7 @@ import kotlin.collections.firstOrNull
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     logoutSuccess: () -> Unit, // Handles logging out logic
-    onHouseholdSelected: (String) -> Unit = {} // Handles current household
+
 ) {
     // Available households, collects from Mock Db
     val availableHouseholds by viewModel.availableHouseholds.collectAsState()
@@ -108,7 +108,6 @@ fun SettingsScreen(
                                     val selectedHousehold = availableHouseholds[index]
                                     viewModel.onHouseholdChanged(selectedHousehold)
                                     expandedDropdown = false
-                                    onHouseholdSelected(selectedHousehold)
                                 },
 
                                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
