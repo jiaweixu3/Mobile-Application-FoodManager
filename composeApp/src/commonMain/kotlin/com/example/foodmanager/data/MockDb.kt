@@ -37,6 +37,28 @@ object MockDb {
 
     }
 
+    // Adding a new Household
+    fun addHousehold(newHousehold: Household){
+        if (newHousehold.name.isBlank()){
+            return
+        }
+
+        // Checking if household exists
+        val householdExists = _households.value.any {
+            it.name.equals(newHousehold.name, ignoreCase = true)
+        }
+
+        // If household already exists, invalid name
+        if (householdExists){
+            return
+        }
+        
+        _households.value = _households.value.plus(newHousehold)
+        // Automatically switches to newly created inventory
+        _currentHousehold.value = newHousehold
+
+    }
+
     // Mapping Households to Inventories
     val inventories = listOf(
         Inventory(id = "inv_1", household_id = "house_1"),
@@ -265,6 +287,7 @@ object MockDb {
             ShoppingItem(7, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
         )
     }
+
 
 
 }

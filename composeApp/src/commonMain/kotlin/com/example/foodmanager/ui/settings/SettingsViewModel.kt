@@ -28,5 +28,18 @@ class SettingsViewModel(
         }
     }
 
+    // Adding a new Household
+    fun addNewHousehold(name: String){
+        viewModelScope.launch {
+            // Adding a new randomized id based on the current time
+            val new_id ="house_${System.currentTimeMillis()}"
+            val newHousehold = Household(new_id, name)
+
+            settingsRepository.addHousehold(newHousehold)
+        }
+    }
+
+
+
 
 }
