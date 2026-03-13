@@ -48,7 +48,7 @@ val screens = listOf(
 @Composable
 fun App() {
     // Variable which tracks state whether the user is logged in or not
-    var isloggedin by remember {mutableStateOf(false)}
+    var isloggedin by remember { mutableStateOf(false) }
     FoodManagerTheme {
         // Handling log in and log out logic
         if (!isloggedin) {
@@ -74,12 +74,12 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
 
     // Initializing the Mock Repositories, using remember to avoid redrawing
-    val shoppingRepo = remember { MockShoppingRepository()}
-    val inventoryRepo = remember { MockInventoryRepository()}
-    val settingsRepo = remember {MockSettingsRepository()}
+    val shoppingRepo = remember { MockShoppingRepository() }
+    val inventoryRepo = remember { MockInventoryRepository() }
+    val settingsRepo = remember { MockSettingsRepository() }
 
     //  Create the Use Case and pass in the repositories you just created
-    val markAsBoughtUseCase = remember{
+    val markAsBoughtUseCase = remember {
         MarkAsBoughtUseCase(
             shoppingRepository = shoppingRepo,
             inventoryRepository = inventoryRepo
@@ -94,12 +94,12 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
 
     //  Create the use case
-    val consumeUseCase = remember{
+    val consumeUseCase = remember {
         ConsumeFoodItemUseCase(inventoryRepo, shoppingRepo)
     }
 
     // Create the Inventory ViewModel used by the Inventory screen
-    val inventoryViewModel = remember{
+    val inventoryViewModel = remember {
         InventoryViewModel(
             repository = inventoryRepo,
             shoppingRepository = shoppingRepo,
@@ -108,7 +108,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
     }
 
     // Creating the Settings ViewModel
-    val settingsViewModel = remember{
+    val settingsViewModel = remember {
         SettingsViewModel(
             settingsRepository = settingsRepo,
         )
@@ -125,25 +125,26 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
         containerColor = DarkBlue,
 
         // Creates a bar at the bottom which allows for switching between elements
-        bottomBar = { NavigationBar {
-            // Creating an item for each of the screens
-            screens.forEach { screen ->
-                NavigationBarItem(
-                    label = {Text(screen.title)},
-                    icon = {Icon(screen.icon, contentDescription = screen.title)},
-                    selected = currentscreen?.hasRoute(screen::class) == true , // Selected if the user is currently in this screen
-                    onClick = { // Defines how the app will change screens when being clicked
-                        navController.navigate(screen){
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true // Stores previous state
+        bottomBar = {
+            NavigationBar {
+                // Creating an item for each of the screens
+                screens.forEach { screen ->
+                    NavigationBarItem(
+                        label = { Text(screen.title) },
+                        icon = { Icon(screen.icon, contentDescription = screen.title) },
+                        selected = currentscreen?.hasRoute(screen::class) == true, // Selected if the user is currently in this screen
+                        onClick = { // Defines how the app will change screens when being clicked
+                            navController.navigate(screen) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true // Stores previous state
+                                }
+                                launchSingleTop = true // Avoids multiple copies of the same destination
+                                restoreState = true
                             }
-                            launchSingleTop = true // Avoids multiple copies of the same destination
-                            restoreState = true
                         }
-                    }
-                )
+                    )
+                }
             }
-        }
 
         }
 
@@ -167,9 +168,24 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
             }
 
             composable<ScreenDestination.AddItem> { AddingItemScreen(navController) }
-            composable<ScreenDestination.Settings> { SettingsScreen(
-                viewModel = settingsViewModel,
-                logoutSuccess = {isloggedout()}      )           }
+            composable<ScreenDestination.Settings> {
+                SettingsScreen(
+                    viewModel = settingsViewModel,
+                    logoutSuccess = { isloggedout() },
+                    onHouseholdSelected = {
+                        // Navigation logic, to go back to inventory
+                        navController.navigate(ScreenDestination.Inventory) {
+                            // Goes to inventory window
+                            popUpTo(navController.graph.findStartDestination().id) { // Clears all screens until it finds new inventory
+                                saveState = true // Remembers where user was
+                            }
+                            launchSingleTop = true
+                            restoreState = true // If it goes back to the same state, it loads the saved state
+
+
+                        }
+                    })
+            }
         }
     }
 }

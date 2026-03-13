@@ -3,6 +3,7 @@ package com.example.foodmanager.repositoryTest
 import com.example.foodmanager.data.MockDb
 import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.data.repository.MockInventoryRepository
+import com.example.foodmanager.domain.model.Household
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
@@ -20,6 +21,10 @@ internal class MockInventoryRepositoryTest { // Internal will make this not visi
     @BeforeTest
     fun setUp() {
         MockDb.resetInventoryState() // Resetting list back to original size
+
+        // Storing the household for the tests
+        val testHousehold = Household(id = "house_1", name = "House 1")
+        MockDb.storeHousehold(testHousehold)
     }
 
     // Obtaining the initial elements in the Inventory

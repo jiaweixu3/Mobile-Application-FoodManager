@@ -83,7 +83,7 @@ object MockDb {
                 category = "Pasta"
             ),
             FoodItem(
-                id = 1,
+                id = 4,
                 inventory_id = "inv_2",
                 name = "Milk",
                 expiryDate = "2026-02-01",
@@ -94,7 +94,7 @@ object MockDb {
                 photoUrl = "milk.jpg"
             ),
             FoodItem(
-                id = 1,
+                id = 5,
                 inventory_id = "inv_3",
                 name = "Milk",
                 expiryDate = "2026-02-01",
@@ -190,7 +190,7 @@ object MockDb {
                 category = "Pasta"
             ),
             FoodItem(
-                id = 1,
+                id = 4,
                 inventory_id = "inv_2",
                 name = "Milk",
                 expiryDate = "2026-02-01",
@@ -201,7 +201,7 @@ object MockDb {
                 photoUrl = "milk.jpg"
             ),
             FoodItem(
-                id = 1,
+                id = 5,
                 inventory_id = "inv_3",
                 name = "Milk",
                 expiryDate = "2026-02-01",
@@ -223,8 +223,8 @@ object MockDb {
             ShoppingItem(3, "shopping_list_1" ,"Milk", 1.0, "Litre", "Dairy", false),
             ShoppingItem(4, "shopping_list_1", "Eggs", 12.0, "u", "Meat", true),
             ShoppingItem(5,"shopping_list_1", "Bread", 1.0, "Loaf", "Bread", false),
-            ShoppingItem(1, "shopping_list_2","Grapes", 6.0, "pcs", "Fruits", false),
-            ShoppingItem(2, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
+            ShoppingItem(6, "shopping_list_2","Grapes", 6.0, "pcs", "Fruits", false),
+            ShoppingItem(7, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
         )
     )
     val shoppingitems = _shoppingitems.asStateFlow()
@@ -261,8 +261,8 @@ object MockDb {
             ShoppingItem(3,"shopping_list_1", "Milk", 1.0, "Litre", "Dairy", false),
             ShoppingItem(4,"shopping_list_1", "Eggs", 12.0, "u", "Meat", true),
             ShoppingItem(5,"shopping_list_1", "Bread", 1.0, "Loaf", "Bread", false),
-            ShoppingItem(1, "shopping_list_2","Grapes", 6.0, "pcs", "Fruits", false),
-            ShoppingItem(2, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
+            ShoppingItem(6, "shopping_list_2","Grapes", 6.0, "pcs", "Fruits", false),
+            ShoppingItem(7, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
         )
     }
 

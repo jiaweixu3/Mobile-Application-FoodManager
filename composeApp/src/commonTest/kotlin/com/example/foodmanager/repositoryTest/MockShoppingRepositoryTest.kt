@@ -3,6 +3,7 @@ package com.example.foodmanager.repositoryTest
 import com.example.foodmanager.data.MockDb
 import com.example.foodmanager.domain.model.ShoppingItem
 import com.example.foodmanager.data.repository.MockShoppingRepository
+import com.example.foodmanager.domain.model.Household
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
@@ -17,6 +18,10 @@ internal class MockShoppingRepositoryTest {
     @BeforeTest
     fun setUp() {
         MockDb.resetShoppingState() // Resetting list back to original size
+
+        // Storing the household for the tests
+        val testHousehold = Household(id = "house_1", name = "House 1")
+        MockDb.storeHousehold(testHousehold)
     }
 
     // Shopping List is correctly obtained
