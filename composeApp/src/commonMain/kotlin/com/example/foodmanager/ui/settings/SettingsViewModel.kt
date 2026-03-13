@@ -3,6 +3,7 @@ package com.example.foodmanager.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodmanager.data.repository.SettingsRepository
+import com.example.foodmanager.domain.model.Household
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -20,7 +21,7 @@ class SettingsViewModel(
     val currentHousehold = settingsRepository.getCurrentHousehold.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     // Updates the system based on the chosen household
-    fun onHouseholdChanged(newHousehold: String){
+    fun onHouseholdChanged(newHousehold: Household){
         // As we had a suspend function, we will use launch to call the function
         viewModelScope.launch {
             settingsRepository.storeHousehold(newHousehold)

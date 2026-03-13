@@ -36,6 +36,7 @@ import kotlin.collections.firstOrNull
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     logoutSuccess: () -> Unit, // Handles logging out logic
+    onHouseholdSelected: () -> Unit,
 
 ) {
     // Available households, collects from Mock Db
@@ -71,7 +72,7 @@ fun SettingsScreen(
                     onExpandedChange = { expandedDropdown = it },
                 ) {
                     OutlinedTextField(
-                        value = currentHousehold ?: "", // Ensuring it handles NA values
+                        value = currentHousehold?.name ?: "", // Ensuring it handles NA values
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Current Household") },
@@ -100,14 +101,15 @@ fun SettingsScreen(
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
-                                        Text(household)
+                                        Text(household.name)
                                     }
                                 },
                                 // Clicking the button will update the current variables
                                 onClick = {
                                     val selectedHousehold = availableHouseholds[index]
-                                    viewModel.onHouseholdChanged(selectedHousehold)
+                                    viewModel.onHouseholdChanged(selectedHousehold) // Applying Household selection change
                                     expandedDropdown = false
+                                    onHouseholdSelected() // Navigates to the inventory of the new household
                                 },
 
                                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding

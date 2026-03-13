@@ -32,6 +32,7 @@ class MarkAsBoughtUseCase(
         } else {
             val newFoodItem = FoodItem(
                 id = (1000..9999).random(),
+                inventory_id = "inv_1",
                 name = item.name,
                 amount = item.amount,
                 unit = item.unit,

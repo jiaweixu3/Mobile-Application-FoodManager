@@ -3,6 +3,7 @@ package com.example.foodmanager.repositoryTest
 import com.example.foodmanager.data.MockDb
 import com.example.foodmanager.domain.model.ShoppingItem
 import com.example.foodmanager.data.repository.MockShoppingRepository
+import com.example.foodmanager.domain.model.Household
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
@@ -17,6 +18,10 @@ internal class MockShoppingRepositoryTest {
     @BeforeTest
     fun setUp() {
         MockDb.resetShoppingState() // Resetting list back to original size
+
+        // Storing the household for the tests
+        val testHousehold = Household(id = "house_1", name = "House 1")
+        MockDb.storeHousehold(testHousehold)
     }
 
     // Shopping List is correctly obtained
@@ -32,7 +37,7 @@ internal class MockShoppingRepositoryTest {
     // Adding a shop item
     @Test
     fun testAddShoppingItem() = runTest {
-        val new_item = ShoppingItem(id = 6, name = "sausage",amount = 2.0, unit = "pieces", category = "Meat")
+        val new_item = ShoppingItem(id = 6, "shopping_list_1", name = "sausage",amount = 2.0, unit = "pieces", category = "Meat")
 
         repository.addShoppingItem(new_item)
         val current_Inventory = repository.getShoppingList().first()
@@ -43,7 +48,7 @@ internal class MockShoppingRepositoryTest {
     // Adding a shop item, different cases
     @Test
     fun testAddDuplicatesShoppingItem() = runTest {
-        val new_item = ShoppingItem(id = 1, name = "aPPleS", amount = 6.0, unit = "pieces", category = "Fruits")
+        val new_item = ShoppingItem(id = 1, "shopping_list_1",name = "aPPleS", amount = 6.0, unit = "pieces", category = "Fruits")
         repository.addShoppingItem(new_item)
         val current_Inventory = repository.getShoppingList().first()
 
@@ -53,7 +58,7 @@ internal class MockShoppingRepositoryTest {
     // Adding an empty element should not increase the size
     @Test
     fun testAddEmptyShoppingItem() = runTest {
-        val new_item = ShoppingItem(id = 7, name = "",amount = 0.0, unit = "", category = "")
+        val new_item = ShoppingItem(id = 7,"shopping_list_1", name = "",amount = 0.0, unit = "", category = "")
         repository.addShoppingItem(new_item)
         val current_Inventory = repository.getShoppingList().first()
 
@@ -98,6 +103,7 @@ internal class MockShoppingRepositoryTest {
     fun testUpdateShoppingItem() = runTest {
         val updated_item = ShoppingItem(
             id = 1,
+            "shopping_list_1",
             name = "Apples",
             amount = 6.0,
             unit = "pieces",
@@ -116,7 +122,7 @@ internal class MockShoppingRepositoryTest {
     // Updating an item which does not exist will not affect it
     @Test
     fun testUpdateNonExistentFoodItem() = runTest {
-        val updated_item = ShoppingItem(id = 100, name = "Orange Juice", amount = 1.0, unit = "liter", category = "other")
+        val updated_item = ShoppingItem(id = 100,"shopping_list_1", name = "Orange Juice", amount = 1.0, unit = "liter", category = "other")
         repository.updateShoppingItem(updated_item)
         val current_Inventory = repository.getShoppingList().first()
 

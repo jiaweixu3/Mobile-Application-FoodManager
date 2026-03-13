@@ -13,6 +13,7 @@ internal class InventorySortFilterTest {
 
     private fun item(id: Int, name: String, expiryDate: String, category: String) = FoodItem(
         id = id,
+        inventory_id = "inv_1",
         name = name,
         expiryDate = expiryDate,
         amount = 1.0,

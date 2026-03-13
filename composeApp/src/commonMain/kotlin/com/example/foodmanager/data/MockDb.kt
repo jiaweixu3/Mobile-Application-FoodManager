@@ -1,18 +1,61 @@
 package com.example.foodmanager.data
 
 import com.example.foodmanager.domain.model.FoodItem
+import com.example.foodmanager.domain.model.Household
+import com.example.foodmanager.domain.model.Inventory
 import com.example.foodmanager.domain.model.ShoppingItem
+import com.example.foodmanager.domain.model.ShoppingList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 
 // using an object as this will be better for both Inventory and Shopping List.
 object MockDb {
+    // Creting the households
+    private val _households = MutableStateFlow(
+        listOf(
+            Household(id = "house_1", name = "House 1"),
+            Household(id = "house_2", name = "House 2"),
+            Household(id = "house_3", name = "House 3")
+        )
+    )
+
+    val households = _households.asStateFlow()
+
+    // Keeping track of the current household
+    private val _currentHousehold = MutableStateFlow<Household?>(households.value.firstOrNull())
+    val currentHousehold = _currentHousehold.asStateFlow()
+
+    // Storing households
+    fun storeHousehold(newHousehold:Household) {
+        if (newHousehold.name.isBlank()) {
+            return
+        }
+
+        // Selecting as current
+        _currentHousehold.value = newHousehold
+
+    }
+
+    // Mapping Households to Inventories
+    val inventories = listOf(
+        Inventory(id = "inv_1", household_id = "house_1"),
+        Inventory(id = "inv_2", household_id = "house_2"),
+        Inventory(id = "inv_3", household_id = "house_3")
+    )
+
+    // Mapping Households to Shopping Lists
+    val shoppingLists = listOf(
+        ShoppingList(id = "shopping_list_1", household_id = "house_1"),
+        ShoppingList(id = "shopping_list_2", household_id = "house_2"),
+        ShoppingList(id = "shopping_list_3", household_id = "house_3")
+    )
     // Food Items for the inventory, set to private so they will not be overwritten
     private val _fooditems = MutableStateFlow(
         listOf(
             FoodItem(
                 id = 1,
+                inventory_id = "inv_1",
                 name = "Milk",
                 expiryDate = "2026-02-01",
                 amount = 1.0,
@@ -23,6 +66,7 @@ object MockDb {
             ),
             FoodItem(
                 id = 2,
+                inventory_id = "inv_1",
                 name = "Spinach",
                 expiryDate = "2026-02-10",
                 amount = 200.0,
@@ -31,11 +75,34 @@ object MockDb {
             ),
             FoodItem(
                 id = 3,
+                inventory_id = "inv_1",
                 name = "Canned Beans",
                 expiryDate = "2026-03-15",
                 amount = 2.0,
                 unit = "Cans",
                 category = "Pasta"
+            ),
+            FoodItem(
+                id = 4,
+                inventory_id = "inv_2",
+                name = "Milk",
+                expiryDate = "2026-02-01",
+                amount = 1.0,
+                unit = "Litre",
+                category = "Dairy",
+                barcode = "123456789",
+                photoUrl = "milk.jpg"
+            ),
+            FoodItem(
+                id = 5,
+                inventory_id = "inv_3",
+                name = "Milk",
+                expiryDate = "2026-02-01",
+                amount = 1.0,
+                unit = "Litre",
+                category = "Dairy",
+                barcode = "123456789",
+                photoUrl = "milk.jpg"
             )
         )
     )
@@ -95,6 +162,7 @@ object MockDb {
         _fooditems.value = listOf(
             FoodItem(
                 id = 1,
+                inventory_id = "inv_1",
                 name = "Milk",
                 expiryDate = "2026-02-01",
                 amount = 1.0,
@@ -105,6 +173,7 @@ object MockDb {
             ),
             FoodItem(
                 id = 2,
+                inventory_id = "inv_1",
                 name = "Spinach",
                 expiryDate = "2026-02-10",
                 amount = 200.0,
@@ -113,11 +182,34 @@ object MockDb {
             ),
             FoodItem(
                 id = 3,
+                inventory_id = "inv_1",
                 name = "Canned Beans",
                 expiryDate = "2026-03-15",
                 amount = 2.0,
                 unit = "Cans",
                 category = "Pasta"
+            ),
+            FoodItem(
+                id = 4,
+                inventory_id = "inv_2",
+                name = "Milk",
+                expiryDate = "2026-02-01",
+                amount = 1.0,
+                unit = "Litre",
+                category = "Dairy",
+                barcode = "123456789",
+                photoUrl = "milk.jpg"
+            ),
+            FoodItem(
+                id = 5,
+                inventory_id = "inv_3",
+                name = "Milk",
+                expiryDate = "2026-02-01",
+                amount = 1.0,
+                unit = "Litre",
+                category = "Dairy",
+                barcode = "123456789",
+                photoUrl = "milk.jpg"
             )
         )
     }
@@ -126,11 +218,13 @@ object MockDb {
     private val _shoppingitems = MutableStateFlow(
         listOf(
             // order MUST be: id, name, amount (Double), unit (String), category (String), isChecked (Boolean)
-            ShoppingItem(1, "Apples", 6.0, "pcs", "Fruits", false),
-            ShoppingItem(2, "Bananas", 1.0, "kg", "Fruits", true),
-            ShoppingItem(3, "Milk", 1.0, "Litre", "Dairy", false),
-            ShoppingItem(4, "Eggs", 12.0, "u", "Meat", true),
-            ShoppingItem(5, "Bread", 1.0, "Loaf", "Bread", false)
+            ShoppingItem(1, "shopping_list_1","Apples", 6.0, "pcs", "Fruits", false),
+            ShoppingItem(2, "shopping_list_1","Bananas", 1.0, "kg", "Fruits", true),
+            ShoppingItem(3, "shopping_list_1" ,"Milk", 1.0, "Litre", "Dairy", false),
+            ShoppingItem(4, "shopping_list_1", "Eggs", 12.0, "u", "Meat", true),
+            ShoppingItem(5,"shopping_list_1", "Bread", 1.0, "Loaf", "Bread", false),
+            ShoppingItem(6, "shopping_list_2","Grapes", 6.0, "pcs", "Fruits", false),
+            ShoppingItem(7, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
         )
     )
     val shoppingitems = _shoppingitems.asStateFlow()
@@ -162,37 +256,15 @@ object MockDb {
     fun resetShoppingState() {
         _shoppingitems.value = listOf(
             // Use the same 6-parameter format here to fix the compilation error
-            ShoppingItem(1, "Apples", 6.0, "pcs", "Fruits", false),
-            ShoppingItem(2, "Bananas", 1.0, "kg", "Fruits", true),
-            ShoppingItem(3, "Milk", 1.0, "Litre", "Dairy", false),
-            ShoppingItem(4, "Eggs", 12.0, "u", "Meat", true),
-            ShoppingItem(5, "Bread", 1.0, "Loaf", "Bread", false)
+            ShoppingItem(1, "shopping_list_1","Apples", 6.0, "pcs", "Fruits", false),
+            ShoppingItem(2,"shopping_list_1", "Bananas", 1.0, "kg", "Fruits", true),
+            ShoppingItem(3,"shopping_list_1", "Milk", 1.0, "Litre", "Dairy", false),
+            ShoppingItem(4,"shopping_list_1", "Eggs", 12.0, "u", "Meat", true),
+            ShoppingItem(5,"shopping_list_1", "Bread", 1.0, "Loaf", "Bread", false),
+            ShoppingItem(6, "shopping_list_2","Grapes", 6.0, "pcs", "Fruits", false),
+            ShoppingItem(7, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
         )
     }
 
-    // List of households
-    private val _householditems = MutableStateFlow(
-        listOf(
-            "House 1",
-            "House 2",
-            "House 3",
-            "House 4"
-        )
-    )
 
-    val householditems = _householditems.asStateFlow()
-
-    // Current household
-    private val _currentHousehold = MutableStateFlow<String?>(householditems.value.firstOrNull())
-    val currentHousehold = _currentHousehold.asStateFlow()
-
-    fun storeHousehold(newHousehold:String) {
-        if (newHousehold.isBlank()) {
-            return
-        }
-
-        // Selecting as current
-        _currentHousehold.value = newHousehold
-
-    }
 }

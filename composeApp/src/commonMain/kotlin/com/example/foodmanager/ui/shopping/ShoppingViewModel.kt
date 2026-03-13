@@ -44,6 +44,7 @@ class ShoppingViewModel(
         viewModelScope.launch {
             val newItem = ShoppingItem(
                 id = (1000..9999).random(),
+                shopping_list_id = "",
                 name = name,
                 amount = amount,
                 unit = unit,
