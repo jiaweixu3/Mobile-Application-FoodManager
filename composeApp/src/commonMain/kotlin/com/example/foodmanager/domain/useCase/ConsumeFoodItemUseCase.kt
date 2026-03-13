@@ -30,6 +30,7 @@ class ConsumeFoodItemUseCase(
         if (addToShoppingList) {
             val newShoppingItem = ShoppingItem(
                 id = (1000..9999).random(),
+                "shopping_list_1",
                 name = foodItem.name,
                 amount = shoppingQuantity,
                 unit = foodItem.unit,

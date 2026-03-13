@@ -71,7 +71,7 @@ fun SettingsScreen(
                     onExpandedChange = { expandedDropdown = it },
                 ) {
                     OutlinedTextField(
-                        value = currentHousehold ?: "", // Ensuring it handles NA values
+                        value = currentHousehold?.name ?: "", // Ensuring it handles NA values
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Current Household") },
@@ -100,7 +100,7 @@ fun SettingsScreen(
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
-                                        Text(household)
+                                        Text(household.name)
                                     }
                                 },
                                 // Clicking the button will update the current variables

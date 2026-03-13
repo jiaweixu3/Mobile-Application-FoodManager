@@ -50,6 +50,7 @@ class AddItemViewModel(
 
         val newItem = FoodItem(
             id = (0..1000000).random(),
+            inventory_id = "",
             name = name,
             expiryDate = dateString,
             amount = quantity.toDoubleOrNull() ?: 0.0,

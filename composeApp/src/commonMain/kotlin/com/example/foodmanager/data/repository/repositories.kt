@@ -4,6 +4,7 @@ package com.example.foodmanager.data.repository
 import com.example.foodmanager.data.MockDb
 import com.example.foodmanager.domain.model.ShoppingItem
 import com.example.foodmanager.domain.model.FoodItem
+import com.example.foodmanager.domain.model.Household
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -30,13 +31,13 @@ interface ShoppingListRepository {
 // Settings Screen
 interface SettingsRepository {
     // List of households
-    fun getHouseholdsList(): Flow<List<String>>
+    fun getHouseholdsList(): Flow<List<Household>>
 
     // Current displayed household
-    val getCurrentHousehold: Flow<String?>
+    val getCurrentHousehold: Flow<Household?>
 
     // Storing the current selection
-    suspend fun storeHousehold(household: String)
+    suspend fun storeHousehold(household: Household)
 }
 
 
@@ -84,13 +85,13 @@ class MockShoppingRepository : ShoppingListRepository {
 // Settings Repository
 class MockSettingsRepository : SettingsRepository {
 
-    override fun getHouseholdsList(): Flow<List<String>> {
-        return MockDb.householditems
+    override fun getHouseholdsList(): Flow<List<Household>> {
+        return MockDb.households
     }
 
     override val getCurrentHousehold = MockDb.currentHousehold
 
-    override suspend fun storeHousehold(household: String) {
+    override suspend fun storeHousehold(household: Household) {
         MockDb.storeHousehold(household)
     }
 

@@ -41,6 +41,7 @@ internal class ExpirationTest {
     fun calculateDaysRemaining_withFoodItem_delegatesToExpiryDate() {
         val item = FoodItem(
             id = 1,
+            inventory_id = "inv_1",
             name = "Milk",
             expiryDate = "2026-03-15",
             amount = 1.0,
