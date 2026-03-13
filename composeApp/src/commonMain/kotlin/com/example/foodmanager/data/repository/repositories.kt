@@ -40,6 +40,9 @@ interface SettingsRepository {
 
     // Storing the current selection
     suspend fun storeHousehold(household: Household)
+
+    // Adding a new household
+    suspend fun addHousehold(newHousehold: Household)
 }
 
 
@@ -141,6 +144,10 @@ class MockSettingsRepository : SettingsRepository {
 
     override suspend fun storeHousehold(household: Household) {
         MockDb.storeHousehold(household)
+    }
+
+    override suspend fun addHousehold(newHousehold: Household) {
+        MockDb.addHousehold(newHousehold)
     }
 
 }

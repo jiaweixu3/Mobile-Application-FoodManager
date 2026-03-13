@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Scaffold
@@ -48,6 +49,9 @@ fun SettingsScreen(
 
     // Stores current households, first is active by default
     val currentHousehold by viewModel.currentHousehold.collectAsState()
+
+    // Storing the name for the New Household
+    var newHouseholdName by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -123,6 +127,33 @@ fun SettingsScreen(
             // Separation
             Spacer(modifier = Modifier.padding(8.dp))
 
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(0.4f)
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ){
+                // Text box
+                OutlinedTextField(
+                    value = newHouseholdName,
+                    onValueChange = {newHouseholdName = it},
+                    label = { Text("New household") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // Button for adding a new household
+                Button(
+                    onClick = {
+                        viewModel.addNewHousehold(newHouseholdName) // Adding the new button
+                        newHouseholdName = "" // Clear the box after adding
+                    },
+                    enabled = newHouseholdName.isNotBlank(), // Cant add if box is empty
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text("Add")
+                }
+            }
 
 
             // Logout
