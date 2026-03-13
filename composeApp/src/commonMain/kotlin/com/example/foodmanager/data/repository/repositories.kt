@@ -7,6 +7,8 @@ import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.domain.model.Household
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+
 
 // Inventory Repository
 interface InventoryRepository {
@@ -46,12 +48,37 @@ interface SettingsRepository {
 class MockInventoryRepository : InventoryRepository {
     // As there is inheritance, we have to override
     // We will use the different previously created functions
+
+    // For the inventory, we also have to retrieve the current household
     override fun getInventory(): Flow<List<FoodItem>> {
-        return MockDb.fooditems
+        return combine(MockDb.currentHousehold, MockDb.fooditems){ actualHousehold, allItems ->
+            // If there is no household, we do not return anything
+            if (actualHousehold == null) return@combine emptyList()
+
+            // Searching the inventory of the current household
+            val actualInventory = MockDb.inventories.find { it.household_id == actualHousehold.id }
+
+            // If inventory is empty, return empty list
+            if (actualInventory == null) return@combine emptyList()
+
+            // Returning the current list of items
+            allItems.filter{it.inventory_id == actualInventory.id}
+        }
     }
 
     override suspend fun addFoodItem(newItem: FoodItem) {
-        MockDb.addFoodItem(newItem)
+        // We have to add the invnetory of the new item
+
+        // Obtaining the current Household, returning if household is empty
+        val currentHouse = MockDb.currentHousehold.value ?: return
+
+        // Obtaining the inventory
+        val currentInventory = MockDb.inventories.find { it.household_id == currentHouse.id }?:return
+
+        // Updating the item id
+        val newUpdatedItem = newItem.copy(inventory_id = currentInventory.id)
+
+        MockDb.addFoodItem(newUpdatedItem)
     }
 
     override suspend fun deleteFoodItem(id: Int) {
@@ -65,12 +92,33 @@ class MockInventoryRepository : InventoryRepository {
 
 // Shopping Repository
 class MockShoppingRepository : ShoppingListRepository {
+    // For the shopping list we also have to retrieve the current household
     override fun getShoppingList(): Flow<List<ShoppingItem>> {
-        return MockDb.shoppingitems
+        return combine(MockDb.currentHousehold, MockDb.shoppingitems){actualHousehold, allShoppingItems ->
+        // If there is no household, we do not return anything
+        if (actualHousehold == null) return@combine emptyList()
+
+        val actualShoppingList = MockDb.shoppingLists.find { it.household_id == actualHousehold.id }
+
+        // If list does not exist, return empty list
+        if (actualShoppingList == null) return@combine emptyList()
+
+            allShoppingItems.filter { it.shopping_list_id == actualShoppingList.id }
+        }
     }
 
     override suspend fun addShoppingItem(newShoppingItem: ShoppingItem) {
-        MockDb.addShoppingItem(newShoppingItem)
+        // We have to add the specific shopping list for the shopping item
+
+        // Obtaining the current Household, returning if household is empty
+        val currentHouse = MockDb.currentHousehold.value ?: return
+
+        // Obtaining the shopping list
+        val currentShoppingList = MockDb.shoppingLists.find { it.household_id == currentHouse.id }?:return
+
+        // Updating the shopping list id
+        val newUpdatedShoppingItem = newShoppingItem.copy(shopping_list_id = currentShoppingList.id )
+        MockDb.addShoppingItem(newUpdatedShoppingItem)
     }
 
     override suspend fun deleteShoppingItem(id: Int) {

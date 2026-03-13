@@ -81,6 +81,28 @@ object MockDb {
                 amount = 2.0,
                 unit = "Cans",
                 category = "Pasta"
+            ),
+            FoodItem(
+                id = 1,
+                inventory_id = "inv_2",
+                name = "Milk",
+                expiryDate = "2026-02-01",
+                amount = 1.0,
+                unit = "Litre",
+                category = "Dairy",
+                barcode = "123456789",
+                photoUrl = "milk.jpg"
+            ),
+            FoodItem(
+                id = 1,
+                inventory_id = "inv_3",
+                name = "Milk",
+                expiryDate = "2026-02-01",
+                amount = 1.0,
+                unit = "Litre",
+                category = "Dairy",
+                barcode = "123456789",
+                photoUrl = "milk.jpg"
             )
         )
     )
@@ -166,6 +188,28 @@ object MockDb {
                 amount = 2.0,
                 unit = "Cans",
                 category = "Pasta"
+            ),
+            FoodItem(
+                id = 1,
+                inventory_id = "inv_2",
+                name = "Milk",
+                expiryDate = "2026-02-01",
+                amount = 1.0,
+                unit = "Litre",
+                category = "Dairy",
+                barcode = "123456789",
+                photoUrl = "milk.jpg"
+            ),
+            FoodItem(
+                id = 1,
+                inventory_id = "inv_3",
+                name = "Milk",
+                expiryDate = "2026-02-01",
+                amount = 1.0,
+                unit = "Litre",
+                category = "Dairy",
+                barcode = "123456789",
+                photoUrl = "milk.jpg"
             )
         )
     }
@@ -178,7 +222,9 @@ object MockDb {
             ShoppingItem(2, "shopping_list_1","Bananas", 1.0, "kg", "Fruits", true),
             ShoppingItem(3, "shopping_list_1" ,"Milk", 1.0, "Litre", "Dairy", false),
             ShoppingItem(4, "shopping_list_1", "Eggs", 12.0, "u", "Meat", true),
-            ShoppingItem(5,"shopping_list_1", "Bread", 1.0, "Loaf", "Bread", false)
+            ShoppingItem(5,"shopping_list_1", "Bread", 1.0, "Loaf", "Bread", false),
+            ShoppingItem(1, "shopping_list_2","Grapes", 6.0, "pcs", "Fruits", false),
+            ShoppingItem(2, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
         )
     )
     val shoppingitems = _shoppingitems.asStateFlow()
@@ -214,7 +260,9 @@ object MockDb {
             ShoppingItem(2,"shopping_list_1", "Bananas", 1.0, "kg", "Fruits", true),
             ShoppingItem(3,"shopping_list_1", "Milk", 1.0, "Litre", "Dairy", false),
             ShoppingItem(4,"shopping_list_1", "Eggs", 12.0, "u", "Meat", true),
-            ShoppingItem(5,"shopping_list_1", "Bread", 1.0, "Loaf", "Bread", false)
+            ShoppingItem(5,"shopping_list_1", "Bread", 1.0, "Loaf", "Bread", false),
+            ShoppingItem(1, "shopping_list_2","Grapes", 6.0, "pcs", "Fruits", false),
+            ShoppingItem(2, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
         )
     }
 
