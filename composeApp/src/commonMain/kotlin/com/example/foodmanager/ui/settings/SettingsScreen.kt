@@ -28,8 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlin.collections.firstOrNull
+
 
 // Defines simple settings screen, for now it only contains log out.
 @OptIn(ExperimentalMaterial3Api::class) // Needed for the Top App Bar to function correctly
@@ -127,6 +126,7 @@ fun SettingsScreen(
             // Separation
             Spacer(modifier = Modifier.padding(8.dp))
 
+            // Displaying a household
             Row(
                 modifier = Modifier
                     .fillMaxWidth(0.4f)
@@ -155,6 +155,48 @@ fun SettingsScreen(
                 }
             }
 
+            // Separation
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            // Sharing a household
+            if (currentHousehold != null){
+                // Variable for sharing an email
+                var shareEmail by remember { mutableStateOf("") }
+
+                Text(
+                    text = "Share ${currentHousehold?.name}",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(0.6f)
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ){
+                    OutlinedTextField(
+                        value = shareEmail,
+                        onValueChange = {shareEmail = it},
+                        label = { Text("Email address") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    // Actual invite button
+                    Button(
+                        onClick = {
+                            viewModel.shareHousehold(shareEmail) // Adding a new email
+                            shareEmail = ""
+                        },
+                        // Enabled if not empty, and it matches an email string, isValidEmail is declared below
+                        enabled = shareEmail.isNotBlank() && shareEmail.isValidEmail(),
+                        modifier = Modifier.padding(start = 8.dp)
+                    ){
+                        Text("Share")
+                    }
+                }
+
+            }
 
             // Logout
             Button(
@@ -172,4 +214,10 @@ fun SettingsScreen(
 
         }
     }
+}
+
+// Function for ensuring email is valid
+fun String.isValidEmail(): Boolean{
+    val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-zA-z]{2,}\$".toRegex()
+    return this.matches(emailRegex)
 }
