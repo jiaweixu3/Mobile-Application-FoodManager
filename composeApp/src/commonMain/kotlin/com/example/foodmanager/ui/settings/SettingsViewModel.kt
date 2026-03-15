@@ -39,6 +39,18 @@ class SettingsViewModel(
         }
     }
 
+    // Sharing a household, this is the basic UI, therefore we pass the id afterwards
+    fun shareHousehold(email: String){
+        // Obtaining the current household
+        val household = currentHousehold.value ?: return
+
+        // Actually triggers the function
+        viewModelScope.launch {
+            // For now it just allows sharing, later we will have to actually implement it
+            settingsRepository.shareHousehold(household.id, email)
+        }
+    }
+
 
 
 
