@@ -12,12 +12,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -75,7 +79,8 @@ fun SummaryBox(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryScreen(
-    viewModel: InventoryViewModel
+    viewModel: InventoryViewModel,
+    onNavigateToAddItem: () -> Unit
 ) {
     // Collect data
     val inventoryList by viewModel.visibleInventory.collectAsState()
@@ -88,7 +93,14 @@ fun InventoryScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(title = { Text("My Pantry") })
+            CenterAlignedTopAppBar(
+                title = { Text("My Pantry") }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onNavigateToAddItem) {
+                Icon(Icons.Default.Add, contentDescription = "Add Item")
+            }
         }
     ) { innerPadding ->
         Column(

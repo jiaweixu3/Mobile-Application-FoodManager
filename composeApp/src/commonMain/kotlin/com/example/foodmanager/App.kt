@@ -156,7 +156,12 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable<ScreenDestination.Inventory> {
-                InventoryScreen(viewModel = inventoryViewModel)
+                InventoryScreen(
+                    viewModel = inventoryViewModel,
+                    onNavigateToAddItem = {
+                        navController.navigate(ScreenDestination.AddItem)
+                    }
+                )
             }
 
 
@@ -168,6 +173,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
             }
 
             composable<ScreenDestination.AddItem> { AddingItemScreen(navController) }
+
             composable<ScreenDestination.Settings> {
                 SettingsScreen(
                     viewModel = settingsViewModel,
