@@ -26,8 +26,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.foodmanager.data.supabase
+import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.launch
 
 
 // Defines simple settings screen, for now it only contains log out.
@@ -51,6 +55,9 @@ fun SettingsScreen(
 
     // Storing the name for the New Household
     var newHouseholdName by remember { mutableStateOf("") }
+    var logoutErrorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoggingOut by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -201,12 +208,29 @@ fun SettingsScreen(
             // Logout
             Button(
                 onClick = {
-                    logoutSuccess()
+                    coroutineScope.launch {
+                        isLoggingOut = true
+                        logoutErrorMessage = null
+                        try {
+                            supabase.auth.signOut()
+                            logoutSuccess()
+                        } catch (e: Exception) {
+                            logoutErrorMessage = e.message ?: "Logout failed."
+                        } finally {
+                            isLoggingOut = false
+                        }
+                    }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                enabled = !isLoggingOut
 
             ) {
                 Text(text = "Log Out")
+            }
+
+            if (logoutErrorMessage != null) {
+                Spacer(modifier = Modifier.padding(8.dp))
+                Text(text = logoutErrorMessage ?: "", color = MaterialTheme.colorScheme.error)
             }
 
 
