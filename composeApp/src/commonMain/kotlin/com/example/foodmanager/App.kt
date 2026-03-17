@@ -21,11 +21,11 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.foodmanager.ui.shopping.ShoppingListScreen
 import com.example.foodmanager.ui.additem.AddingItemScreen
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
 import com.example.foodmanager.ui.auth.LoginScreen
 import com.example.foodmanager.ui.settings.SettingsScreen
+import com.example.foodmanager.data.supabase
 import com.example.foodmanager.data.repository.MockShoppingRepository
 import com.example.foodmanager.ui.shopping.ShoppingViewModel
 import com.example.foodmanager.domain.useCase.MarkAsBoughtUseCase
@@ -36,6 +36,8 @@ import com.example.foodmanager.ui.navigation.ScreenDestination
 import com.example.foodmanager.ui.inventory.InventoryScreen
 import com.example.foodmanager.ui.inventory.InventoryViewModel
 import com.example.foodmanager.ui.settings.SettingsViewModel
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.status.SessionStatus
 
 // Storing all screens in the app in a list, for simplified looping
 val screens = listOf(
@@ -47,20 +49,13 @@ val screens = listOf(
 
 @Composable
 fun App() {
-    // Variable which tracks state whether the user is logged in or not
-    var isloggedin by remember { mutableStateOf(false) }
+    val sessionStatus by supabase.auth.sessionStatus.collectAsState()
     FoodManagerTheme {
         // Handling log in and log out logic
-        if (!isloggedin) {
-            LoginScreen {
-                isloggedin = true
-            }
-        } else {
-            MainAppLayout(
-                isloggedout = { // If we log out
-                    isloggedin = false
-                }
-            )
+        when (sessionStatus) {
+            is SessionStatus.Authenticated -> MainAppLayout()
+            SessionStatus.Initializing -> Text("Loading session...")
+            else -> LoginScreen {}
         }
     }
 }
