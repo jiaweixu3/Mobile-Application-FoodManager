@@ -37,6 +37,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     logoutSuccess: () -> Unit, // Handles logging out logic
     onHouseholdSelected: () -> Unit,
+    onNavigateToMembers: () -> Unit
 
 ) {
     // Available households, collects from Mock Db
@@ -197,6 +198,17 @@ fun SettingsScreen(
                 }
 
             }
+
+            // Seeing Household Members
+            if (currentHousehold != null) {
+                Button(
+                    onClick = { onNavigateToMembers() }, // Llama a la función de navegación
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    Text("View Household Members")
+                }
+            }
+
 
             // Logout
             Button(

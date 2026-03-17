@@ -19,6 +19,7 @@ import com.example.foodmanager.domain.model.FoodItem
 import androidx.compose.runtime.collectAsState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import com.example.foodmanager.ui.utils.getCategoryIcon
 
 @Composable
 fun FoodCard(
@@ -61,10 +62,9 @@ fun FoodCard(
                     .background(Color.LightGray),
                 contentAlignment = Alignment.Center
             ) {
-                // Show the first letter of the item, if it had one
-                // the image of the item should be shown here
+                // the image of the item is an emoji based on its category
                 Text(
-                    text = item.name.first().toString(),
+                    text = getCategoryIcon(item.category),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White

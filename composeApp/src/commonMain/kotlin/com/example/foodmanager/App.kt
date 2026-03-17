@@ -176,16 +176,26 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
                         // Navigation logic, to go back to inventory
                         navController.navigate(ScreenDestination.Inventory) {
                             // Goes to inventory window
-                            popUpTo(navController.graph.findStartDestination().id) { // Clears all screens until it finds new inventory
-                                saveState = true // Remembers where user was
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
                             }
                             launchSingleTop = true
-                            restoreState = true // If it goes back to the same state, it loads the saved state
-
-
+                            restoreState = true
                         }
-                    })
+                    },
+                    onNavigateToMembers = {
+                        navController.navigate(ScreenDestination.HouseholdMembers)
+                    }
+                )
             }
+
+            // New Screen
+            composable<ScreenDestination.HouseholdMembers> {
+                com.example.foodmanager.ui.household.HouseholdScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
         }
     }
 }

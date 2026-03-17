@@ -1,5 +1,7 @@
 package com.example.foodmanager.domain.model
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class FoodItem(
     val id: Int,
     val inventory_id: String, //UUID

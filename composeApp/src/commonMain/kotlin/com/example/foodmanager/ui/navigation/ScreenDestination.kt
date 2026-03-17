@@ -3,6 +3,7 @@ package com.example.foodmanager.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -40,5 +41,11 @@ sealed interface ScreenDestination {
     data object Settings: ScreenDestination{
         override val title = "Settings"
         override val icon = Icons.Filled.Settings
+    }
+
+@Serializable
+data object HouseholdMembers: ScreenDestination{
+    override val title = "Members"
+    override val icon = Icons.Filled.Person
     }
 }
