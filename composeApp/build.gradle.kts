@@ -21,8 +21,8 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
-
             implementation(libs.androidx.activity.compose)
+            implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -37,6 +37,10 @@ kotlin {
             implementation(libs.androidx.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
             implementation(compose.components.uiToolingPreview)
+            // Supabase (BOM version from libs.versions.toml)
+            implementation(platform("io.github.jan-tennert.supabase:bom:" + libs.versions.supabase.get()))
+            implementation(libs.supabase.postgrest)
+            implementation(libs.supabase.auth)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -46,6 +50,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.ktor.client.cio)
         }
     }
 }
