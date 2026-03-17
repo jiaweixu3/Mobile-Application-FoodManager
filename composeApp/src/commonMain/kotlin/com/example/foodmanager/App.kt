@@ -41,7 +41,6 @@ import com.example.foodmanager.ui.settings.SettingsViewModel
 val screens = listOf(
     ScreenDestination.Inventory,
     ScreenDestination.ShoppingList,
-    ScreenDestination.AddItem,
     ScreenDestination.Settings
 )
 
