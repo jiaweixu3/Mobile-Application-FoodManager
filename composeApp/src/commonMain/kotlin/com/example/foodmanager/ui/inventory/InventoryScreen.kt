@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -19,6 +21,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -39,6 +43,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.foodmanager.domain.calculateDaysRemaining
 import com.example.foodmanager.domain.useCase.InventorySortOption
@@ -80,8 +86,16 @@ fun SummaryBox(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryScreen(
-    viewModel: InventoryViewModel
+    viewModel: InventoryViewModel,
+    onNavigateToAddItem: () -> Unit
 ) {
+
+    val categoryScrollState = rememberScrollState()
+
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        viewModel.refreshInventory()
+    }
+
     // Collect data
     val inventoryList by viewModel.visibleInventory.collectAsState()
     val suggestedItem by viewModel.suggestedItem.collectAsState()
@@ -93,7 +107,14 @@ fun InventoryScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(title = { Text("My Pantry") })
+            CenterAlignedTopAppBar(
+                title = { Text("My Pantry") }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onNavigateToAddItem) {
+                Icon(Icons.Default.Add, contentDescription = "Add Item")
+            }
         }
     ) { innerPadding ->
         Column(
@@ -137,8 +158,14 @@ fun InventoryScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+<<<<<<< composeApp/src/commonMain/kotlin/com/example/foodmanager/ui/inventory/InventoryScreen.kt
+                    .horizontalScroll(categoryScrollState)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp), // Un poco más de espacio
+=======
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
+>>>>>>> composeApp/src/commonMain/kotlin/com/example/foodmanager/ui/inventory/InventoryScreen.kt
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 ExposedDropdownMenuBox(

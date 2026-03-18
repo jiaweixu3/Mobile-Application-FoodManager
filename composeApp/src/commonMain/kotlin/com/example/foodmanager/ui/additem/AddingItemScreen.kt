@@ -19,14 +19,17 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.foodmanager.data.repository.MockInventoryRepository
-
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import com.example.foodmanager.data.supabase
+import androidx.compose.ui.Alignment
+import com.example.foodmanager.data.repository.SupabaseInventoryRepository
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddingItemScreen(
     navController: NavController,
     viewModel: AddItemViewModel =
-        viewModel { AddItemViewModel(MockInventoryRepository()) }
+        viewModel { AddItemViewModel(SupabaseInventoryRepository(supabase)) }
 ) {
 
     var productName by remember { mutableStateOf("") }
@@ -35,6 +38,31 @@ fun AddingItemScreen(
     var expiryDateMs by remember { mutableStateOf<Long?>(null) }
     var selectedCategory by remember { mutableStateOf("Other") }
     var selectedUnit by remember { mutableStateOf("units") }
+
+    // New selector
+    var destination by remember { mutableStateOf("Inventory") }
+
+    Text("Where to add this item?", style = MaterialTheme.typography.labelLarge)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RadioButton(
+                selected = destination == "Inventory",
+                onClick = { destination = "Inventory" }
+            )
+            Text("Inventory")
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RadioButton(
+                selected = destination == "Shopping List",
+                onClick = { destination = "Shopping List" }
+            )
+            Text("Shopping List")
+        }
+    }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var expandedDropdown by remember { mutableStateOf(false) }
@@ -75,7 +103,8 @@ fun AddingItemScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(16.dp)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 

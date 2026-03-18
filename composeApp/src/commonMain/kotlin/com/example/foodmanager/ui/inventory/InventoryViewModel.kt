@@ -99,4 +99,11 @@ class InventoryViewModel(
             }
         }
     }
+    fun refreshInventory() {
+        viewModelScope.launch {
+            repository.getInventory().collect { items ->
+                _inventory.value = items
+            }
+        }
+    }
 }

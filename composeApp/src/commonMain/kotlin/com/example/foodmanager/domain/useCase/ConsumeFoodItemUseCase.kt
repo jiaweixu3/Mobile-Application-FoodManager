@@ -20,7 +20,7 @@ class ConsumeFoodItemUseCase(
 
         // Update or Delete from Inventory depending on the current amount
         if (newAmount <= 0.0) {
-            inventoryRepository.deleteFoodItem(foodItem.id)
+            inventoryRepository.deleteFoodItem(foodItem.id ?: 0)
         } else {
             val updatedFoodItem = foodItem.copy(amount = newAmount)
             inventoryRepository.updateFoodItem(updatedFoodItem)

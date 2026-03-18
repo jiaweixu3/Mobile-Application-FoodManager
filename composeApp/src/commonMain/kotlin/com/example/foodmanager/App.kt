@@ -36,6 +36,9 @@ import com.example.foodmanager.ui.navigation.ScreenDestination
 import com.example.foodmanager.ui.inventory.InventoryScreen
 import com.example.foodmanager.ui.inventory.InventoryViewModel
 import com.example.foodmanager.ui.settings.SettingsViewModel
+import com.example.foodmanager.data.supabase
+import com.example.foodmanager.data.repository.SupabaseInventoryRepository
+import com.example.foodmanager.data.repository.InventoryRepository
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
 
@@ -43,7 +46,6 @@ import io.github.jan.supabase.auth.status.SessionStatus
 val screens = listOf(
     ScreenDestination.Inventory,
     ScreenDestination.ShoppingList,
-    ScreenDestination.AddItem,
     ScreenDestination.Settings
 )
 
@@ -70,7 +72,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
     // Initializing the Mock Repositories, using remember to avoid redrawing
     val shoppingRepo = remember { MockShoppingRepository() }
-    val inventoryRepo = remember { MockInventoryRepository() }
+    val inventoryRepo: InventoryRepository = remember { SupabaseInventoryRepository(supabase) }
     val settingsRepo = remember { MockSettingsRepository() }
 
     //  Create the Use Case and pass in the repositories you just created
@@ -147,13 +149,28 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
         NavHost(
             navController = navController,
-            startDestination = ScreenDestination.Inventory,
+            startDestination = ScreenDestination.Inventory, // El destino inicial
             modifier = Modifier.padding(innerPadding)
         ) {
             composable<ScreenDestination.Inventory> {
-                InventoryScreen(viewModel = inventoryViewModel)
+                InventoryScreen(
+                    viewModel = inventoryViewModel,
+                    onNavigateToAddItem = {
+                        navController.navigate(ScreenDestination.AddItem)
+                    }
+                )
             }
 
+            composable<ScreenDestination.AddItem> {
+                val addItemViewModel = remember {
+                    com.example.foodmanager.ui.additem.AddItemViewModel(repository = inventoryRepo)
+                }
+
+                AddingItemScreen(
+                    navController = navController,
+                    viewModel = addItemViewModel
+                )
+            }
 
             composable<ScreenDestination.ShoppingList> {
                 ShoppingListScreen(
@@ -162,24 +179,29 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
                 )
             }
 
-            composable<ScreenDestination.AddItem> { AddingItemScreen(navController) }
             composable<ScreenDestination.Settings> {
                 SettingsScreen(
                     viewModel = settingsViewModel,
                     logoutSuccess = { isloggedout() },
                     onHouseholdSelected = {
-                        // Navigation logic, to go back to inventory
                         navController.navigate(ScreenDestination.Inventory) {
-                            // Goes to inventory window
-                            popUpTo(navController.graph.findStartDestination().id) { // Clears all screens until it finds new inventory
-                                saveState = true // Remembers where user was
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
                             }
                             launchSingleTop = true
-                            restoreState = true // If it goes back to the same state, it loads the saved state
-
-
+                            restoreState = true
                         }
-                    })
+                    },
+                    onNavigateToMembers = {
+                        navController.navigate(ScreenDestination.HouseholdMembers)
+                    }
+                )
+            }
+
+            composable<ScreenDestination.HouseholdMembers> {
+                com.example.foodmanager.ui.household.HouseholdScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
             }
         }
     }
