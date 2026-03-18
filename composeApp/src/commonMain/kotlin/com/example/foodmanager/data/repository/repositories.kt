@@ -22,7 +22,7 @@ interface InventoryRepository {
 
 
 // Shopping List Inventory
-interface ShoppingListRepository {
+interface ShoppingRepository {
     fun getShoppingList(): Flow<List<ShoppingItem>>
 
     suspend fun addShoppingItem(newShoppingItem: ShoppingItem)
@@ -96,8 +96,8 @@ class MockInventoryRepository : InventoryRepository {
     }
 }
 
-// Shopping Repository
-class MockShoppingRepository : ShoppingListRepository {
+    // Shopping Repository
+    class MockShoppingRepository : ShoppingRepository {
     // For the shopping list we also have to retrieve the current household
     override fun getShoppingList(): Flow<List<ShoppingItem>> {
         return combine(MockDb.currentHousehold, MockDb.shoppingitems){actualHousehold, allShoppingItems ->

@@ -1,19 +1,19 @@
 package com.example.foodmanager.domain.useCase
 
 import com.example.foodmanager.data.repository.InventoryRepository
-import com.example.foodmanager.data.repository.ShoppingListRepository
+import com.example.foodmanager.data.repository.ShoppingRepository
 import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.domain.model.ShoppingItem
 import kotlinx.coroutines.flow.first
 
 // Handles when an item is marked as bought
 class MarkAsBoughtUseCase(
-    private val shoppingRepository: ShoppingListRepository,
+    private val shoppingRepository: ShoppingRepository,
     private val inventoryRepository: InventoryRepository
 ) {
     suspend operator fun invoke(item: ShoppingItem) {
         // Removing from shopping list
-        shoppingRepository.deleteShoppingItem(item.id)
+        item.id?.let { shoppingRepository.deleteShoppingItem(it) }
 
         // Obtaining the current inventory
         val currentPantry = inventoryRepository.getInventory().first()

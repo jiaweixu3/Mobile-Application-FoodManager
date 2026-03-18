@@ -1,14 +1,14 @@
 package com.example.foodmanager.domain.useCase
 
 import com.example.foodmanager.data.repository.InventoryRepository
-import com.example.foodmanager.data.repository.ShoppingListRepository
+import com.example.foodmanager.data.repository.ShoppingRepository
 import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.domain.model.ShoppingItem
 
 // This file handles when a user consumes a food item
 class ConsumeFoodItemUseCase(
     private val inventoryRepository: InventoryRepository,
-    private val shoppingRepository: ShoppingListRepository
+    private val shoppingRepository: ShoppingRepository
 ) {
     suspend operator fun invoke(
         foodItem: FoodItem,
@@ -29,8 +29,7 @@ class ConsumeFoodItemUseCase(
         // If user asks to add it to the shopping list, we include it
         if (addToShoppingList) {
             val newShoppingItem = ShoppingItem(
-                id = (1000..9999).random(),
-                "shopping_list_1",
+                shopping_list_id = "",
                 name = foodItem.name,
                 amount = shoppingQuantity,
                 unit = foodItem.unit,

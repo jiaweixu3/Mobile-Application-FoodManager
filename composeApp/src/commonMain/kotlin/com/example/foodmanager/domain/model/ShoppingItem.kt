@@ -1,12 +1,18 @@
 package com.example.foodmanager.domain.model
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class ShoppingItem(
-    val id: Int,
-    val shopping_list_id: String, // UUID
+    val id: Int? = null, // Database auto-generates this as a numeric ID
+    val shopping_list_id: String, // Must be a String for the UUID
     val name: String,
     val amount: Double,
-    val unit: String,      // e.g: kg, L, Pack, etc.
-    val category: String,  // e.g: "Pasta", "Dairy"
+    val unit: String,
+    val category: String,
+    @SerialName("is_checked")
     val isChecked: Boolean = false,
-    val photoUrl: String? = null 
+    @SerialName("photo_url")
+    val photoUrl: String? = null
 )

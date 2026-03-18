@@ -40,6 +40,7 @@ kotlin {
             // Supabase (BOM version from libs.versions.toml)
             implementation(platform("io.github.jan-tennert.supabase:bom:" + libs.versions.supabase.get()))
             implementation(libs.supabase.postgrest)
+
             implementation(libs.supabase.auth)
         }
         commonTest.dependencies {

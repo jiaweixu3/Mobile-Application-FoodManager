@@ -22,8 +22,10 @@ fun ShoppingListScreen(
     navController: NavController,
     viewModel: ShoppingViewModel
 ) {
-    //  Obtaining values from ViewModel and MockDB.
     val shoppingList by viewModel.items.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
     var showAddDialog by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
     var newQuantity by remember { mutableStateOf("") }
@@ -46,6 +48,39 @@ fun ShoppingListScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
+                },
+                // Added the sorting dropdown menu to the Top Bar
+                actions = {
+                    var showSortMenu by remember { mutableStateOf(false) }
+                    IconButton(onClick = { showSortMenu = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "Sort Options")
+                    }
+                    DropdownMenu(
+                        expanded = showSortMenu,
+                        onDismissRequest = { showSortMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Sort by Name") },
+                            onClick = {
+                                viewModel.setSortType(SortType.NAME)
+                                showSortMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Sort by Amount") },
+                            onClick = {
+                                viewModel.setSortType(SortType.AMOUNT)
+                                showSortMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Sort by Category") },
+                            onClick = {
+                                viewModel.setSortType(SortType.CATEGORY)
+                                showSortMenu = false
+                            }
+                        )
+                    }
                 }
             )
         },
@@ -54,9 +89,7 @@ fun ShoppingListScreen(
                 Icon(Icons.Default.Add, contentDescription = "Create shopping item")
             }
         },
-
         bottomBar = {
-            // Check if any items in the list are currently checked
             val hasCheckedItems = shoppingList.any { it.isChecked }
 
             Surface(
@@ -68,38 +101,48 @@ fun ShoppingListScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    // The button will be grayed out if nothing is checked
-                    enabled = hasCheckedItems
+                    enabled = hasCheckedItems && !isLoading
                 ) {
                     Text("Mark Checked as Bought")
                 }
             }
         }
     ) { paddingValues ->
-        if (shoppingList.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                Text("Your shopping list is empty!")
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+
+            if (shoppingList.isEmpty() && !isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Your shopping list is empty!")
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(shoppingList, key = { it.id ?: it.hashCode() }) { item ->
+                        ShoppingItemRow(
+                            item = item,
+                            onCheckedChange = {
+                                viewModel.toggleItem(item)
+                            }
+                        )
+                    }
+                }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(shoppingList, key = { it.id }) { item ->
-                    ShoppingItemRow(
-                        item = item,
-                        onCheckedChange = {
-                            viewModel.toggleItem(item)
-                        }
-                    )
+
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
         }
 
-        // If button is clicked for adding an item, displaying the dialog box
+        // Add item dialog box
         if (showAddDialog) {
             AlertDialog(
                 onDismissRequest = { showAddDialog = false },
@@ -209,10 +252,21 @@ fun ShoppingListScreen(
                 }
             )
         }
+
+        if (errorMessage != null) {
+            AlertDialog(
+                onDismissRequest = { viewModel.clearError() },
+                title = { Text("Database Error") },
+                text = { Text(errorMessage ?: "An unknown error occurred.") },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.clearError() }) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
     }
 }
-
-
 
 @Composable
 fun ShoppingItemRow(item: ShoppingItem, onCheckedChange: (Boolean) -> Unit) {
