@@ -158,14 +158,9 @@ fun InventoryScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-<<<<<<< composeApp/src/commonMain/kotlin/com/example/foodmanager/ui/inventory/InventoryScreen.kt
                     .horizontalScroll(categoryScrollState)
                     .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp), // Un poco más de espacio
-=======
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
->>>>>>> composeApp/src/commonMain/kotlin/com/example/foodmanager/ui/inventory/InventoryScreen.kt
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 ExposedDropdownMenuBox(
