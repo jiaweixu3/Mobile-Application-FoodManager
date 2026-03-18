@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import com.example.foodmanager.domain.useCase.InventorySortOption
 import com.example.foodmanager.domain.useCase.sortAndFilterInventory
 import com.example.foodmanager.data.repository.InventoryRepository
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,13 +32,16 @@ class InventoryViewModel(
     private val _selectedCategory = MutableStateFlow<String?>(null)
     val selectedCategory: StateFlow<String?> = _selectedCategory.asStateFlow()
 
+    private val _selectedSortOption = MutableStateFlow(InventorySortOption.EXPIRY)
+    val selectedSortOption: StateFlow<InventorySortOption> = _selectedSortOption.asStateFlow()
+
     private val _suggestedItem = MutableStateFlow<FoodItem?>(null)
     val suggestedItem: StateFlow<FoodItem?> = _suggestedItem
 
     // Public list the UI should show: sorted by expiry and filtered by category
     val visibleInventory: StateFlow<List<FoodItem>> =
-        combine(_inventory, _selectedCategory) { items, category ->
-            sortAndFilterInventory(items, category)
+        combine(_inventory, _selectedCategory, _selectedSortOption) { items, category, sortOption ->
+            sortAndFilterInventory(items, category, sortOption)
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -55,6 +59,10 @@ class InventoryViewModel(
     // Call this from the UI to change category filter
     fun setCategoryFilter(category: String?) {
         _selectedCategory.value = category
+    }
+
+    fun setSortOption(sortOption: InventorySortOption) {
+        _selectedSortOption.value = sortOption
     }
 
     fun dismissSuggestion() {

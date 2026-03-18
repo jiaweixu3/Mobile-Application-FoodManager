@@ -19,9 +19,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,7 +45,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.foodmanager.domain.calculateDaysRemaining
+import com.example.foodmanager.domain.useCase.InventorySortOption
 
 @Composable
 fun SummaryBox(
@@ -145,28 +150,88 @@ fun InventoryScreen(
 
             // Category filtering (Pasta, Meat, etc.)
             val categories = listOf("All", "Vegetables", "Fruits", "Meat", "Dairy", "Bread", "Pasta", "Rice", "Frozen", "Other")
+            val selectedSortOption by viewModel.selectedSortOption.collectAsState()
+            var sortMenuExpanded by remember { mutableStateOf(false) }
+            val selectedCategory by viewModel.selectedCategory.collectAsState()
+            var categoryMenuExpanded by remember { mutableStateOf(false) }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+<<<<<<< composeApp/src/commonMain/kotlin/com/example/foodmanager/ui/inventory/InventoryScreen.kt
                     .horizontalScroll(categoryScrollState)
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp), // Un poco más de espacio
+=======
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+>>>>>>> composeApp/src/commonMain/kotlin/com/example/foodmanager/ui/inventory/InventoryScreen.kt
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val selectedCategory by viewModel.selectedCategory.collectAsState()
-
-                categories.forEach { label ->
-                    val value = if (label == "All") null else label
-                    Text(
-                        text = label,
-                        fontSize = 14.sp,
-                        fontWeight = if (selectedCategory == value) FontWeight.Bold else FontWeight.Normal,
-                        textDecoration = if (selectedCategory == value) TextDecoration.Underline else TextDecoration.None,
-                        modifier = Modifier.clickable {
-                            viewModel.setCategoryFilter(value)
-                        }
+                ExposedDropdownMenuBox(
+                    expanded = sortMenuExpanded,
+                    onExpandedChange = { sortMenuExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedSortOption.label,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Sort by") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortMenuExpanded)
+                        },
+                        modifier = Modifier.menuAnchor().weight(1f),
+                        shape = RoundedCornerShape(24.dp)
                     )
+                    ExposedDropdownMenu(
+                        expanded = sortMenuExpanded,
+                        onDismissRequest = { sortMenuExpanded = false }
+                    ) {
+                        InventorySortOption.values().forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option.label) },
+                                onClick = {
+                                    viewModel.setSortOption(option)
+                                    sortMenuExpanded = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                            )
+                        }
+                    }
+                }
+
+                ExposedDropdownMenuBox(
+                    expanded = categoryMenuExpanded,
+                    onExpandedChange = { categoryMenuExpanded = it }
+                ) {
+                    val categoryLabel = selectedCategory ?: "All"
+                    OutlinedTextField(
+                        value = categoryLabel,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Filter by") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryMenuExpanded)
+                        },
+                        modifier = Modifier.menuAnchor().weight(1f),
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = categoryMenuExpanded,
+                        onDismissRequest = { categoryMenuExpanded = false }
+                    ) {
+                        categories.forEach { label ->
+                            val value = if (label == "All") null else label
+                            DropdownMenuItem(
+                                text = { Text(label) },
+                                onClick = {
+                                    viewModel.setCategoryFilter(value)
+                                    categoryMenuExpanded = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                            )
+                        }
+                    }
                 }
             }
 
