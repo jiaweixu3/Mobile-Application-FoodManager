@@ -2,6 +2,7 @@ package com.example.foodmanager.ui.inventory
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -95,6 +97,10 @@ fun InventoryScreen(
     val inventoryList by viewModel.visibleInventory.collectAsState()
     val suggestedItem by viewModel.suggestedItem.collectAsState()
 
+    // NEW: Listen for Loading and Error states
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
     // Calculate counts
     val expiredCount = inventoryList.count { calculateDaysRemaining(it) < 0 }
     val warningCount = inventoryList.count { calculateDaysRemaining(it) in 0..3 }
@@ -112,75 +118,88 @@ fun InventoryScreen(
             }
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp, 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+        // Wrap everything in a Box to overlay the loading spinner
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+
+            Column(
+                modifier = Modifier.fillMaxSize()
             ) {
-                SummaryBox(
-                    count = freshCount,
-                    label = "Fresh",
-                    backgroundColor = Color(0xFF4CAF50),
-                    modifier = Modifier.weight(1f)
-                )
-                SummaryBox(
-                    count = warningCount,
-                    label = "Soon",
-                    backgroundColor = Color(0xFFFFB300),
-                    modifier = Modifier.weight(1f)
-                )
-                SummaryBox(
-                    count = expiredCount,
-                    label = "Expired",
-                    backgroundColor = Color(0xFFE53935),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            // Category filtering (Pasta, Meat, etc.)
-            val categories = listOf("All", "Vegetables", "Fruits", "Meat", "Dairy", "Bread", "Pasta", "Rice", "Frozen", "Other")
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(categoryScrollState)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp), // Un poco más de espacio
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val selectedCategory by viewModel.selectedCategory.collectAsState()
-
-                categories.forEach { label ->
-                    val value = if (label == "All") null else label
-                    Text(
-                        text = label,
-                        fontSize = 14.sp,
-                        fontWeight = if (selectedCategory == value) FontWeight.Bold else FontWeight.Normal,
-                        textDecoration = if (selectedCategory == value) TextDecoration.Underline else TextDecoration.None,
-                        modifier = Modifier.clickable {
-                            viewModel.setCategoryFilter(value)
-                        }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp, 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    SummaryBox(
+                        count = freshCount,
+                        label = "Fresh",
+                        backgroundColor = Color(0xFF4CAF50),
+                        modifier = Modifier.weight(1f)
                     )
+                    SummaryBox(
+                        count = warningCount,
+                        label = "Soon",
+                        backgroundColor = Color(0xFFFFB300),
+                        modifier = Modifier.weight(1f)
+                    )
+                    SummaryBox(
+                        count = expiredCount,
+                        label = "Expired",
+                        backgroundColor = Color(0xFFE53935),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                // Category filtering (Pasta, Meat, etc.)
+                val categories = listOf("All", "Vegetables", "Fruits", "Meat", "Dairy", "Bread", "Pasta", "Rice", "Frozen", "Other")
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(categoryScrollState)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val selectedCategory by viewModel.selectedCategory.collectAsState()
+
+                    categories.forEach { label ->
+                        val value = if (label == "All") null else label
+                        Text(
+                            text = label,
+                            fontSize = 14.sp,
+                            fontWeight = if (selectedCategory == value) FontWeight.Bold else FontWeight.Normal,
+                            textDecoration = if (selectedCategory == value) TextDecoration.Underline else TextDecoration.None,
+                            modifier = Modifier.clickable {
+                                viewModel.setCategoryFilter(value)
+                            }
+                        )
+                    }
+                }
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    items(inventoryList) { foodItem ->
+                        FoodCard(item = foodItem, viewModel = viewModel)
+                    }
                 }
             }
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                items(inventoryList) { foodItem ->
-                    FoodCard(item = foodItem, viewModel = viewModel)
+            // NEW: Show loading spinner in the center of the screen
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
         }
 
+        // Suggestion Dialog
         suggestedItem?.let { foodToRestock ->
             var buyQuantity by remember { mutableStateOf("1.0") }
 
@@ -215,6 +234,20 @@ fun InventoryScreen(
                 dismissButton = {
                     TextButton(onClick = { viewModel.dismissSuggestion() }) {
                         Text("No thanks")
+                    }
+                }
+            )
+        }
+
+        // NEW: Error message dialog box
+        if (errorMessage != null) {
+            AlertDialog(
+                onDismissRequest = { viewModel.clearError() },
+                title = { Text("Database Error") },
+                text = { Text(errorMessage ?: "An unknown error occurred.") },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.clearError() }) {
+                        Text("OK")
                     }
                 }
             )

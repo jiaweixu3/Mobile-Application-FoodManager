@@ -24,6 +24,11 @@ fun ShoppingListScreen(
 ) {
     //  Obtaining values from ViewModel and MockDB.
     val shoppingList by viewModel.items.collectAsState()
+
+    // Listen for Loading and Error states
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
     var showAddDialog by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
     var newQuantity by remember { mutableStateOf("") }
@@ -54,7 +59,6 @@ fun ShoppingListScreen(
                 Icon(Icons.Default.Add, contentDescription = "Create shopping item")
             }
         },
-
         bottomBar = {
             // Check if any items in the list are currently checked
             val hasCheckedItems = shoppingList.any { it.isChecked }
@@ -68,38 +72,52 @@ fun ShoppingListScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    // The button will be grayed out if nothing is checked
-                    enabled = hasCheckedItems
+                    // The button will be grayed out if nothing is checked or if it's currently loading
+                    enabled = hasCheckedItems && !isLoading
                 ) {
                     Text("Mark Checked as Bought")
                 }
             }
         }
     ) { paddingValues ->
-        if (shoppingList.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                Text("Your shopping list is empty!")
+        // Wrap content in a Box so we can put the loading spinner on top
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+
+            // Only show empty text if we are NOT loading
+            if (shoppingList.isEmpty() && !isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Your shopping list is empty!")
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(shoppingList, key = { it.id }) { item ->
+                        ShoppingItemRow(
+                            item = item,
+                            onCheckedChange = {
+                                viewModel.toggleItem(item)
+                            }
+                        )
+                    }
+                }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(shoppingList, key = { it.id }) { item ->
-                    ShoppingItemRow(
-                        item = item,
-                        onCheckedChange = {
-                            viewModel.toggleItem(item)
-                        }
-                    )
+
+            //  Show loading spinner in the center of the screen
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
         }
 
-        // If button is clicked for adding an item, displaying the dialog box
+        // Add item dialog box
         if (showAddDialog) {
             AlertDialog(
                 onDismissRequest = { showAddDialog = false },
@@ -209,10 +227,22 @@ fun ShoppingListScreen(
                 }
             )
         }
+
+        // Error message dialog box
+        if (errorMessage != null) {
+            AlertDialog(
+                onDismissRequest = { viewModel.clearError() },
+                title = { Text("Database Error") },
+                text = { Text(errorMessage ?: "An unknown error occurred.") },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.clearError() }) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
     }
 }
-
-
 
 @Composable
 fun ShoppingItemRow(item: ShoppingItem, onCheckedChange: (Boolean) -> Unit) {
