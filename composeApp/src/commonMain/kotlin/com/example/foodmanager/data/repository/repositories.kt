@@ -68,7 +68,7 @@ class MockInventoryRepository : InventoryRepository {
             if (actualInventory == null) return@combine emptyList()
 
             // Returning the current list of items
-            allItems.filter{it.inventory_id == actualInventory.id}
+            allItems.filter{it.inventoryId == actualInventory.id}
         }
     }
 
@@ -82,7 +82,7 @@ class MockInventoryRepository : InventoryRepository {
         val currentInventory = MockDb.inventories.find { it.household_id == currentHouse.id }?:return
 
         // Updating the item id
-        val newUpdatedItem = newItem.copy(inventory_id = currentInventory.id)
+        val newUpdatedItem = newItem.copy(inventoryId = currentInventory.id)
 
         MockDb.addFoodItem(newUpdatedItem)
     }

@@ -77,18 +77,18 @@ object MockDb {
         listOf(
             FoodItem(
                 id = 1,
-                inventory_id = "inv_1",
+                inventoryId = "inv_1",
                 name = "Milk",
                 expiryDate = "2026-02-01",
                 amount = 1.0,
                 unit = "Litre",
                 category = "Dairy",
-                barcode = "123456789",
-                photoUrl = "milk.jpg"
+            //    barcode = "123456789",
+            //    photoUrl = "milk.jpg"
             ),
             FoodItem(
                 id = 2,
-                inventory_id = "inv_1",
+                inventoryId = "inv_1",
                 name = "Spinach",
                 expiryDate = "2026-02-10",
                 amount = 200.0,
@@ -97,7 +97,7 @@ object MockDb {
             ),
             FoodItem(
                 id = 3,
-                inventory_id = "inv_1",
+                inventoryId = "inv_1",
                 name = "Canned Beans",
                 expiryDate = "2026-03-15",
                 amount = 2.0,
@@ -106,25 +106,25 @@ object MockDb {
             ),
             FoodItem(
                 id = 4,
-                inventory_id = "inv_2",
+                inventoryId = "inv_2",
                 name = "Milk",
                 expiryDate = "2026-02-01",
                 amount = 1.0,
                 unit = "Litre",
                 category = "Dairy",
-                barcode = "123456789",
-                photoUrl = "milk.jpg"
+            //    barcode = "123456789",
+            //    photoUrl = "milk.jpg"
             ),
             FoodItem(
                 id = 5,
-                inventory_id = "inv_3",
+                inventoryId = "inv_3",
                 name = "Milk",
                 expiryDate = "2026-02-01",
                 amount = 1.0,
                 unit = "Litre",
                 category = "Dairy",
-                barcode = "123456789",
-                photoUrl = "milk.jpg"
+            //    barcode = "123456789",
+            //    photoUrl = "milk.jpg"
             )
         )
     )
@@ -148,7 +148,7 @@ object MockDb {
             val newAmount = existingItem.amount + newItem.amount
             // If amount is 0, we delete the item
             if (newAmount <= 0.0) {
-                deleteFoodItem(existingItem.id)
+                deleteFoodItem(existingItem.id ?: 0)
 
             } else { // If not, we update the correct amount
                 _fooditems.value = _fooditems.value.map { item -> //Iterating through the list to find the correct item
@@ -172,7 +172,7 @@ object MockDb {
 
     fun updateFoodItem(updatedItem: FoodItem) {
         if (updatedItem.amount <= 0.0) {
-            deleteFoodItem(item_id = updatedItem.id)
+            deleteFoodItem(item_id = updatedItem.id ?: 0)
         } else {
             _fooditems.value = _fooditems.value.map { if (it.id == updatedItem.id) updatedItem else it }
         }
@@ -184,18 +184,18 @@ object MockDb {
         _fooditems.value = listOf(
             FoodItem(
                 id = 1,
-                inventory_id = "inv_1",
+                inventoryId = "inv_1",
                 name = "Milk",
                 expiryDate = "2026-02-01",
                 amount = 1.0,
                 unit = "Litre",
                 category = "Dairy",
-                barcode = "123456789",
-                photoUrl = "milk.jpg"
+            //    barcode = "123456789",
+            //    photoUrl = "milk.jpg"
             ),
             FoodItem(
                 id = 2,
-                inventory_id = "inv_1",
+                inventoryId = "inv_1",
                 name = "Spinach",
                 expiryDate = "2026-02-10",
                 amount = 200.0,
@@ -204,7 +204,7 @@ object MockDb {
             ),
             FoodItem(
                 id = 3,
-                inventory_id = "inv_1",
+                inventoryId = "inv_1",
                 name = "Canned Beans",
                 expiryDate = "2026-03-15",
                 amount = 2.0,
@@ -213,25 +213,25 @@ object MockDb {
             ),
             FoodItem(
                 id = 4,
-                inventory_id = "inv_2",
+                inventoryId = "inv_2",
                 name = "Milk",
                 expiryDate = "2026-02-01",
                 amount = 1.0,
                 unit = "Litre",
                 category = "Dairy",
-                barcode = "123456789",
-                photoUrl = "milk.jpg"
+            //    barcode = "123456789",
+            //    photoUrl = "milk.jpg"
             ),
             FoodItem(
                 id = 5,
-                inventory_id = "inv_3",
+                inventoryId = "inv_3",
                 name = "Milk",
                 expiryDate = "2026-02-01",
                 amount = 1.0,
                 unit = "Litre",
                 category = "Dairy",
-                barcode = "123456789",
-                photoUrl = "milk.jpg"
+            //    barcode = "123456789",
+            //    photoUrl = "milk.jpg"
             )
         )
     }

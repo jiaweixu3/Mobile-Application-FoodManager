@@ -82,6 +82,11 @@ fun InventoryScreen(
     viewModel: InventoryViewModel,
     onNavigateToAddItem: () -> Unit
 ) {
+
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        viewModel.refreshInventory()
+    }
+
     // Collect data
     val inventoryList by viewModel.visibleInventory.collectAsState()
     val suggestedItem by viewModel.suggestedItem.collectAsState()

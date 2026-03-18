@@ -36,6 +36,9 @@ import com.example.foodmanager.ui.navigation.ScreenDestination
 import com.example.foodmanager.ui.inventory.InventoryScreen
 import com.example.foodmanager.ui.inventory.InventoryViewModel
 import com.example.foodmanager.ui.settings.SettingsViewModel
+import com.example.foodmanager.data.supabase
+import com.example.foodmanager.data.repository.SupabaseInventoryRepository
+import com.example.foodmanager.data.repository.InventoryRepository
 
 // Storing all screens in the app in a list, for simplified looping
 val screens = listOf(
@@ -74,7 +77,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
     // Initializing the Mock Repositories, using remember to avoid redrawing
     val shoppingRepo = remember { MockShoppingRepository() }
-    val inventoryRepo = remember { MockInventoryRepository() }
+    val inventoryRepo: InventoryRepository = remember { SupabaseInventoryRepository(supabase) }
     val settingsRepo = remember { MockSettingsRepository() }
 
     //  Create the Use Case and pass in the repositories you just created
@@ -151,7 +154,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
         NavHost(
             navController = navController,
-            startDestination = ScreenDestination.Inventory,
+            startDestination = ScreenDestination.Inventory, // El destino inicial
             modifier = Modifier.padding(innerPadding)
         ) {
             composable<ScreenDestination.Inventory> {
@@ -163,6 +166,16 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
                 )
             }
 
+            composable<ScreenDestination.AddItem> {
+                val addItemViewModel = remember {
+                    com.example.foodmanager.ui.additem.AddItemViewModel(repository = inventoryRepo)
+                }
+
+                AddingItemScreen(
+                    navController = navController,
+                    viewModel = addItemViewModel
+                )
+            }
 
             composable<ScreenDestination.ShoppingList> {
                 ShoppingListScreen(
@@ -171,16 +184,12 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
                 )
             }
 
-            composable<ScreenDestination.AddItem> { AddingItemScreen(navController) }
-
             composable<ScreenDestination.Settings> {
                 SettingsScreen(
                     viewModel = settingsViewModel,
                     logoutSuccess = { isloggedout() },
                     onHouseholdSelected = {
-                        // Navigation logic, to go back to inventory
                         navController.navigate(ScreenDestination.Inventory) {
-                            // Goes to inventory window
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
@@ -194,13 +203,11 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
                 )
             }
 
-            // New Screen
             composable<ScreenDestination.HouseholdMembers> {
                 com.example.foodmanager.ui.household.HouseholdScreen(
                     onBackClick = { navController.popBackStack() }
                 )
             }
-
         }
     }
 }

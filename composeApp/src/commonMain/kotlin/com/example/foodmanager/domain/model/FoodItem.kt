@@ -1,17 +1,20 @@
 package com.example.foodmanager.domain.model
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
 @Serializable
 data class FoodItem(
-    val id: Int,
-    val inventory_id: String, //UUID
+    val id: Int? = null, // Nullable so supabase can autogenerate one
+
+    @SerialName("inventory_id")
+    val inventoryId: String?, // Nullable in case there's no house ID yet
+
     val name: String,
-    val expiryDate: String, // YYYY-MM-DD format
+
+    @SerialName("expiry_date")
+    val expiryDate: String,
+
     val amount: Double,
     val unit: String,
-    val category: String, // e.g. "Pasta", "Meat", "Dairy"
-
-    // Nullable fields
-    val barcode: String? = null,
-    val photoUrl: String? = null
+    val category: String
 )
