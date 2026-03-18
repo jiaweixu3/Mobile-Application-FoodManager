@@ -28,7 +28,7 @@ import com.example.foodmanager.ui.auth.LoginScreen
 import com.example.foodmanager.ui.settings.SettingsScreen
 import com.example.foodmanager.data.repository.ShoppingRepository
 import com.example.foodmanager.data.repository.SupabaseShoppingRepository
-import io.github.jan_tennert.supabase.postgrest.postgrest // Ensure postgrest is imported
+import io.github.jan.supabase.postgrest.postgrest // Ensure postgrest is imported
 import com.example.foodmanager.ui.shopping.ShoppingViewModel
 import com.example.foodmanager.domain.useCase.MarkAsBoughtUseCase
 import com.example.foodmanager.data.repository.MockInventoryRepository

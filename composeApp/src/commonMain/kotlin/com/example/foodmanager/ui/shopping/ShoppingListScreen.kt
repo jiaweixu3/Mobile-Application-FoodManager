@@ -121,7 +121,7 @@ fun ShoppingListScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    items(shoppingList, key = { it.id }) { item ->
+                    items(shoppingList, key = { it.id ?: it.hashCode() }) { item ->
                         ShoppingItemRow(
                             item = item,
                             onCheckedChange = {

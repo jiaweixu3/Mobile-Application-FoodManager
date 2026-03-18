@@ -13,7 +13,7 @@ class MarkAsBoughtUseCase(
 ) {
     suspend operator fun invoke(item: ShoppingItem) {
         // Removing from shopping list
-        shoppingRepository.deleteShoppingItem(item.id)
+        shoppingRepository.deleteShoppingItem(item.id ?: "")
 
         // Obtaining the current inventory
         val currentPantry = inventoryRepository.getInventory().first()

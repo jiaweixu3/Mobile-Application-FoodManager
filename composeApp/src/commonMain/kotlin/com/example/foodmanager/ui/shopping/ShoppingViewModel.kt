@@ -79,7 +79,7 @@ class ShoppingViewModel(
         }
     }
 
-    fun deleteItem(id: Int) {
+    fun deleteItem(id: String) { // <-- Changed Int to String right here!
         viewModelScope.launch {
             try {
                 repository.deleteShoppingItem(id)

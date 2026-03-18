@@ -240,13 +240,13 @@ object MockDb {
     private val _shoppingitems = MutableStateFlow(
         listOf(
             // order MUST be: id, name, amount (Double), unit (String), category (String), isChecked (Boolean)
-            ShoppingItem(1, "shopping_list_1","Apples", 6.0, "pcs", "Fruits", false),
-            ShoppingItem(2, "shopping_list_1","Bananas", 1.0, "kg", "Fruits", true),
-            ShoppingItem(3, "shopping_list_1" ,"Milk", 1.0, "Litre", "Dairy", false),
-            ShoppingItem(4, "shopping_list_1", "Eggs", 12.0, "u", "Meat", true),
-            ShoppingItem(5,"shopping_list_1", "Bread", 1.0, "Loaf", "Bread", false),
-            ShoppingItem(6, "shopping_list_2","Grapes", 6.0, "pcs", "Fruits", false),
-            ShoppingItem(7, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
+            ShoppingItem("1", "shopping_list_1","Apples", 6.0, "pcs", "Fruits", false),
+            ShoppingItem("2", "shopping_list_1","Bananas", 1.0, "kg", "Fruits", true),
+            ShoppingItem("3", "shopping_list_1" ,"Milk", 1.0, "Litre", "Dairy", false),
+            ShoppingItem("4", "shopping_list_1", "Eggs", 12.0, "u", "Meat", true),
+            ShoppingItem("5","shopping_list_1", "Bread", 1.0, "Loaf", "Bread", false),
+            ShoppingItem("6", "shopping_list_2","Grapes", 6.0, "pcs", "Fruits", false),
+            ShoppingItem("7", "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
         )
     )
     val shoppingitems = _shoppingitems.asStateFlow()
@@ -265,7 +265,7 @@ object MockDb {
     }
 
 
-    fun deleteShoppingItem(item_id: Int) {
+    fun deleteShoppingItem(item_id: String) {
         _shoppingitems.value = _shoppingitems.value.filter { it.id != item_id } // Delete elements with the same id
     }
 
@@ -278,13 +278,13 @@ object MockDb {
     fun resetShoppingState() {
         _shoppingitems.value = listOf(
             // Use the same 6-parameter format here to fix the compilation error
-            ShoppingItem(1, "shopping_list_1","Apples", 6.0, "pcs", "Fruits", false),
-            ShoppingItem(2,"shopping_list_1", "Bananas", 1.0, "kg", "Fruits", true),
-            ShoppingItem(3,"shopping_list_1", "Milk", 1.0, "Litre", "Dairy", false),
-            ShoppingItem(4,"shopping_list_1", "Eggs", 12.0, "u", "Meat", true),
-            ShoppingItem(5,"shopping_list_1", "Bread", 1.0, "Loaf", "Bread", false),
-            ShoppingItem(6, "shopping_list_2","Grapes", 6.0, "pcs", "Fruits", false),
-            ShoppingItem(7, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
+            ShoppingItem("1", "shopping_list_1","Apples", 6.0, "pcs", "Fruits", false),
+            ShoppingItem("2","shopping_list_1", "Bananas", 1.0, "kg", "Fruits", true),
+            ShoppingItem("3","shopping_list_1", "Milk", 1.0, "Litre", "Dairy", false),
+            ShoppingItem("4","shopping_list_1", "Eggs", 12.0, "u", "Meat", true),
+            ShoppingItem("5","shopping_list_1", "Bread", 1.0, "Loaf", "Bread", false),
+            ShoppingItem("6", "shopping_list_2","Grapes", 6.0, "pcs", "Fruits", false),
+            ShoppingItem("7", "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
         )
     }
 

@@ -5,13 +5,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ShoppingItem(
-    val id: Int = 0, // Default to 0 so you can create new items before DB insertion
-    val shopping_list_id: String, // UUID
+    val id: String? = null, // Database will auto-generate this!
+    val shopping_list_id: String, // Must be a String for the UUID
     val name: String,
     val amount: Double,
     val unit: String,
     val category: String,
-    @SerialName("is_checked") // Maps Kotlin camelCase to Supabase snake_case
+    @SerialName("is_checked")
     val isChecked: Boolean = false,
     @SerialName("photo_url")
     val photoUrl: String? = null
