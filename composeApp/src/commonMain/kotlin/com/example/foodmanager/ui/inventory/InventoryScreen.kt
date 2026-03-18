@@ -40,6 +40,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import com.example.foodmanager.domain.calculateDaysRemaining
 
 @Composable
@@ -82,6 +84,8 @@ fun InventoryScreen(
     viewModel: InventoryViewModel,
     onNavigateToAddItem: () -> Unit
 ) {
+
+    val categoryScrollState = rememberScrollState()
 
     androidx.compose.runtime.LaunchedEffect(Unit) {
         viewModel.refreshInventory()
@@ -145,8 +149,10 @@ fun InventoryScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    .horizontalScroll(categoryScrollState)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp), // Un poco más de espacio
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 val selectedCategory by viewModel.selectedCategory.collectAsState()
 
