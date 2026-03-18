@@ -20,10 +20,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -39,12 +42,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.foodmanager.domain.calculateDaysRemaining
+import com.example.foodmanager.domain.useCase.InventorySortOption
 
 @Composable
 fun SummaryBox(
@@ -118,7 +122,8 @@ fun InventoryScreen(
             }
         }
     ) { innerPadding ->
-        // Wrap everything in a Box to overlay the loading spinner
+
+        // Wrapped the content in a Box to handle the loading spinner overlay correctly
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
 
             Column(
@@ -152,6 +157,10 @@ fun InventoryScreen(
 
                 // Category filtering (Pasta, Meat, etc.)
                 val categories = listOf("All", "Vegetables", "Fruits", "Meat", "Dairy", "Bread", "Pasta", "Rice", "Frozen", "Other")
+                val selectedSortOption by viewModel.selectedSortOption.collectAsState()
+                var sortMenuExpanded by remember { mutableStateOf(false) }
+                val selectedCategory by viewModel.selectedCategory.collectAsState()
+                var categoryMenuExpanded by remember { mutableStateOf(false) }
 
                 Row(
                     modifier = Modifier
@@ -161,25 +170,77 @@ fun InventoryScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val selectedCategory by viewModel.selectedCategory.collectAsState()
-
-                    categories.forEach { label ->
-                        val value = if (label == "All") null else label
-                        Text(
-                            text = label,
-                            fontSize = 14.sp,
-                            fontWeight = if (selectedCategory == value) FontWeight.Bold else FontWeight.Normal,
-                            textDecoration = if (selectedCategory == value) TextDecoration.Underline else TextDecoration.None,
-                            modifier = Modifier.clickable {
-                                viewModel.setCategoryFilter(value)
-                            }
+                    ExposedDropdownMenuBox(
+                        expanded = sortMenuExpanded,
+                        onExpandedChange = { sortMenuExpanded = it },
+                        modifier = Modifier.weight(1f) // Moved weight up here
+                    ) {
+                        OutlinedTextField(
+                            value = selectedSortOption.label,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Sort by") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortMenuExpanded)
+                            },
+                            modifier = Modifier.menuAnchor().fillMaxWidth(), // Changed to fillMaxWidth
+                            shape = RoundedCornerShape(24.dp)
                         )
+                        ExposedDropdownMenu(
+                            expanded = sortMenuExpanded,
+                            onDismissRequest = { sortMenuExpanded = false }
+                        ) {
+                            InventorySortOption.values().forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option.label) },
+                                    onClick = {
+                                        viewModel.setSortOption(option)
+                                        sortMenuExpanded = false
+                                    },
+                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                )
+                            }
+                        }
+                    }
+
+                    ExposedDropdownMenuBox(
+                        expanded = categoryMenuExpanded,
+                        onExpandedChange = { categoryMenuExpanded = it },
+                        modifier = Modifier.weight(1f) // Moved weight up here
+                    ) {
+                        val categoryLabel = selectedCategory ?: "All"
+                        OutlinedTextField(
+                            value = categoryLabel,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Filter by") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryMenuExpanded)
+                            },
+                            modifier = Modifier.menuAnchor().fillMaxWidth(), // Changed to fillMaxWidth
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        ExposedDropdownMenu(
+                            expanded = categoryMenuExpanded,
+                            onDismissRequest = { categoryMenuExpanded = false }
+                        ) {
+                            categories.forEach { label ->
+                                val value = if (label == "All") null else label
+                                DropdownMenuItem(
+                                    text = { Text(label) },
+                                    onClick = {
+                                        viewModel.setCategoryFilter(value)
+                                        categoryMenuExpanded = false
+                                    },
+                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                )
+                            }
+                        }
                     }
                 }
 
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
                     items(inventoryList) { foodItem ->

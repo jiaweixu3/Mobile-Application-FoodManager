@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ShoppingItem(
-    val id: String? = null, // Database will auto-generate this!
+    val id: Int? = null, // Database auto-generates this as a numeric ID
     val shopping_list_id: String, // Must be a String for the UUID
     val name: String,
     val amount: Double,

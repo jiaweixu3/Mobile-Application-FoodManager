@@ -29,10 +29,9 @@ class ConsumeFoodItemUseCase(
         // If user asks to add it to the shopping list, we include it
         if (addToShoppingList) {
             val newShoppingItem = ShoppingItem(
-                // We completely removed the 'id' line. Supabase will generate a real UUID for us!
-                shopping_list_id = "REPLACE-WITH-YOUR-REAL-UUID", // Make sure to paste your real list UUID here!
+                shopping_list_id = "",
                 name = foodItem.name,
-                amount = shoppingQuantity, // Keep an eye on this type (Int vs Double) just in case!
+                amount = shoppingQuantity,
                 unit = foodItem.unit,
                 category = foodItem.category,
                 isChecked = false
