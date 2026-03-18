@@ -97,7 +97,7 @@ fun InventoryScreen(
     val inventoryList by viewModel.visibleInventory.collectAsState()
     val suggestedItem by viewModel.suggestedItem.collectAsState()
 
-    // NEW: Listen for Loading and Error states
+    // Listen for Loading and Error states
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
@@ -188,7 +188,7 @@ fun InventoryScreen(
                 }
             }
 
-            // NEW: Show loading spinner in the center of the screen
+            // Show loading spinner in the center of the screen
             if (isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -239,7 +239,7 @@ fun InventoryScreen(
             )
         }
 
-        // NEW: Error message dialog box
+        // Error message dialog box
         if (errorMessage != null) {
             AlertDialog(
                 onDismissRequest = { viewModel.clearError() },

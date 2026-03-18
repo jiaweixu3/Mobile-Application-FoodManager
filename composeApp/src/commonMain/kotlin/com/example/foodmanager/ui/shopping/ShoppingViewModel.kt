@@ -8,44 +8,65 @@ import com.example.foodmanager.data.repository.ShoppingRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+//  Define the sorting options
+enum class SortType {
+    NAME, AMOUNT, CATEGORY
+}
 
 class ShoppingViewModel(
     private val repository: ShoppingRepository,
     private val markAsBoughtUseCase: MarkAsBoughtUseCase
 ) : ViewModel() {
 
-    // 1. UI State: Loading
+    // UI State: Loading
     private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // 2. UI State: Error Messages
+    // UI State: Error Messages
     private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    // 3. Main Data Flow (Now handles loading and catching database errors)
-    val items: StateFlow<List<ShoppingItem>> = repository.getShoppingList()
-        .onStart {
-            _isLoading.value = true
-            _errorMessage.value = null
+    // UI State: Current Sort Type (Default is by Name)
+    private val _sortType = MutableStateFlow(SortType.NAME)
+    val sortType: StateFlow<SortType> = _sortType.asStateFlow()
+
+    // Main Data Flow: Combines the database list with the current sort selection
+    val items: StateFlow<List<ShoppingItem>> = combine(
+        repository.getShoppingList()
+            .onStart {
+                _isLoading.value = true
+                _errorMessage.value = null
+            }
+            .catch { e ->
+                _isLoading.value = false
+                _errorMessage.value = e.message ?: "Failed to connect to the database."
+            },
+        _sortType
+    ) { list, currentSort ->
+        _isLoading.value = false
+        // Apply the selected sorting logic
+        when (currentSort) {
+            SortType.NAME -> list.sortedBy { it.name.lowercase() }
+            SortType.AMOUNT -> list.sortedBy { it.amount }
+            SortType.CATEGORY -> list.sortedBy { it.category.lowercase() }
         }
-        .map { list ->
-            _isLoading.value = false
-            list
-        }
-        .catch { e ->
-            _isLoading.value = false
-            _errorMessage.value = e.message ?: "Failed to connect to the database."
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    // Function to change the sort type from the UI
+    fun setSortType(type: SortType) {
+        _sortType.value = type
+    }
 
     fun toggleItem(item: ShoppingItem) {
         viewModelScope.launch {
@@ -85,7 +106,6 @@ class ShoppingViewModel(
             } catch (e: Exception) {
                 _errorMessage.value = "Failed to add new item."
             } finally {
-                // Ensure loading always stops, even if it fails
                 _isLoading.value = false
             }
         }
@@ -108,7 +128,6 @@ class ShoppingViewModel(
         }
     }
 
-    // Call this from the UI (like an alert dialog "OK" button) to dismiss errors
     fun clearError() {
         _errorMessage.value = null
     }

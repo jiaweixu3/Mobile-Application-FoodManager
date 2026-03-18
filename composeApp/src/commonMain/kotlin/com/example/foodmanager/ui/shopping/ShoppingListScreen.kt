@@ -22,10 +22,7 @@ fun ShoppingListScreen(
     navController: NavController,
     viewModel: ShoppingViewModel
 ) {
-    //  Obtaining values from ViewModel and MockDB.
     val shoppingList by viewModel.items.collectAsState()
-
-    // Listen for Loading and Error states
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
@@ -51,6 +48,39 @@ fun ShoppingListScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
+                },
+                // Added the sorting dropdown menu to the Top Bar
+                actions = {
+                    var showSortMenu by remember { mutableStateOf(false) }
+                    IconButton(onClick = { showSortMenu = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "Sort Options")
+                    }
+                    DropdownMenu(
+                        expanded = showSortMenu,
+                        onDismissRequest = { showSortMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Sort by Name") },
+                            onClick = {
+                                viewModel.setSortType(SortType.NAME)
+                                showSortMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Sort by Amount") },
+                            onClick = {
+                                viewModel.setSortType(SortType.AMOUNT)
+                                showSortMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Sort by Category") },
+                            onClick = {
+                                viewModel.setSortType(SortType.CATEGORY)
+                                showSortMenu = false
+                            }
+                        )
+                    }
                 }
             )
         },
@@ -60,7 +90,6 @@ fun ShoppingListScreen(
             }
         },
         bottomBar = {
-            // Check if any items in the list are currently checked
             val hasCheckedItems = shoppingList.any { it.isChecked }
 
             Surface(
@@ -72,7 +101,6 @@ fun ShoppingListScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    // The button will be grayed out if nothing is checked or if it's currently loading
                     enabled = hasCheckedItems && !isLoading
                 ) {
                     Text("Mark Checked as Bought")
@@ -80,10 +108,8 @@ fun ShoppingListScreen(
             }
         }
     ) { paddingValues ->
-        // Wrap content in a Box so we can put the loading spinner on top
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
 
-            // Only show empty text if we are NOT loading
             if (shoppingList.isEmpty() && !isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Your shopping list is empty!")
@@ -106,7 +132,6 @@ fun ShoppingListScreen(
                 }
             }
 
-            //  Show loading spinner in the center of the screen
             if (isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -228,7 +253,6 @@ fun ShoppingListScreen(
             )
         }
 
-        // Error message dialog box
         if (errorMessage != null) {
             AlertDialog(
                 onDismissRequest = { viewModel.clearError() },
