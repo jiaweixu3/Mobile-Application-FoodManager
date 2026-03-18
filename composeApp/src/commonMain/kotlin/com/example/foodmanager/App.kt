@@ -26,7 +26,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import com.example.foodmanager.ui.auth.LoginScreen
 import com.example.foodmanager.ui.settings.SettingsScreen
-import com.example.foodmanager.data.repository.MockShoppingRepository
+import com.example.foodmanager.data.repository.ShoppingRepository
+import com.example.foodmanager.data.repository.SupabaseShoppingRepository
+import io.github.jan_tennert.supabase.postgrest.postgrest // Ensure postgrest is imported
 import com.example.foodmanager.ui.shopping.ShoppingViewModel
 import com.example.foodmanager.domain.useCase.MarkAsBoughtUseCase
 import com.example.foodmanager.data.repository.MockInventoryRepository
@@ -76,7 +78,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
 
     // Initializing the Mock Repositories, using remember to avoid redrawing
-    val shoppingRepo = remember { MockShoppingRepository() }
+    val shoppingRepo: ShoppingRepository = remember { SupabaseShoppingRepository(supabase.postgrest) }
     val inventoryRepo: InventoryRepository = remember { SupabaseInventoryRepository(supabase) }
     val settingsRepo = remember { MockSettingsRepository() }
 

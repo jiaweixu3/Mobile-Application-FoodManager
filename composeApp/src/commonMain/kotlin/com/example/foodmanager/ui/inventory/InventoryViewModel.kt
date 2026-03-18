@@ -14,12 +14,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import com.example.foodmanager.domain.useCase.ConsumeFoodItemUseCase
-import com.example.foodmanager.data.repository.ShoppingListRepository
+import com.example.foodmanager.data.repository.ShoppingRepository
 import kotlinx.coroutines.flow.first
 
 class InventoryViewModel(
     private val repository: InventoryRepository,
-    private val shoppingRepository: ShoppingListRepository,
+    private val shoppingRepository: ShoppingRepository,
     private val consumeFoodItemUseCase: ConsumeFoodItemUseCase
 ) : ViewModel() {
 

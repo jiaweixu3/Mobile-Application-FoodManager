@@ -1,14 +1,14 @@
 package com.example.foodmanager.domain.useCase
 
 import com.example.foodmanager.data.repository.InventoryRepository
-import com.example.foodmanager.data.repository.ShoppingListRepository
+import com.example.foodmanager.data.repository.ShoppingRepository
 import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.domain.model.ShoppingItem
 
 // This file handles when a user consumes a food item
 class ConsumeFoodItemUseCase(
     private val inventoryRepository: InventoryRepository,
-    private val shoppingRepository: ShoppingListRepository
+    private val shoppingRepository: ShoppingRepository
 ) {
     suspend operator fun invoke(
         foodItem: FoodItem,
