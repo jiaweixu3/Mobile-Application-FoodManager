@@ -1,48 +1,73 @@
 package com.example.foodmanager.data.repository
 
+
 import com.example.foodmanager.domain.model.ShoppingItem
-import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 
 class SupabaseShoppingRepository(
-    private val postgrest: Postgrest
+    private val supabase: SupabaseClient,
+    private val settingsRepository: SettingsRepository
 ) : ShoppingRepository {
 
     private val refreshTrigger = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getShoppingList(): Flow<List<ShoppingItem>> = refreshTrigger.flatMapLatest {
-        flow {
-            val shoppingListId = resolveShoppingListId()
-            if (shoppingListId == null) {
-                emit(emptyList())
-                return@flow
-            }
-
-            val items = postgrest.from("shopping_items")
-                .select {
-                    filter {
-                        eq("shopping_list_id", shoppingListId)
-                    }
+    override fun getShoppingList(): Flow<List<ShoppingItem>> =
+        // Combining with current household
+        combine(refreshTrigger, settingsRepository.getCurrentHousehold){_, household ->
+            household
+        }.flatMapLatest { currentHousehold ->
+            flow {
+                // Handling empty cases
+                if (currentHousehold == null) {
+                    emit(emptyList())
+                    return@flow
                 }
-                .decodeList<ShoppingItem>()
+                // Obtaining the shopping list from Supabase
+                try{
+                    val shoppingListId = resolveShoppingListId(currentHousehold.id)
+                    if (shoppingListId == null) {
+                        emit(emptyList())
+                        return@flow
+                    }
 
-            emit(items)
-        }
-    }
+                    val items = supabase.postgrest["shopping_items"]
+                        .select {
+                            filter {
+                                eq("shopping_list_id", shoppingListId)
+                            }
+                        }
+                        .decodeList<ShoppingItem>()
 
+                    emit(items)
+            } catch ( e: Exception ){
+                println("Unable to fetch shopping list")
+                    emit(emptyList())
+            }
+        }}
+
+
+    // Adding a shopping item
     override suspend fun addShoppingItem(newShoppingItem: ShoppingItem) {
         try {
-            val shoppingListId = resolveShoppingListId()
-                ?: error("No shopping list exists for the current user.")
+            // Obtaining the current household
+            val currentHousehold = settingsRepository.getCurrentHousehold.firstOrNull()?: error("No current household")
+
+            // Obtaining the shopping list
+            val shoppingListId = resolveShoppingListId(currentHousehold.id)?: error("No shopping list exists for the current user.")
 
             val itemToInsert = newShoppingItem.copy(shopping_list_id = shoppingListId)
-            postgrest.from("shopping_items").insert(itemToInsert)
+
+            supabase.postgrest["shopping_items"].insert(itemToInsert)
             refreshTrigger.emit(Unit)
         } catch (e: Exception) {
             println("SUPABASE ERROR: ${e.message}")
@@ -50,31 +75,41 @@ class SupabaseShoppingRepository(
         }
     }
 
+    // Updating a shopping item
     override suspend fun updateShoppingItem(updatedShoppingItem: ShoppingItem) {
-        val itemId = updatedShoppingItem.id ?: error("Cannot update shopping item without an ID.")
-        postgrest.from("shopping_items").update(updatedShoppingItem) {
-            filter {
-                eq("id", itemId)
+        try {
+            val itemId = updatedShoppingItem.id ?: error("Cannot update shopping item without an ID.")
+            supabase.postgrest["shopping_items"].update(updatedShoppingItem) {
+                filter {
+                    eq("id", itemId)
+                }
             }
+            refreshTrigger.emit(Unit)
+        } catch ( e: Exception ){
+            println("Error Updating Shopping Item")
         }
-        refreshTrigger.emit(Unit)
+
     }
 
+    // Deleting shopping item
     override suspend fun deleteShoppingItem(id: Int) {
-        postgrest.from("shopping_items").delete {
-            filter {
-                eq("id", id)
+        try{
+            supabase.postgrest["shopping_items"].delete {
+                filter { eq("id", id) }
             }
+            refreshTrigger.emit(Unit)
+        } catch (e:Exception){
+            println("Error Deleting Shopping Item")
         }
-        refreshTrigger.emit(Unit)
     }
 
-    private suspend fun resolveShoppingListId(): String? {
-        val shoppingLists = postgrest.from("shopping_lists")
-            .select()
-            .decodeList<ShoppingListRecord>()
+    // Returning the id of a shopping list
+    private suspend fun resolveShoppingListId(householdId:String ): String? {
+        val shoppingLists =supabase.postgrest["shopping_lists"].select {
+            filter{ eq("household_id", householdId)}
+        }.decodeSingleOrNull<ShoppingListRecord>()
 
-        return shoppingLists.firstOrNull()?.id
+        return shoppingLists?.id
     }
 }
 
