@@ -80,6 +80,21 @@ class SettingsViewModel(
         }
     }
 
+    // Generating a code for joining
+    fun generateCodeHousehold(){
+        val household = currentHousehold.value ?: return
+        viewModelScope.launch{
+            settingsRepository.generateCode(household.id)
+        }
+    }
+
+    // Function for actually joining
+    fun joinHousehold(code: String){
+        viewModelScope.launch {
+            settingsRepository.joinHousehold(code)
+        }
+    }
+
 
 
 }

@@ -43,10 +43,14 @@ interface SettingsRepository {
     // Adding a new household
     suspend fun addHousehold(newHousehold: Household)
 
-
-
     // Updating the name of a household
     suspend fun updateHouseholdName(householdId:String, newName: String)
+
+    // Generating the code for joining
+    suspend fun generateCode(householdId: String): String
+
+    // Joining a new household
+    suspend fun joinHousehold(joinCode: String)
 }
 
 
@@ -155,6 +159,14 @@ class MockSettingsRepository : SettingsRepository {
     }
 
     override suspend fun updateHouseholdName(householdId: String, newName: String) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun generateCode(householdId: String): String {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun joinHousehold(joinCode: String) {
         TODO("Not yet implemented")
     }
 

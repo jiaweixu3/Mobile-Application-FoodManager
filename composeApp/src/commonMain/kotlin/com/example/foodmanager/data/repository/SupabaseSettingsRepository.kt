@@ -76,6 +76,43 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
         }
     }
 
+    // Function for generating a code to then join a table
+    override suspend fun generateCode(householdId: String): String {
+        // Generating a random string of length 6, this length could be changed
+        val code = (1..6).map{ ('A'..'Z').random()}.joinToString("")
+
+        // Saving it in the database
+        supabase.postgrest["households"].update(UpdatingJoinCode(code)){
+            filter { eq("id", householdId) }
+        }
+
+        // Refreshing
+        refreshTrigger.tryEmit(Unit)
+        return code
+    }
+
+    // Function for joining a household using a code
+    override suspend fun joinHousehold(joinCode: String) {
+        // Obtaining the current user
+        val currentUser = supabase.auth.currentUserOrNull() ?: throw Exception("User not logged in")
+
+        // Finding the household with this join code
+        val household = supabase.postgrest["households"].select {
+            filter { eq("join_code", joinCode.uppercase()) }
+        }.decodeSingleOrNull<Household>() ?: throw Exception("Household not found")
+
+        // Inserting user to the household
+        val insertUser = InsertUserHousehold(
+            user_id = currentUser.id,
+            household_id = household.id
+        )
+
+        supabase.postgrest["USER_HOUSEHOLD"].insert(insertUser)
+
+        // Refreshing
+        refreshTrigger.tryEmit(Unit)
+    }
+
 
 
     // Updating the name of a household
