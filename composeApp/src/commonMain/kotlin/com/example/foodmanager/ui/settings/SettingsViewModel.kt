@@ -72,6 +72,23 @@ class SettingsViewModel(
         }
     }
 
+    // Updating the name of a household
+    fun updateHouseholdName(newName: String){
+        val currentHousehold = currentHousehold.value ?: return
+
+        viewModelScope.launch{
+
+
+            // Updating the household
+            settingsRepository.updateHouseholdName(currentHousehold.id, newName)
+
+            // Updating the value
+            val updatedHousehold = currentHousehold.copy(name = newName)
+
+            // Store it as active house
+            settingsRepository.storeHousehold(updatedHousehold)
+        }
+    }
 
 
 
