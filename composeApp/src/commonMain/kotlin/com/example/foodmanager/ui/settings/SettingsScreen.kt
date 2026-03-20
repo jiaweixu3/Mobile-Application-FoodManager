@@ -21,6 +21,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.example.foodmanager.data.supabase
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
+
 
 
 // Defines simple settings screen, for now it only contains log out.
@@ -59,6 +61,14 @@ fun SettingsScreen(
     var logoutErrorMessage by remember { mutableStateOf<String?>(null) }
     var isLoggingOut by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+
+    // Storing new name
+    var editHouseholdName by remember { mutableStateOf("") }
+
+    // Updating the text field when the name changes
+    LaunchedEffect(currentHousehold){
+        editHouseholdName = currentHousehold?.name?: ""
+    }
 
     Scaffold(
         topBar = {
@@ -165,6 +175,41 @@ fun SettingsScreen(
 
             // Separation
             Spacer(modifier = Modifier.padding(8.dp))
+
+            // Updating the name of the household logic
+            Text(
+                text = "Edit Name",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ){
+                OutlinedTextField(
+                    value = editHouseholdName,
+                    onValueChange = {editHouseholdName = it},
+                    label = { Text("Rename Household")},
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Button(
+                    onClick = {
+                        viewModel.updateHouseholdName(editHouseholdName)
+                    },
+                    // Enabled only if new name is not empty and different from the current name
+                    enabled = editHouseholdName.isNotBlank() && editHouseholdName != currentHousehold?.name,
+                    modifier = Modifier.padding(start = 8.dp)
+                ){
+                    Text("Save")
+                }
+            }
+            // Separation
+            Spacer(modifier = Modifier.padding(8.dp))
+
 
             // Sharing a household
             if (currentHousehold != null){
