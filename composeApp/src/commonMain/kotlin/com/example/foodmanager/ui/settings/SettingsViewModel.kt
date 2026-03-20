@@ -53,24 +53,14 @@ class SettingsViewModel(
     fun addNewHousehold(name: String){
         viewModelScope.launch {
             // Adding a new randomized id based on the current time
-            val new_id ="house_${System.currentTimeMillis()}"
+            val new_id =""
             val newHousehold = Household(new_id, name)
 
             settingsRepository.addHousehold(newHousehold)
         }
     }
 
-    // Sharing a household, this is the basic UI, therefore we will pass the id afterwards
-    fun shareHousehold(email: String){
-        // Obtaining the current household
-        val household = currentHousehold.value ?: return
 
-        // Actually triggers the function
-        viewModelScope.launch {
-            // For now it just allows sharing, later we will have to actually implement it
-            settingsRepository.shareHousehold(household.id, email)
-        }
-    }
 
     // Updating the name of a household
     fun updateHouseholdName(newName: String){

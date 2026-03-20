@@ -2,6 +2,7 @@ package com.example.foodmanager.data.repository
 
 import com.example.foodmanager.domain.model.Household
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,11 +42,33 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
         _currentHousehold.value = household
     }
 
-    // Adding a new household
+    // Adding a new household, the creator automatically becomes the owner
     override suspend fun addHousehold(newHousehold: Household) {
         try {
+            // Obtaining the current user
+            val currentUser = supabase.auth.currentUserOrNull()?: throw Exception("User not logged in")
+
             val insertHousehold = HouseholdInsert(name = newHousehold.name)
-            supabase.postgrest[tableName].insert(insertHousehold)
+
+            // Obtaining the new inserted household
+            val insertedHousehold = supabase.postgrest[tableName]
+                .insert(insertHousehold){
+                    select()
+                }.decodeSingle<Household>()
+
+            // The new household owner is the current user
+            val householdOwner = InsertUserHousehold(
+                user_id = currentUser.id,
+                household_id = insertedHousehold.id,
+                role = "owner"
+            )
+
+            // Inserting it into the actual supabase table
+            supabase.postgrest["USER_HOUSEHOLD"].insert(householdOwner)
+
+            // Updating current household
+            _currentHousehold.value = insertedHousehold
+
             refreshTrigger.tryEmit(Unit)
         } catch (e: Exception) {
             println("SUPABASE ERROR adding household: ${e.message}")
@@ -53,10 +76,7 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
         }
     }
 
-    // Sharing a household
-    override suspend fun shareHousehold(householdId: String, email: String) {
-        TODO("Not yet implemented")
-    }
+
 
     // Updating the name of a household
     override suspend fun updateHouseholdName(householdId:String, newName: String) {
@@ -97,4 +117,17 @@ private data class HouseholdInsert(
 @Serializable
 private data class UpdateHouseholdName(
     val name: String
+)
+
+// Updating the code for joining another database
+@Serializable
+private data class UpdatingJoinCode(
+    val join_code: String
+)
+
+// Inserting a new user to a household
+private data class InsertUserHousehold(
+    val user_id: String,
+    var household_id: String,
+    var role: String = "editor"
 )

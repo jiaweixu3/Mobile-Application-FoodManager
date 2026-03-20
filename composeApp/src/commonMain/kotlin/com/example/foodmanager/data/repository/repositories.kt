@@ -43,8 +43,7 @@ interface SettingsRepository {
     // Adding a new household
     suspend fun addHousehold(newHousehold: Household)
 
-    // Sharing a household, for now its only via email
-    suspend fun shareHousehold(householdId: String, email: String)
+
 
     // Updating the name of a household
     suspend fun updateHouseholdName(householdId:String, newName: String)
@@ -153,10 +152,6 @@ class MockSettingsRepository : SettingsRepository {
 
     override suspend fun addHousehold(newHousehold: Household) {
         MockDb.addHousehold(newHousehold)
-    }
-
-    override suspend fun shareHousehold(householdId: String, email: String) {
-        TODO("Not yet implemented")
     }
 
     override suspend fun updateHouseholdName(householdId: String, newName: String) {

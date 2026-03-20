@@ -210,47 +210,6 @@ fun SettingsScreen(
             // Separation
             Spacer(modifier = Modifier.padding(8.dp))
 
-
-            // Sharing a household
-            if (currentHousehold != null){
-                // Variable for sharing an email
-                var shareEmail by remember { mutableStateOf("") }
-
-                Text(
-                    text = "Share ${currentHousehold?.name}",
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ){
-                    OutlinedTextField(
-                        value = shareEmail,
-                        onValueChange = {shareEmail = it},
-                        label = { Text("Email address") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    // Actual invite button
-                    Button(
-                        onClick = {
-                            viewModel.shareHousehold(shareEmail) // Adding a new email
-                            shareEmail = ""
-                        },
-                        // Enabled if not empty, and it matches an email string, isValidEmail is declared below
-                        enabled = shareEmail.isNotBlank() && shareEmail.isValidEmail(),
-                        modifier = Modifier.padding(start = 8.dp)
-                    ){
-                        Text("Share")
-                    }
-                }
-
-            }
-
             // Seeing Household Members
             if (currentHousehold != null) {
                 Button(
