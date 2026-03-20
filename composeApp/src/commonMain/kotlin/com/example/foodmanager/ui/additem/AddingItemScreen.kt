@@ -28,8 +28,7 @@ import com.example.foodmanager.data.repository.SupabaseInventoryRepository
 @Composable
 fun AddingItemScreen(
     navController: NavController,
-    viewModel: AddItemViewModel =
-        viewModel { AddItemViewModel(SupabaseInventoryRepository(supabase)) }
+    viewModel: AddItemViewModel
 ) {
 
     var productName by remember { mutableStateOf("") }
