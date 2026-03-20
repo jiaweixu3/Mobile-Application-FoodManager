@@ -6,7 +6,6 @@ import com.example.foodmanager.domain.model.ShoppingItem
 import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.domain.model.Household
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 
 

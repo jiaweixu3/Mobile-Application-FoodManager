@@ -60,7 +60,7 @@ class SettingsViewModel(
         }
     }
 
-    // Sharing a household, this is the basic UI, therefore we pass the id afterwards
+    // Sharing a household, this is the basic UI, therefore we will pass the id afterwards
     fun shareHousehold(email: String){
         // Obtaining the current household
         val household = currentHousehold.value ?: return

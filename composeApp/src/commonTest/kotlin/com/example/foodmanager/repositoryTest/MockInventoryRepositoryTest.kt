@@ -40,7 +40,7 @@ internal class MockInventoryRepositoryTest { // Internal will make this not visi
     // Adding the Food Item
     @Test
     fun testAddFoodItem() = runTest {
-        val new_item = FoodItem(id = 4, inventory_id = "inv_1",name = "Sausage", expiryDate = "2026-02-27", amount = 5.0, unit = "Links",
+        val new_item = FoodItem(id = 4, inventoryId= "inv_1",name = "Sausage", expiryDate = "2026-02-27", amount = 5.0, unit = "Links",
             category = "Fridge")
 
         repository.addFoodItem(new_item)
@@ -52,7 +52,7 @@ internal class MockInventoryRepositoryTest { // Internal will make this not visi
     // Same item and expiry date will update the amount of the item
     @Test
     fun testAddDuplicateFoodItem() = runTest {
-        val new_item = FoodItem(id = 2, inventory_id = "inv_1",name = "Spinach", expiryDate = "2026-02-10", amount = 200.0, unit = "g", category = "Fridge")
+        val new_item = FoodItem(id = 2, inventoryId = "inv_1",name = "Spinach", expiryDate = "2026-02-10", amount = 200.0, unit = "g", category = "Fridge")
         repository.addFoodItem(new_item)
         val current_Inventory = repository.getInventory().first()
         assertEquals(3, current_Inventory.size, "Our new inventory has 3 items")
@@ -64,7 +64,7 @@ internal class MockInventoryRepositoryTest { // Internal will make this not visi
     // Adding same item, different expiry date will be two separate items
     @Test
     fun testAddAlmostDuplicateFoodItem() = runTest {
-        val new_item = FoodItem(id = 2, inventory_id = "inv_1",name = "Spinach", expiryDate = "2026-02-27", amount = 300.0, unit = "g", category = "Fridge")
+        val new_item = FoodItem(id = 2, inventoryId = "inv_1",name = "Spinach", expiryDate = "2026-02-27", amount = 300.0, unit = "g", category = "Fridge")
         repository.addFoodItem(new_item)
         val current_Inventory = repository.getInventory().first()
         assertEquals(4, current_Inventory.size, "Our new inventory has 4 items")
@@ -75,7 +75,7 @@ internal class MockInventoryRepositoryTest { // Internal will make this not visi
     // Adding an empty name food item should not yield problems
     @Test
     fun testAddEmptyFoodItem() = runTest {
-        val new_item = FoodItem(id = 2, inventory_id = "inv_1",name = "", expiryDate = "2026-02-27", amount = 300.0, unit = "g", category = "Fridge")
+        val new_item = FoodItem(id = 2, inventoryId = "inv_1",name = "", expiryDate = "2026-02-27", amount = 300.0, unit = "g", category = "Fridge")
         repository.addFoodItem(new_item)
         val current_Inventory = repository.getInventory().first()
         assertEquals(3, current_Inventory.size, "Our new inventory has 3 items")
@@ -85,7 +85,7 @@ internal class MockInventoryRepositoryTest { // Internal will make this not visi
     // If an item with amount 0 is added, it should be discarded
     @Test
     fun testAddNoAmountFoodItem() = runTest {
-        val new_item = FoodItem(id = 2,inventory_id = "inv_1", name = "Spinach", expiryDate = "2026-02-27", amount = 0.0, unit = "g", category = "Fridge")
+        val new_item = FoodItem(id = 2,inventoryId = "inv_1", name = "Spinach", expiryDate = "2026-02-27", amount = 0.0, unit = "g", category = "Fridge")
         repository.addFoodItem(new_item)
         val current_Inventory = repository.getInventory().first()
         assertEquals(3, current_Inventory.size, "Our new inventory has 3 items")
@@ -127,7 +127,7 @@ internal class MockInventoryRepositoryTest { // Internal will make this not visi
     // Updating a food item
     @Test
     fun testUpdateFoodItem() = runTest {
-        val updated_item = FoodItem(id = 1,inventory_id = "inv_1", name = "Milk", expiryDate = "2026-02-01", amount = 2.0, unit = "Carton", category = "Fridge")
+        val updated_item = FoodItem(id = 1,inventoryId = "inv_1", name = "Milk", expiryDate = "2026-02-01", amount = 2.0, unit = "Carton", category = "Fridge")
         repository.updateFoodItem(updated_item)
         val current_Inventory = repository.getInventory().first()
 
@@ -140,7 +140,7 @@ internal class MockInventoryRepositoryTest { // Internal will make this not visi
     // Updating an item which does not exist
     @Test
     fun testUpdateNonExistentFoodItem() = runTest {
-        val updated_item = FoodItem(id = 100,inventory_id = "inv_1", name = "Orange Juice",expiryDate = "2026-02-28", amount = 6.0, unit = "Carton", category = "Fridge" )
+        val updated_item = FoodItem(id = 100,inventoryId = "inv_1", name = "Orange Juice",expiryDate = "2026-02-28", amount = 6.0, unit = "Carton", category = "Fridge" )
         repository.updateFoodItem(updated_item)
         val current_Inventory = repository.getInventory().first()
 
@@ -153,7 +153,7 @@ internal class MockInventoryRepositoryTest { // Internal will make this not visi
     // If new amount of updated item is 0, app should delete it
     @Test
     fun testUpdateZeroAmountFoodItem() = runTest{
-        val updated_item = FoodItem(id = 1, inventory_id = "inv_1",name = "Milk", expiryDate = "2026-02-01", amount = 0.0, unit = "Carton", category = "Fridge")
+        val updated_item = FoodItem(id = 1, inventoryId = "inv_1",name = "Milk", expiryDate = "2026-02-01", amount = 0.0, unit = "Carton", category = "Fridge")
         repository.updateFoodItem(updated_item)
         val current_Inventory = repository.getInventory().first()
 

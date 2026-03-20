@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 
+// Supabase declaration for Shopping class
 class SupabaseShoppingRepository(
     private val supabase: SupabaseClient,
     private val settingsRepository: SettingsRepository

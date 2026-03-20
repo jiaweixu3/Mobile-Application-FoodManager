@@ -13,30 +13,32 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 
 
+// Supabase Inventory Repository definition
 class SupabaseInventoryRepository(
     private val supabase: SupabaseClient,
-    private val settingsRepository: SettingsRepository) : InventoryRepository {
+    private val settingsRepository: SettingsRepository
+) : InventoryRepository {
 
     private val tableName = "food_items"
 
     private val refreshTrigger = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getInventory(): Flow<List<FoodItem>>  =
+    override fun getInventory(): Flow<List<FoodItem>> =
         // Combining with current household
-        combine(refreshTrigger,settingsRepository.getCurrentHousehold){_, household ->
+        combine(refreshTrigger, settingsRepository.getCurrentHousehold) { _, household ->
             household
         }.flatMapLatest { currentHousehold ->
 
             flow {
                 // Handling no current household
-                if (currentHousehold == null){
+                if (currentHousehold == null) {
                     emit(emptyList())
                     return@flow
                 }
                 try {
                     // Finding the inventory of the specific household
-                    val inventory = supabase.postgrest["inventories"].select{
+                    val inventory = supabase.postgrest["inventories"].select {
                         filter { eq("household_id", currentHousehold.id) }
                     }.decodeSingleOrNull<Inventory>()
 
@@ -47,7 +49,7 @@ class SupabaseInventoryRepository(
                     }
 
                     // Otherwise, obtaining food items for that specific inventory
-                    val items = supabase.postgrest[tableName].select{
+                    val items = supabase.postgrest[tableName].select {
                         filter { eq("inventory_id", inventory.id) }
                     }.decodeList<FoodItem>()
 
@@ -60,10 +62,11 @@ class SupabaseInventoryRepository(
         }
 
 
+    // Adding a food item
     override suspend fun addFoodItem(item: FoodItem) {
         try {
             // Obtaining the current household
-            val currentHousehold = settingsRepository.getCurrentHousehold.firstOrNull()?: error("No active household")
+            val currentHousehold = settingsRepository.getCurrentHousehold.firstOrNull() ?: error("No active household")
 
             // Finding the correct inventory
             val inventory = supabase.postgrest["inventories"].select {
@@ -81,6 +84,7 @@ class SupabaseInventoryRepository(
         }
     }
 
+    // Updating a food item
     override suspend fun updateFoodItem(item: FoodItem) {
         try {
             supabase.postgrest[tableName].update(item) {
@@ -94,6 +98,7 @@ class SupabaseInventoryRepository(
         }
     }
 
+    // Deleting a food item
     override suspend fun deleteFoodItem(itemId: Int) {
         try {
             supabase.postgrest[tableName].delete {
