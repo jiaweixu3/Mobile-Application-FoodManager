@@ -16,12 +16,18 @@ class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
+    // Stores current available households, no need to declare them privately as stateIn handles this
+    val availableHouseholds = settingsRepository.getHouseholdsList().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    // Selected household
+    val currentHousehold = settingsRepository.getCurrentHousehold.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     // To know whether we have to initialize the first household when a new user enters the app
     private var isInitialized = false
 
     init{
         viewModelScope.launch {
-            settingsRepository.getHouseholdsList().collectLatest { households ->
+            availableHouseholds.collect { households ->
                 // If no household, we have to create one
                 if (households.isEmpty()){
                     val defaultHousehold = Household(id = "", name = "House 1")
@@ -35,11 +41,6 @@ class SettingsViewModel(
             }
         }
     }
-    // Stores current available households, no need to declare them privately as stateIn handles this
-    val availableHouseholds = settingsRepository.getHouseholdsList().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    // Selected household
-    val currentHousehold = settingsRepository.getCurrentHousehold.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     // Updates the system based on the chosen household
     fun onHouseholdChanged(newHousehold: Household){
@@ -84,7 +85,11 @@ class SettingsViewModel(
     fun generateCodeHousehold(){
         val household = currentHousehold.value ?: return
         viewModelScope.launch{
-            settingsRepository.generateCode(household.id)
+            val newCode = settingsRepository.generateCode(household.id)
+
+            val updatedHousehold = household.copy(joinCode = newCode)
+
+            settingsRepository.storeHousehold(updatedHousehold)
         }
     }
 

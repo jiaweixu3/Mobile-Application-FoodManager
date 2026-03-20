@@ -64,7 +64,7 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
             )
 
             // Inserting it into the actual supabase table
-            supabase.postgrest["USER_HOUSEHOLD"].insert(householdOwner)
+            supabase.postgrest["user_household"].insert(householdOwner)
 
             // Updating current household
             _currentHousehold.value = insertedHousehold
@@ -98,7 +98,7 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
 
         // Finding the household with this join code
         val household = supabase.postgrest["households"].select {
-            filter { eq("join_code", joinCode.uppercase()) }
+            filter { eq("joinCode", joinCode.uppercase()) }
         }.decodeSingleOrNull<Household>() ?: throw Exception("Household not found")
 
         // Inserting user to the household
@@ -107,7 +107,7 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
             household_id = household.id
         )
 
-        supabase.postgrest["USER_HOUSEHOLD"].insert(insertUser)
+        supabase.postgrest["user_household"].insert(insertUser)
 
         // Refreshing
         refreshTrigger.tryEmit(Unit)
@@ -159,10 +159,11 @@ private data class UpdateHouseholdName(
 // Updating the code for joining another database
 @Serializable
 private data class UpdatingJoinCode(
-    val join_code: String
+    val joinCode: String
 )
 
 // Inserting a new user to a household
+@Serializable
 private data class InsertUserHousehold(
     val user_id: String,
     var household_id: String,
