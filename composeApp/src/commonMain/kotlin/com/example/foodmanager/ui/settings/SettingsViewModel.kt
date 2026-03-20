@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodmanager.data.repository.SettingsRepository
 import com.example.foodmanager.domain.model.Household
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -14,6 +16,25 @@ class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
+    // To know whether we have to initialize the first household when a new user enters the app
+    private var isInitialized = false
+
+    init{
+        viewModelScope.launch {
+            settingsRepository.getHouseholdsList().collectLatest { households ->
+                // If no household, we have to create one
+                if (households.isEmpty()){
+                    val defaultHousehold = Household(id = "", name = "House 1")
+                    settingsRepository.addHousehold(defaultHousehold)
+
+                } else if (!isInitialized){
+                    // Selects the first household so the app can load an inventory and shopping list
+                    settingsRepository.storeHousehold(households.first())
+                    isInitialized = true
+                }
+            }
+        }
+    }
     // Stores current available households, no need to declare them privately as stateIn handles this
     val availableHouseholds = settingsRepository.getHouseholdsList().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -39,7 +60,7 @@ class SettingsViewModel(
         }
     }
 
-    // Sharing a household, this is the basic UI, therefore we pass the id afterwards
+    // Sharing a household, this is the basic UI, therefore we will pass the id afterwards
     fun shareHousehold(email: String){
         // Obtaining the current household
         val household = currentHousehold.value ?: return

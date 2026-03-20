@@ -25,6 +25,7 @@ import com.example.foodmanager.data.repository.InventoryRepository
 import com.example.foodmanager.data.repository.MockSettingsRepository
 import com.example.foodmanager.data.repository.ShoppingRepository
 import com.example.foodmanager.data.repository.SupabaseInventoryRepository
+import com.example.foodmanager.data.repository.SupabaseSettingsRepository
 import com.example.foodmanager.data.repository.SupabaseShoppingRepository
 import com.example.foodmanager.domain.useCase.ConsumeFoodItemUseCase
 import com.example.foodmanager.domain.useCase.MarkAsBoughtUseCase
@@ -71,9 +72,10 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
 
     // Initializing the Mock Repositories, using remember to avoid redrawing
-    val shoppingRepo: ShoppingRepository = remember { SupabaseShoppingRepository(supabase.postgrest) }
-    val inventoryRepo: InventoryRepository = remember { SupabaseInventoryRepository(supabase) }
-    val settingsRepo = remember { MockSettingsRepository() }
+    val settingsRepo = remember { SupabaseSettingsRepository(supabase) }
+    val shoppingRepo: ShoppingRepository = remember { SupabaseShoppingRepository(supabase, settingsRepo) }
+    val inventoryRepo: InventoryRepository = remember { SupabaseInventoryRepository(supabase, settingsRepo) }
+
 
     //  Create the Use Case and pass in the repositories you just created
     val markAsBoughtUseCase = remember {
