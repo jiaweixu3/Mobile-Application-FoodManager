@@ -77,11 +77,13 @@ class SettingsViewModel(
         val currentHousehold = currentHousehold.value ?: return
 
         viewModelScope.launch{
-            // Updating the value
-            val updatedHousehold = currentHousehold.copy(name = newName)
+
 
             // Updating the household
-            settingsRepository.updateHousehold(updatedHousehold)
+            settingsRepository.updateHouseholdName(currentHousehold.id, newName)
+
+            // Updating the value
+            val updatedHousehold = currentHousehold.copy(name = newName)
 
             // Store it as active house
             settingsRepository.storeHousehold(updatedHousehold)

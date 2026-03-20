@@ -49,7 +49,7 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
             refreshTrigger.tryEmit(Unit)
         } catch (e: Exception) {
             println("SUPABASE ERROR adding household: ${e.message}")
-            e.printStackTrace()
+
         }
     }
 
@@ -57,10 +57,44 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
     override suspend fun shareHousehold(householdId: String, email: String) {
         TODO("Not yet implemented")
     }
+
+    // Updating the name of a household
+    override suspend fun updateHouseholdName(householdId:String, newName: String) {
+        try{
+            // Data we want to change
+            val updateData = UpdateHouseholdName(name = newName)
+
+            // Updating the actual table
+            supabase.postgrest[tableName].update(updateData){
+                filter{
+                    eq("id", householdId)
+                }
+            }
+
+            // Refreshing the dropdown list
+            refreshTrigger.tryEmit(Unit)
+
+            // Updating the name of the household
+            val currentHousehold = _currentHousehold.value
+            if (currentHousehold != null && currentHousehold.id == householdId){
+                _currentHousehold.value = currentHousehold.copy(name = newName)
+            }
+        } catch (e: Exception) {
+            println("Exception while updating household: ${e.message}")
+
+        }
+    }
 }
 
+// HELPER FUNCTIONS
 // Handling inserting UUID
 @Serializable
 private data class HouseholdInsert(
+    val name: String
+)
+
+// Hnadling updating the name
+@Serializable
+private data class UpdateHouseholdName(
     val name: String
 )
