@@ -207,49 +207,9 @@ fun SettingsScreen(
                     Text("Save")
                 }
             }
+
             // Separation
             Spacer(modifier = Modifier.padding(8.dp))
-
-
-            // Sharing a household
-            if (currentHousehold != null){
-                // Variable for sharing an email
-                var shareEmail by remember { mutableStateOf("") }
-
-                Text(
-                    text = "Share ${currentHousehold?.name}",
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ){
-                    OutlinedTextField(
-                        value = shareEmail,
-                        onValueChange = {shareEmail = it},
-                        label = { Text("Email address") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    // Actual invite button
-                    Button(
-                        onClick = {
-                            viewModel.shareHousehold(shareEmail) // Adding a new email
-                            shareEmail = ""
-                        },
-                        // Enabled if not empty, and it matches an email string, isValidEmail is declared below
-                        enabled = shareEmail.isNotBlank() && shareEmail.isValidEmail(),
-                        modifier = Modifier.padding(start = 8.dp)
-                    ){
-                        Text("Share")
-                    }
-                }
-
-            }
 
             // Seeing Household Members
             if (currentHousehold != null) {
@@ -261,6 +221,64 @@ fun SettingsScreen(
                 }
             }
 
+            // Separation
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            // Sharing household
+            if (currentHousehold != null){
+                Text(
+                    text = "Share ${currentHousehold?.name}",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                // If it already has a join code, show it, if not, replace it
+                if (currentHousehold?.joinCode != null){
+                    Text("Join Code: ${currentHousehold?.joinCode}")
+                } else {
+                    Button(
+                        onClick = {viewModel.generateCodeHousehold()}){
+                            Text("Generate code")
+                            }
+
+                }
+            }
+
+            // Separation
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            // Joining a different household
+            var joinInput by remember { mutableStateOf("") }
+
+            Text(
+                text = "Join a household",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(0.8f).padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = joinInput,
+                    onValueChange = {joinInput = it.uppercase()},
+                    label =  {Text("Enter 6 digit code")},
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Button(
+                    onClick = {
+                        viewModel.joinHousehold(joinInput)
+                        joinInput = ""
+                    },
+                    enabled = joinInput.isNotBlank(),
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text("Join")
+                }
+            }
+            // Separation
+            Spacer(modifier = Modifier.padding(8.dp))
 
             // Logout
             Button(
@@ -297,8 +315,4 @@ fun SettingsScreen(
     }
 }
 
-// Function for ensuring email is valid
-fun String.isValidEmail(): Boolean{
-    val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-zA-z]{2,}\$".toRegex()
-    return this.matches(emailRegex)
-}
+

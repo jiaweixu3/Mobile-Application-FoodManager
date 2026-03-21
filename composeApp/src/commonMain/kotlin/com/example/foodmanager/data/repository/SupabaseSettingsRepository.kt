@@ -2,6 +2,7 @@ package com.example.foodmanager.data.repository
 
 import com.example.foodmanager.domain.model.Household
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -9,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.buildJsonObject
 
 // Supabase declaration for settings screen
 class SupabaseSettingsRepository(private val supabase: SupabaseClient) : SettingsRepository {
@@ -41,11 +44,21 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
         _currentHousehold.value = household
     }
 
-    // Adding a new household
+    // Adding a new household, the creator automatically becomes the owner
     override suspend fun addHousehold(newHousehold: Household) {
         try {
+
             val insertHousehold = HouseholdInsert(name = newHousehold.name)
-            supabase.postgrest[tableName].insert(insertHousehold)
+
+            // Obtaining the new inserted household
+            val insertedHousehold = supabase.postgrest[tableName]
+                .insert(insertHousehold) {
+                    select()
+                }.decodeSingle<Household>()
+
+            // Updating current household
+            _currentHousehold.value = insertedHousehold
+
             refreshTrigger.tryEmit(Unit)
         } catch (e: Exception) {
             println("SUPABASE ERROR adding household: ${e.message}")
@@ -53,20 +66,65 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
         }
     }
 
-    // Sharing a household
-    override suspend fun shareHousehold(householdId: String, email: String) {
-        TODO("Not yet implemented")
+    // Function for generating a code to then join a table
+    override suspend fun generateCode(householdId: String): String {
+        return try {
+            // Generating a random string of length 6, this length could be changed
+            val code = (1..6).map { ('A'..'Z').random() }.joinToString("")
+
+            // Saving it in the database
+            supabase.postgrest["households"].update(UpdatingJoinCode(code)) {
+                filter { eq("id", householdId) }
+            }
+
+            // Updating code in the app
+            val current = _currentHousehold.value
+            if (current != null && current.id == householdId){
+                _currentHousehold.value = current.copy(joinCode = code)
+            }
+
+            // Refreshing
+            refreshTrigger.tryEmit(Unit)
+            code
+        } catch (e: Exception) {
+            println("Supabase Error generating a code ${e.message}")
+            ""
+        }
     }
 
+    // Function for joining a household using a code
+    override suspend fun joinHousehold(joinCode: String) {
+        try {
+            // Calling the own supabase function for handling joining the household
+            val result = supabase.postgrest.rpc(
+                "join_household_by_code",
+                buildJsonObject { // We have to pass a json
+                    put("code_input", joinCode.uppercase())
+                })
+
+            // Updating current household
+            val household = result.decodeSingle<Household>()
+            _currentHousehold.value = household
+
+            // Refreshing
+            refreshTrigger.tryEmit(Unit)
+        } catch (e: Exception) {
+            println("Supabase error joining a household")
+
+
+        }
+    }
+
+
     // Updating the name of a household
-    override suspend fun updateHouseholdName(householdId:String, newName: String) {
-        try{
+    override suspend fun updateHouseholdName(householdId: String, newName: String) {
+        try {
             // Data we want to change
             val updateData = UpdateHouseholdName(name = newName)
 
             // Updating the actual table
-            supabase.postgrest[tableName].update(updateData){
-                filter{
+            supabase.postgrest[tableName].update(updateData) {
+                filter {
                     eq("id", householdId)
                 }
             }
@@ -76,7 +134,7 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
 
             // Updating the name of the household
             val currentHousehold = _currentHousehold.value
-            if (currentHousehold != null && currentHousehold.id == householdId){
+            if (currentHousehold != null && currentHousehold.id == householdId) {
                 _currentHousehold.value = currentHousehold.copy(name = newName)
             }
         } catch (e: Exception) {
@@ -98,3 +156,11 @@ private data class HouseholdInsert(
 private data class UpdateHouseholdName(
     val name: String
 )
+
+// Updating the code for joining another database
+@Serializable
+private data class UpdatingJoinCode(
+    val joinCode: String
+)
+
+
