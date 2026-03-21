@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.buildJsonObject
 
 // Supabase declaration for settings screen
 class SupabaseSettingsRepository(private val supabase: SupabaseClient) : SettingsRepository {
@@ -75,6 +77,12 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
                 filter { eq("id", householdId) }
             }
 
+            // Updating code in the app
+            val current = _currentHousehold.value
+            if (current != null && current.id == householdId){
+                _currentHousehold.value = current.copy(joinCode = code)
+            }
+
             // Refreshing
             refreshTrigger.tryEmit(Unit)
             code
@@ -87,21 +95,16 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
     // Function for joining a household using a code
     override suspend fun joinHousehold(joinCode: String) {
         try {
-            // Obtaining the current user
-            val currentUser = supabase.auth.currentUserOrNull() ?: throw Exception("User not logged in")
+            // Calling the own supabase function for handling joining the household
+            val result = supabase.postgrest.rpc(
+                "join_household_by_code",
+                buildJsonObject { // We have to pass a json
+                    put("code_input", joinCode.uppercase())
+                })
 
-            // Finding the household with this join code
-            val household = supabase.postgrest["households"].select {
-                filter { eq("joinCode", joinCode.uppercase()) }
-            }.decodeSingleOrNull<Household>() ?: throw Exception("Household not found")
-
-            // Inserting user to the household
-            val insertUser = InsertUserHousehold(
-                user_id = currentUser.id,
-                household_id = household.id
-            )
-
-            supabase.postgrest["user_household"].insert(insertUser)
+            // Updating current household
+            val household = result.decodeSingle<Household>()
+            _currentHousehold.value = household
 
             // Refreshing
             refreshTrigger.tryEmit(Unit)
@@ -160,10 +163,4 @@ private data class UpdatingJoinCode(
     val joinCode: String
 )
 
-// Inserting a new user to a household
-@Serializable
-private data class InsertUserHousehold(
-    val user_id: String,
-    var household_id: String,
-    var role: String = "editor"
-)
+
