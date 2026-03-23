@@ -80,20 +80,23 @@ class SupabaseShoppingRepository(
     override suspend fun updateShoppingItem(updatedShoppingItem: ShoppingItem) {
         try {
             val itemId = updatedShoppingItem.id ?: error("Cannot update shopping item without an ID.")
-            supabase.postgrest["shopping_items"].update(updatedShoppingItem) {
+
+            val updatePayload = mapOf("is_checked" to updatedShoppingItem.isChecked)
+
+            supabase.postgrest["shopping_items"].update(updatePayload) {
                 filter {
                     eq("id", itemId)
                 }
             }
-            refreshTrigger.emit(Unit)
-        } catch ( e: Exception ){
-            println("Error Updating Shopping Item")
-        }
 
+        } catch ( e: Exception ){
+            println("Error updating shopping item ${updatedShoppingItem.id}: ${e.message}")
+            e.printStackTrace()
+        }
     }
 
     // Deleting shopping item
-    override suspend fun deleteShoppingItem(id: Int) {
+    override suspend fun deleteShoppingItem(id: Long) {
         try{
             supabase.postgrest["shopping_items"].delete {
                 filter { eq("id", id) }

@@ -25,7 +25,7 @@ interface ShoppingRepository {
     fun getShoppingList(): Flow<List<ShoppingItem>>
 
     suspend fun addShoppingItem(newShoppingItem: ShoppingItem)
-    suspend fun deleteShoppingItem(id: Int)
+    suspend fun deleteShoppingItem(id: Long)
     suspend fun updateShoppingItem(updatedShoppingItem: ShoppingItem)
 }
 
@@ -132,7 +132,7 @@ class MockInventoryRepository : InventoryRepository {
         MockDb.addShoppingItem(newUpdatedShoppingItem)
     }
 
-    override suspend fun deleteShoppingItem(id: Int) {
+    override suspend fun deleteShoppingItem(id: Long) {
         MockDb.deleteShoppingItem(id)
     }
 

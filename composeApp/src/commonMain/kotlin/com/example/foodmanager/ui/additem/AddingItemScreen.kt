@@ -25,6 +25,7 @@ import com.example.foodmanager.data.supabase
 import androidx.compose.ui.Alignment
 import com.example.foodmanager.data.repository.SupabaseInventoryRepository
 import com.example.foodmanager.ui.utils.CategoryConstants
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -273,7 +274,8 @@ fun AddingItemScreen(
 
 // Auxiliary function to turn milliseconds to dates
 fun dateFormat(millis: Long): String {
-    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    formatter.timeZone = TimeZone.getTimeZone("UTC")
     return formatter.format(Date(millis))
 }
 

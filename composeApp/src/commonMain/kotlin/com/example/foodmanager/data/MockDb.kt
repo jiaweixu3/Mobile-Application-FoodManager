@@ -265,7 +265,7 @@ object MockDb {
     }
 
 
-    fun deleteShoppingItem(item_id: Int) {
+    fun deleteShoppingItem(item_id: Long) {
         _shoppingitems.value = _shoppingitems.value.filter { it.id != item_id } // Delete elements with the same id
     }
 

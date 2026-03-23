@@ -107,34 +107,27 @@ fun ShoppingListScreen(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-
-            if (shoppingList.isEmpty() && !isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Your shopping list is empty!")
-                }
-            } else {
+            if (shoppingList.isNotEmpty()) {
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(shoppingList, key = { it.id ?: it.hashCode() }) { item ->
                         ShoppingItemRow(
                             item = item,
-                            onCheckedChange = {
-                                viewModel.toggleItem(item)
+                            onCheckedChange = { isChecked ->
+                                viewModel.toggleItem(item, isChecked)
                             }
                         )
                     }
                 }
+            } else if (!isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Your shopping list is empty!")
+                }
             }
-
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+            if (isLoading && shoppingList.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
