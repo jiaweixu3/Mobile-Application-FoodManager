@@ -3,6 +3,7 @@ package com.example.foodmanager.ui.shopping
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -13,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.navigation.NavController
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import com.example.foodmanager.domain.model.ShoppingItem
 import com.example.foodmanager.ui.utils.CategoryConstants
@@ -47,7 +49,6 @@ fun ShoppingListScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
-                // Added the sorting dropdown menu to the Top Bar
                 actions = {
                     var showSortMenu by remember { mutableStateOf(false) }
                     IconButton(onClick = { showSortMenu = true }) {
@@ -83,7 +84,10 @@ fun ShoppingListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                shape = RoundedCornerShape(16.dp)
+            ) {
                 Icon(Icons.Default.Add, contentDescription = "Create shopping item")
             }
         },
@@ -99,6 +103,7 @@ fun ShoppingListScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
+                    shape = RoundedCornerShape(24.dp),
                     enabled = hasCheckedItems && !isLoading
                 ) {
                     Text("Mark Checked as Bought")
@@ -147,7 +152,8 @@ fun ShoppingListScreen(
                             onValueChange = { newName = it },
                             label = { Text("Item name") },
                             singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp)
                         )
                         OutlinedTextField(
                             value = newQuantity,
@@ -155,74 +161,69 @@ fun ShoppingListScreen(
                             label = { Text("Quantity") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            shape = RoundedCornerShape(24.dp)
                         )
-                        OutlinedTextField(
-                            value = newUnit,
-                            onValueChange = {},
-                            label = { Text("Quantity type") },
-                            modifier = Modifier.fillMaxWidth(),
-                            readOnly = true,
-                            trailingIcon = {
-                                Box {
-                                    IconButton(onClick = { expandedUnit = true }) {
-                                        Icon(
-                                            Icons.Default.ArrowDropDown,
-                                            contentDescription = "Select quantity type"
-                                        )
-                                    }
-                                    DropdownMenu(
-                                        expanded = expandedUnit,
-                                        onDismissRequest = { expandedUnit = false }
-                                    ) {
-                                        quantityTypes.forEach { unit ->
-                                            DropdownMenuItem(
-                                                text = { Text(unit) },
-                                                onClick = {
-                                                    newUnit = unit
-                                                    expandedUnit = false
-                                                }
-                                            )
+                        ExposedDropdownMenuBox(
+                            expanded = expandedUnit,
+                            onExpandedChange = { expandedUnit = it }
+                        ) {
+                            OutlinedTextField(
+                                value = newUnit,
+                                onValueChange = {},
+                                label = { Text("Quantity type") },
+                                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedUnit) },
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedUnit,
+                                onDismissRequest = { expandedUnit = false }
+                            ) {
+                                quantityTypes.forEach { unit ->
+                                    DropdownMenuItem(
+                                        text = { Text(unit) },
+                                        onClick = {
+                                            newUnit = unit
+                                            expandedUnit = false
                                         }
-                                    }
+                                    )
                                 }
                             }
-                        )
-                        OutlinedTextField(
-                            value = newCategory,
-                            onValueChange = {},
-                            label = { Text("Category") },
-                            modifier = Modifier.fillMaxWidth(),
-                            readOnly = true,
-                            trailingIcon = {
-                                Box {
-                                    IconButton(onClick = { expandedCategory = true }) {
-                                        Icon(
-                                            Icons.Default.ArrowDropDown,
-                                            contentDescription = "Select category"
-                                        )
-                                    }
-                                    DropdownMenu(
-                                        expanded = expandedCategory,
-                                        onDismissRequest = { expandedCategory = false }
-                                    ) {
-                                        categoryOptions.forEach { cat ->
-                                            DropdownMenuItem(
-                                                text = { Text(cat) },
-                                                onClick = {
-                                                    newCategory = cat
-                                                    expandedCategory = false
-                                                }
-                                            )
+                        }
+                        ExposedDropdownMenuBox(
+                            expanded = expandedCategory,
+                            onExpandedChange = { expandedCategory = it }
+                        ) {
+                            OutlinedTextField(
+                                value = newCategory,
+                                onValueChange = {},
+                                label = { Text("Category") },
+                                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategory) },
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedCategory,
+                                onDismissRequest = { expandedCategory = false }
+                            ) {
+                                categoryOptions.forEach { cat ->
+                                    DropdownMenuItem(
+                                        text = { Text(cat) },
+                                        onClick = {
+                                            newCategory = cat
+                                            expandedCategory = false
                                         }
-                                    }
+                                    )
                                 }
                             }
-                        )
+                        }
                     }
                 },
                 confirmButton = {
-                    TextButton(
+                    Button(
                         onClick = {
                             val qty = newQuantity.toDoubleOrNull() ?: 0.0
                             viewModel.addItem(newName.trim(), qty, newUnit, newCategory.trim())
@@ -231,7 +232,8 @@ fun ShoppingListScreen(
                             newQuantity = ""
                             newUnit = "units"
                             newCategory = "Other"
-                        }
+                        },
+                        shape = RoundedCornerShape(24.dp)
                     ) {
                         Text("Add")
                     }
@@ -263,7 +265,9 @@ fun ShoppingListScreen(
 fun ShoppingItemRow(item: ShoppingItem, onCheckedChange: (Boolean) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier
@@ -282,6 +286,7 @@ fun ShoppingItemRow(item: ShoppingItem, onCheckedChange: (Boolean) -> Unit) {
                 Text(
                     text = item.name,
                     style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
                     textDecoration = if (item.isChecked) TextDecoration.LineThrough else null
                 )
                 Text(

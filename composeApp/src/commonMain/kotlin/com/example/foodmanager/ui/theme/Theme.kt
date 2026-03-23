@@ -11,8 +11,9 @@ private val  LightColorScheme = lightColorScheme(
     secondary = LightBlue,
     onSecondary = DarkBlue,
     tertiary = DarkBlue,
-    background = White,
+    background = CardGray,
     surface = White,
+    surfaceVariant = CardGray,
     error = ExpRed
 )
 
