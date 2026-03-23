@@ -162,6 +162,10 @@ fun AddingItemScreen(
                             onClick = {
                                 selectedCategory = category
                                 expandedDropdown = false
+
+                                val defaultMillis = CategoryConstants.getDefaultExpiryMillis(category)
+                                expiryDateMs = defaultMillis
+                                expiryDate = dateFormat(defaultMillis)
                             }
                         )
                     }
