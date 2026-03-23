@@ -15,6 +15,7 @@ import androidx.navigation.NavController
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import com.example.foodmanager.domain.model.ShoppingItem
+import com.example.foodmanager.ui.utils.CategoryConstants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,10 +36,7 @@ fun ShoppingListScreen(
     var expandedCategory by remember { mutableStateOf(false) }
 
     val quantityTypes = listOf("grams", "kilograms", "millilitres", "litres", "units", "pieces")
-    val categoryOptions = listOf(
-        "Vegetables", "Fruits", "Meat", "Dairy", "Bread", "Pasta", "Rice",
-        "Frozen", "Other"
-    )
+    val categoryOptions = CategoryConstants.menuCategories
 
     Scaffold(
         topBar = {

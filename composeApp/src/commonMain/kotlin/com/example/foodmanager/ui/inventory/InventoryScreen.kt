@@ -49,6 +49,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.foodmanager.domain.calculateDaysRemaining
 import com.example.foodmanager.domain.useCase.InventorySortOption
+import com.example.foodmanager.ui.utils.CategoryConstants
 
 @Composable
 fun SummaryBox(
@@ -156,7 +157,7 @@ fun InventoryScreen(
                 }
 
                 // Category filtering (Pasta, Meat, etc.)
-                val categories = listOf("All", "Vegetables", "Fruits", "Meat", "Dairy", "Bread", "Pasta", "Rice", "Frozen", "Other")
+                val categories = CategoryConstants.menuCategories
                 val selectedSortOption by viewModel.selectedSortOption.collectAsState()
                 var sortMenuExpanded by remember { mutableStateOf(false) }
                 val selectedCategory by viewModel.selectedCategory.collectAsState()

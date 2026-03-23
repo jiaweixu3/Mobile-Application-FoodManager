@@ -24,6 +24,8 @@ import androidx.compose.foundation.verticalScroll
 import com.example.foodmanager.data.supabase
 import androidx.compose.ui.Alignment
 import com.example.foodmanager.data.repository.SupabaseInventoryRepository
+import com.example.foodmanager.ui.utils.CategoryConstants
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddingItemScreen(
@@ -71,10 +73,8 @@ fun AddingItemScreen(
 
     val focusManager = LocalFocusManager.current
 
-    val categories = listOf(
-        "Vegetables", "Fruits", "Meat", "Dairy", "Bread", "Pasta", "Rice",
-        "Frozen", "Other"
-    )
+    val categories = CategoryConstants.menuCategories
+
     val quantityTypes = listOf("grams", "kilograms", "millilitres", "litres", "units", "pieces")
 
     // Collect events from the ViewModel
