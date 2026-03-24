@@ -4,9 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodmanager.data.repository.SettingsRepository
 import com.example.foodmanager.domain.model.Household
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -22,6 +23,10 @@ class SettingsViewModel(
 
     // Selected household
     val currentHousehold = settingsRepository.getCurrentHousehold.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    // UI State: Feedback message for joining a household
+    private val _joinMessage = MutableStateFlow<String?>(null)
+    val joinMessage: StateFlow<String?> = _joinMessage.asStateFlow()
 
     // To know whether we have to initialize the first household when a new user enters the app
     private var isInitialized = false
@@ -82,12 +87,43 @@ class SettingsViewModel(
         }
     }
 
-    // Function for actually joining
+    // Function for actually joining (Updated to handle success and errors)
     fun joinHousehold(code: String) {
+        if (code.isBlank()) {
+            _joinMessage.value = "Please enter a valid join code."
+            return
+        }
+
         viewModelScope.launch {
-            settingsRepository.joinHousehold(code)
+            try {
+                _joinMessage.value = null // Clear previous messages
+
+                settingsRepository.joinHousehold(code.trim())
+
+                // If it succeeds without throwing an error:
+                _joinMessage.value = "Successfully joined the household!"
+
+            } catch (e: Exception) {
+                // Determine the exact cause based on the error message
+                val errorString = e.message?.lowercase() ?: ""
+
+                when {
+                    errorString.contains("already") || errorString.contains("duplicate") -> {
+                        _joinMessage.value = "You have already joined this household."
+                    }
+                    errorString.contains("not found") || errorString.contains("invalid") -> {
+                        _joinMessage.value = "Invalid Code. Please check and try again."
+                    }
+                    else -> {
+                        _joinMessage.value = "Failed to join: Invalid Code or Network Error."
+                    }
+                }
+            }
         }
     }
 
-
+    // Function to clear the message when the user starts typing again
+    fun clearJoinMessage() {
+        _joinMessage.value = null
+    }
 }

@@ -37,6 +37,9 @@ fun ShoppingListScreen(
     var expandedUnit by remember { mutableStateOf(false) }
     var expandedCategory by remember { mutableStateOf(false) }
 
+    // NEW: State to hold validation errors inside the dialog
+    var dialogError by remember { mutableStateOf<String?>(null) }
+
     val quantityTypes = listOf("grams", "kilograms", "millilitres", "litres", "units", "pieces")
     val categoryOptions = CategoryConstants.menuCategories
 
@@ -85,7 +88,10 @@ fun ShoppingListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showAddDialog = true },
+                onClick = {
+                    showAddDialog = true
+                    dialogError = null // Clear any old errors when opening the dialog
+                },
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Create shopping item")
@@ -141,15 +147,31 @@ fun ShoppingListScreen(
         // Add item dialog box
         if (showAddDialog) {
             AlertDialog(
-                onDismissRequest = { showAddDialog = false },
+                onDismissRequest = {
+                    showAddDialog = false
+                    dialogError = null
+                },
                 title = { Text("Create shopping item") },
                 text = {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        // NEW: Display the error message at the top of the form if it exists
+                        if (dialogError != null) {
+                            Text(
+                                text = dialogError ?: "",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
+                        }
+
                         OutlinedTextField(
                             value = newName,
-                            onValueChange = { newName = it },
+                            onValueChange = {
+                                newName = it
+                                dialogError = null // Clear error when typing
+                            },
                             label = { Text("Item name") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -157,7 +179,10 @@ fun ShoppingListScreen(
                         )
                         OutlinedTextField(
                             value = newQuantity,
-                            onValueChange = { newQuantity = it },
+                            onValueChange = {
+                                newQuantity = it
+                                dialogError = null // Clear error when typing
+                            },
                             label = { Text("Quantity") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -225,13 +250,26 @@ fun ShoppingListScreen(
                 confirmButton = {
                     Button(
                         onClick = {
-                            val qty = newQuantity.toDoubleOrNull() ?: 0.0
-                            viewModel.addItem(newName.trim(), qty, newUnit, newCategory.trim())
-                            showAddDialog = false
-                            newName = ""
-                            newQuantity = ""
-                            newUnit = "units"
-                            newCategory = "Other"
+                            // NEW: Validate before saving!
+                            val parsedQty = newQuantity.toDoubleOrNull()
+
+                            when {
+                                newName.isBlank() -> dialogError = "Item name cannot be blank."
+                                parsedQty == null -> dialogError = "Please enter a valid number for quantity."
+                                parsedQty <= 0 -> dialogError = "Quantity must be greater than zero."
+                                else -> {
+                                    // Passed validation, send to ViewModel
+                                    viewModel.addItem(newName.trim(), parsedQty, newUnit, newCategory.trim())
+
+                                    // Reset fields and close dialog
+                                    showAddDialog = false
+                                    newName = ""
+                                    newQuantity = ""
+                                    newUnit = "units"
+                                    newCategory = "Other"
+                                    dialogError = null
+                                }
+                            }
                         },
                         shape = RoundedCornerShape(24.dp)
                     ) {
@@ -239,7 +277,10 @@ fun ShoppingListScreen(
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showAddDialog = false }) {
+                    TextButton(onClick = {
+                        showAddDialog = false
+                        dialogError = null
+                    }) {
                         Text("Cancel")
                     }
                 }

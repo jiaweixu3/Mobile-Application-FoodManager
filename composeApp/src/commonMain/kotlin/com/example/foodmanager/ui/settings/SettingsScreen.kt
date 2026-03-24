@@ -26,8 +26,10 @@ fun SettingsScreen(
     onNavigateToMembers: () -> Unit
 ) {
     val availableHouseholds by viewModel.availableHouseholds.collectAsState()
-    var expandedDropdown by remember { mutableStateOf(false) }
     val currentHousehold by viewModel.currentHousehold.collectAsState()
+    val joinMessage by viewModel.joinMessage.collectAsState() // NEW: Collect the message state
+
+    var expandedDropdown by remember { mutableStateOf(false) }
     var newHouseholdName by remember { mutableStateOf("") }
     var logoutErrorMessage by remember { mutableStateOf<String?>(null) }
     var isLoggingOut by remember { mutableStateOf(false) }
@@ -196,28 +198,44 @@ fun SettingsScreen(
             // join household section
             var joinInput by remember { mutableStateOf("") }
             SettingsCard(title = "Join a Household") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value = joinInput,
-                        onValueChange = { joinInput = it.uppercase() },
-                        label = { Text("6-character code") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(24.dp)
-                    )
-                    Button(
-                        onClick = {
-                            viewModel.joinHousehold(joinInput)
-                            joinInput = ""
-                        },
-                        enabled = joinInput.isNotBlank(),
-                        shape = RoundedCornerShape(24.dp)
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Join")
+                        OutlinedTextField(
+                            value = joinInput,
+                            onValueChange = {
+                                joinInput = it.uppercase()
+                                viewModel.clearJoinMessage() // Clear message when typing
+                            },
+                            label = { Text("6-character code") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        Button(
+                            onClick = {
+                                viewModel.joinHousehold(joinInput)
+                                joinInput = "" // Clear the input after clicking join
+                            },
+                            enabled = joinInput.isNotBlank(),
+                            shape = RoundedCornerShape(24.dp)
+                        ) {
+                            Text("Join")
+                        }
+                    }
+
+                    // NEW: Display the success or error message
+                    if (joinMessage != null) {
+                        val isSuccess = joinMessage?.contains("Successfully") == true
+                        Text(
+                            text = joinMessage ?: "",
+                            color = if (isSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 8.dp, start = 4.dp)
+                        )
                     }
                 }
             }
