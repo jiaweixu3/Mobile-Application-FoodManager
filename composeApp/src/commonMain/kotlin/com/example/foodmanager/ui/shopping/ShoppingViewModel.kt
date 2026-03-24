@@ -11,9 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 
 //  Define the sorting options
 enum class SortType {
@@ -29,6 +29,9 @@ class ShoppingViewModel(
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _shoppingList = MutableStateFlow<List<ShoppingItem>>(emptyList())
+    private var listJob: Job? = null
+
     // UI State: Error Messages
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
@@ -38,54 +41,66 @@ class ShoppingViewModel(
     val sortType: StateFlow<SortType> = _sortType.asStateFlow()
 
     // Main Data Flow: Combines the database list with the current sort selection
-    val items: StateFlow<List<ShoppingItem>> = combine(
-        repository.getShoppingList()
-            .onStart {
-                _isLoading.value = true
-                _errorMessage.value = null
-            }
-            .catch { e ->
-                _isLoading.value = false
-                _errorMessage.value = e.message ?: "Failed to connect to the database."
-            },
-        _sortType
-    ) { list, currentSort ->
-        _isLoading.value = false
-        // Apply the selected sorting logic
+    val items: StateFlow<List<ShoppingItem>> = combine(_shoppingList, _sortType) { list, currentSort ->
         when (currentSort) {
             SortType.NAME -> list.sortedBy { it.name.lowercase() }
             SortType.AMOUNT -> list.sortedBy { it.amount }
             SortType.CATEGORY -> list.sortedBy { it.category.lowercase() }
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    init {
+        loadItems()
+    }
+
+    fun loadItems() {
+        listJob?.cancel()
+
+        listJob = viewModelScope.launch {
+            _isLoading.value = true
+
+            repository.getShoppingList()
+                .catch { e ->
+                    _isLoading.value = false
+                    _errorMessage.value = "Error: ${e.message}"
+                }
+                .collect { list ->
+                    _shoppingList.value = list
+                    _isLoading.value = false
+                }
+        }
+    }
 
     // Function to change the sort type from the UI
     fun setSortType(type: SortType) {
         _sortType.value = type
     }
 
-    fun toggleItem(item: ShoppingItem) {
+    fun toggleItem(item: ShoppingItem, isChecked: Boolean) {
+        listJob?.cancel()
+
+        val currentList = _shoppingList.value
+        _shoppingList.value = currentList.map {
+            if (it.id == item.id) it.copy(isChecked = isChecked) else it
+        }
+
         viewModelScope.launch {
             try {
-                val updatedItem = item.copy(isChecked = !item.isChecked)
-                repository.updateShoppingItem(updatedItem)
+                repository.updateShoppingItem(item.copy(isChecked = isChecked))
+
+                loadItems()
+
             } catch (e: Exception) {
-                _errorMessage.value = "Failed to update item."
+                _errorMessage.value = "Sync error."
+                loadItems()
             }
         }
     }
 
-    fun deleteItem(id: Int) {
+    fun deleteItem(id: Long) {
         viewModelScope.launch {
-            try {
-                repository.deleteShoppingItem(id)
-            } catch (e: Exception) {
-                _errorMessage.value = "Failed to delete item."
-            }
+            repository.deleteShoppingItem(id)
+            loadItems()
         }
     }
 

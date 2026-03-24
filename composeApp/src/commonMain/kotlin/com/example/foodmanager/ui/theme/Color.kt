@@ -17,3 +17,5 @@ val DarkBlue = Color(0xFF0D47A1)
 val ExpGreen = Color(0xFF2ECC71)
 val ExpYellow = Color(0xFFF1C40F)
 val ExpRed = Color(0xFFE74C3C)
+
+val CardGray = Color(0xFFF5F5F5)

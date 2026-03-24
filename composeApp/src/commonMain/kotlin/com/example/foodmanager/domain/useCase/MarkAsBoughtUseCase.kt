@@ -4,6 +4,7 @@ import com.example.foodmanager.data.repository.InventoryRepository
 import com.example.foodmanager.data.repository.ShoppingRepository
 import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.domain.model.ShoppingItem
+import com.example.foodmanager.ui.utils.CategoryConstants
 import kotlinx.coroutines.flow.first
 
 // Handles when an item is marked as bought
@@ -31,13 +32,13 @@ class MarkAsBoughtUseCase(
             inventoryRepository.updateFoodItem(updatedItem)
         } else {
             val newFoodItem = FoodItem(
-                id = (1000..9999).random(),
+                id = null,
                 inventoryId = "inv_1",
                 name = item.name,
+                expiryDate = CategoryConstants.getDefaultExpiryDate(item.category),
                 amount = item.amount,
                 unit = item.unit,
                 category = item.category,
-                expiryDate = "2026-12-31"
             )
             inventoryRepository.addFoodItem(newFoodItem)
         }

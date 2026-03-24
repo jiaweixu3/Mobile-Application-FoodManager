@@ -47,8 +47,17 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.rememberDatePickerState
 import com.example.foodmanager.domain.calculateDaysRemaining
+import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.domain.useCase.InventorySortOption
+import com.example.foodmanager.ui.additem.dateFormat
+import com.example.foodmanager.ui.utils.CategoryConstants
 
 @Composable
 fun SummaryBox(
@@ -110,6 +119,8 @@ fun InventoryScreen(
     val warningCount = inventoryList.count { calculateDaysRemaining(it) in 0..3 }
     val freshCount = inventoryList.count { calculateDaysRemaining(it) > 3 }
 
+    var editingItem by remember { mutableStateOf<FoodItem?>(null) }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -156,7 +167,7 @@ fun InventoryScreen(
                 }
 
                 // Category filtering (Pasta, Meat, etc.)
-                val categories = listOf("All", "Vegetables", "Fruits", "Meat", "Dairy", "Bread", "Pasta", "Rice", "Frozen", "Other")
+                val categories = listOf("All") + CategoryConstants.menuCategories
                 val selectedSortOption by viewModel.selectedSortOption.collectAsState()
                 var sortMenuExpanded by remember { mutableStateOf(false) }
                 val selectedCategory by viewModel.selectedCategory.collectAsState()
@@ -244,7 +255,9 @@ fun InventoryScreen(
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
                     items(inventoryList) { foodItem ->
-                        FoodCard(item = foodItem, viewModel = viewModel)
+                        Box(modifier = Modifier.clickable { editingItem = foodItem }) {
+                            FoodCard(item = foodItem, viewModel = viewModel)
+                        }
                     }
                 }
             }
@@ -312,6 +325,152 @@ fun InventoryScreen(
                     }
                 }
             )
+        }
+    }
+    if (editingItem != null) {
+        val item = editingItem!!
+
+        var editName by remember(item) { mutableStateOf(item.name) }
+        var editAmount by remember(item) { mutableStateOf(item.amount.toString()) }
+        var editExpiry by remember(item) { mutableStateOf(item.expiryDate) }
+        var editUnit by remember(item) { mutableStateOf(item.unit) }
+        var editCategory by remember(item) { mutableStateOf(item.category) }
+
+        var showDatePicker by remember { mutableStateOf(false) }
+        var unitExpanded by remember { mutableStateOf(false) }
+        var categoryExpanded by remember { mutableStateOf(false) }
+
+        val units = listOf("grams", "kilograms", "millilitres", "litres", "units", "pieces")
+
+        AlertDialog(
+            onDismissRequest = { editingItem = null },
+            title = { Text("Edit ${item.name}", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = editName,
+                        onValueChange = { editName = it },
+                        label = { Text("Name") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = editAmount,
+                            onValueChange = { editAmount = it },
+                            label = { Text("Qty") },
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+
+                        ExposedDropdownMenuBox(
+                            expanded = unitExpanded,
+                            onExpandedChange = { unitExpanded = it },
+                            modifier = Modifier.weight(1.5f)
+                        ) {
+                            OutlinedTextField(
+                                value = editUnit,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Unit") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = unitExpanded) },
+                                modifier = Modifier.menuAnchor()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = unitExpanded,
+                                onDismissRequest = { unitExpanded = false }
+                            ) {
+                                units.forEach { u ->
+                                    DropdownMenuItem(
+                                        text = { Text(u) },
+                                        onClick = {
+                                            editUnit = u
+                                            unitExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    ExposedDropdownMenuBox(
+                        expanded = categoryExpanded,
+                        onExpandedChange = { categoryExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = editCategory,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Category") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = categoryExpanded,
+                            onDismissRequest = { categoryExpanded = false }
+                        ) {
+                            CategoryConstants.menuCategories.forEach { cat ->
+                                DropdownMenuItem(
+                                    text = { Text(cat) },
+                                    onClick = {
+                                        editCategory = cat
+                                        categoryExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = editExpiry,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Expiry Date") },
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = {
+                            IconButton(onClick = { showDatePicker = true }) {
+                                Icon(Icons.Default.DateRange, contentDescription = "Select Date")
+                            }
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val updated = item.copy(
+                        name = editName,
+                        amount = editAmount.toDoubleOrNull() ?: item.amount,
+                        unit = editUnit,
+                        category = editCategory,
+                        expiryDate = editExpiry
+                    )
+                    viewModel.updateItem(updated)
+                    editingItem = null
+                }) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingItem = null }) { Text("Cancel") }
+            }
+        )
+
+        if (showDatePicker) {
+            val datePickerState = rememberDatePickerState()
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            editExpiry = dateFormat(millis)
+                        }
+                        showDatePicker = false
+                    }) { Text("OK") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
         }
     }
 }

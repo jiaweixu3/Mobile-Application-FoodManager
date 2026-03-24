@@ -144,6 +144,20 @@ class InventoryViewModel(
         }
     }
 
+    fun updateItem(item: FoodItem) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                repository.updateFoodItem(item)
+                refreshInventory()
+            } catch (e: Exception) {
+                _errorMessage.value = "Error updating item"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     // Call this from the UI (like an alert dialog "OK" button) to dismiss errors
     fun clearError() {
         _errorMessage.value = null
