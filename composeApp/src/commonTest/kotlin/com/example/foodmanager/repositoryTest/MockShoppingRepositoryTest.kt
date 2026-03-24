@@ -15,6 +15,7 @@ import kotlin.test.assertNull
 // The current tests work with an initial hardcoded list of 5 items, if this changes, all tests should be changed accordingly
 internal class MockShoppingRepositoryTest {
     private val repository = MockShoppingRepository()
+
     @BeforeTest
     fun setUp() {
         MockDb.resetShoppingState() // Resetting list back to original size
@@ -29,9 +30,7 @@ internal class MockShoppingRepositoryTest {
     fun testInitialShopping() = runTest {
         val current_Inventory = repository.getShoppingList().first()
 
-
         assertEquals(5, current_Inventory.size, "Initial shopping list has 5 items")
-
     }
 
     // Adding a shop item
@@ -68,7 +67,7 @@ internal class MockShoppingRepositoryTest {
     // Deleting a Shop Item
     @Test
     fun testDeleteShoppingItem() = runTest {
-        val food_id = 1
+        val food_id = 1L // Added 'L' here
         repository.deleteShoppingItem(food_id)
         val current_Inventory = repository.getShoppingList().first()
 
@@ -78,7 +77,7 @@ internal class MockShoppingRepositoryTest {
     // Deleting an item which does not exist will not yield problems
     @Test
     fun testDeleteNonExistentShoppingItem() = runTest {
-        val food_id = 100
+        val food_id = 100L // Added 'L' here
         repository.deleteShoppingItem(food_id)
         val current_Inventory = repository.getShoppingList().first()
 
@@ -88,16 +87,16 @@ internal class MockShoppingRepositoryTest {
     // Empty Shopping List will not yield problems
     @Test
     fun testEmptyShoppingList() = runTest {
-        repository.deleteShoppingItem(1)
-        repository.deleteShoppingItem(2)
-        repository.deleteShoppingItem(3)
-        repository.deleteShoppingItem(4)
-        repository.deleteShoppingItem(5)
+        // Added 'L' to all of these numbers!
+        repository.deleteShoppingItem(1L)
+        repository.deleteShoppingItem(2L)
+        repository.deleteShoppingItem(3L)
+        repository.deleteShoppingItem(4L)
+        repository.deleteShoppingItem(5L)
         val current_Inventory = repository.getShoppingList().first()
 
         assertEquals(0, current_Inventory.size, "Our shopping list is now empty")
     }
-
 
     @Test
     fun testUpdateShoppingItem() = runTest {
