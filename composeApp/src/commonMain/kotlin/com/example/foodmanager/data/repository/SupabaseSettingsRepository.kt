@@ -2,8 +2,8 @@ package com.example.foodmanager.data.repository
 
 import com.example.foodmanager.domain.model.Household
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns // REQUIRED for the join query
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,7 +49,7 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
             refreshTrigger.tryEmit(Unit)
         } catch (e: Exception) {
             println("SUPABASE ERROR adding household: ${e.message}")
-            throw e // Pass error to ViewModel
+            throw e
         }
     }
 
@@ -69,25 +69,38 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
             code
         } catch (e: Exception) {
             println("Supabase Error generating a code: ${e.message}")
-            throw e // Pass error to ViewModel
+            throw e
         }
     }
 
-    // FIXED: Now throws the error so the ViewModel can see it!
     override suspend fun joinHousehold(joinCode: String) {
         try {
-            val result = supabase.postgrest.rpc(
+            supabase.postgrest.rpc(
                 "join_household_by_code",
                 buildJsonObject {
                     put("code_input", joinCode.uppercase())
-                })
+                }
+            )
 
-            val household = result.decodeSingle<Household>()
-            _currentHousehold.value = household
             refreshTrigger.tryEmit(Unit)
+
+            val newHouseholdList = supabase.postgrest[tableName].select {
+                filter {
+                    eq("joinCode", joinCode.uppercase())
+                }
+            }.decodeList<Household>()
+
+            val joinedHousehold = newHouseholdList.firstOrNull()
+
+            if (joinedHousehold != null) {
+                _currentHousehold.value = joinedHousehold
+            } else {
+                throw Exception("Invalid Code")
+            }
+
         } catch (e: Exception) {
             println("Supabase error joining a household: ${e.message}")
-            throw e // This allows the 'catch' in SettingsViewModel to work!
+            throw e
         }
     }
 
@@ -106,10 +119,41 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
             }
         } catch (e: Exception) {
             println("Exception while updating household: ${e.message}")
-            throw e // Pass error to ViewModel
+            throw e
+        }
+    }
+
+    // Fetches members using your user_household join table
+    override suspend fun getHouseholdMembers(householdId: String): List<HouseholdMember> {
+        return try {
+            // 1. Query the join table and explicitly ask for the attached 'users' data
+            val joinRecords = supabase.postgrest["user_household"].select(
+                columns = Columns.raw("*, users(*)")
+            ) {
+                filter {
+                    eq("household_id", householdId)
+                }
+            }.decodeList<UserHouseholdJoin>()
+
+            // 2. Map the complex join data into a clean, simple list for your UI
+            joinRecords.mapNotNull { record ->
+                record.users?.let { user ->
+                    HouseholdMember(
+                        id = user.id,
+                        email = user.email,
+                        name = user.username, // Maps your database 'username' to 'name'
+                        role = record.role    // Grabs their role from the join table
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            println("Supabase Error fetching members: ${e.message}")
+            emptyList()
         }
     }
 }
+
+// --- Data Classes ---
 
 @Serializable
 private data class HouseholdInsert(val name: String)
@@ -119,3 +163,28 @@ private data class UpdateHouseholdName(val name: String)
 
 @Serializable
 private data class UpdatingJoinCode(val joinCode: String)
+
+// --- Member Data Classes ---
+
+@Serializable
+data class UserDto(
+    val id: String,
+    val email: String? = null,
+    val username: String? = null
+)
+
+@Serializable
+data class UserHouseholdJoin(
+    val user_id: String,
+    val household_id: String,
+    val role: String,
+    val users: UserDto? = null // Holds the attached data from your 'users' table
+)
+
+@Serializable
+data class HouseholdMember(
+    val id: String,
+    val email: String?,
+    val name: String?,
+    val role: String?
+)

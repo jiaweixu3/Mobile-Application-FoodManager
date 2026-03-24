@@ -222,6 +222,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
             composable<ScreenDestination.HouseholdMembers> {
                 com.example.foodmanager.ui.household.HouseholdScreen(
+                    viewModel = settingsViewModel, // <-- THIS IS THE NEW FIX!
                     onBackClick = { navController.popBackStack() }
                 )
             }

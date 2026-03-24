@@ -44,6 +44,8 @@ fun RegisterScreen(
     val hasUpper = password.any { it.isUpperCase() }
     val hasLower = password.any { it.isLowerCase() }
     val hasDigit = password.any { it.isDigit() }
+    // FIXED: Added Special Character Check
+    val hasSpecialChar = password.any { !it.isLetterOrDigit() }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -89,6 +91,8 @@ fun RegisterScreen(
             RequirementText(text = "Contains uppercase letter", isMet = hasUpper)
             RequirementText(text = "Contains lowercase letter", isMet = hasLower)
             RequirementText(text = "Contains a number", isMet = hasDigit)
+            // FIXED: Added Special Character to UI Checklist
+            RequirementText(text = "Contains a special character", isMet = hasSpecialChar)
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -97,12 +101,10 @@ fun RegisterScreen(
             value = confirmPassword,
             onValueChange = { confirmPassword = it; errorMessage = null },
             label = { Text("Confirm Password") },
-            // FIXED: Now properly uses confirmPasswordVisible
             visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(0.85f),
             trailingIcon = {
-                // FIXED: Now properly toggles confirmPasswordVisible
                 TextButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                     Text(if (confirmPasswordVisible) "Hide" else "Show")
                 }
@@ -118,21 +120,34 @@ fun RegisterScreen(
                 when {
                     !isValidEmail(email) -> errorMessage = "Please enter a valid email address."
                     passwordError != null -> errorMessage = passwordError
-                    password != confirmPassword -> errorMessage = "Passwords do not match." // The matching logic!
+                    !hasSpecialChar -> errorMessage = "Password must contain a special character." // Enforce special char!
+                    password != confirmPassword -> errorMessage = "Passwords do not match."
                     else -> {
                         coroutineScope.launch {
                             isLoading = true
                             errorMessage = null
                             try {
-                                supabase.auth.signUpWith(Email) {
+                                val authResult = supabase.auth.signUpWith(Email) {
                                     this.email = email
                                     this.password = password
                                 }
+
+                                // FIXED: Check if Supabase silently rejected the duplicate email
+                                if (authResult?.identities?.isEmpty() == true) {
+                                    errorMessage = "An account with this email already exists."
+                                    isLoading = false
+                                    return@launch
+                                }
+
                                 infoMessage = "Registration successful! Please log in."
-                                // FIXED: Actually trigger the navigation now!
                                 onRegisterSuccess()
                             } catch (e: Exception) {
-                                errorMessage = e.message ?: "Registration failed."
+                                val msg = e.message?.lowercase() ?: ""
+                                if (msg.contains("already registered") || msg.contains("duplicate")) {
+                                    errorMessage = "An account with this email already exists."
+                                } else {
+                                    errorMessage = e.message ?: "Registration failed."
+                                }
                             } finally {
                                 isLoading = false
                             }

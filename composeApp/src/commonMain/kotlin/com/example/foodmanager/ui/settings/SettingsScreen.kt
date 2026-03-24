@@ -10,13 +10,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.foodmanager.data.supabase
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 
-// Defines settings screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -27,7 +29,11 @@ fun SettingsScreen(
 ) {
     val availableHouseholds by viewModel.availableHouseholds.collectAsState()
     val currentHousehold by viewModel.currentHousehold.collectAsState()
-    val joinMessage by viewModel.joinMessage.collectAsState() // NEW: Collect the message state
+    val joinMessage by viewModel.joinMessage.collectAsState()
+
+    // NEW: Account States
+    val userEmail by viewModel.userEmail.collectAsState()
+    val passwordMessage by viewModel.passwordMessage.collectAsState()
 
     var expandedDropdown by remember { mutableStateOf(false) }
     var newHouseholdName by remember { mutableStateOf("") }
@@ -36,14 +42,19 @@ fun SettingsScreen(
     val coroutineScope = rememberCoroutineScope()
     var editHouseholdName by remember { mutableStateOf("") }
 
+    // NEW: Password field state
+    var newPassword by remember { mutableStateOf("") }
+
+    val clipboardManager = LocalClipboardManager.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
     LaunchedEffect(currentHousehold) {
         editHouseholdName = currentHousehold?.name ?: ""
     }
 
     Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(title = { Text("Settings") })
-        }
+        topBar = { CenterAlignedTopAppBar(title = { Text("Settings") }) },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -54,7 +65,73 @@ fun SettingsScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // household management section
+
+            // --- NEW: ACCOUNT SECTION ---
+            SettingsCard(title = "Account Details") {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Signed in as:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = userEmail,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
+
+                    Text(
+                        text = "Change Password",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = newPassword,
+                            onValueChange = {
+                                newPassword = it
+                                viewModel.clearPasswordMessage()
+                            },
+                            label = { Text("New Password") },
+                            singleLine = true,
+                            visualTransformation = PasswordVisualTransformation(),
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        Button(
+                            onClick = {
+                                viewModel.changePassword(newPassword)
+                                newPassword = ""
+                            },
+                            enabled = newPassword.isNotBlank(),
+                            shape = RoundedCornerShape(24.dp)
+                        ) {
+                            Text("Update")
+                        }
+                    }
+
+                    if (passwordMessage != null) {
+                        val isSuccess = passwordMessage?.contains("Successfully") == true
+                        Text(
+                            text = passwordMessage ?: "",
+                            color = if (isSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 8.dp, start = 4.dp)
+                        )
+                    }
+                }
+            }
+
+            // --- HOUSEHOLD MANAGEMENT ---
             SettingsCard(title = "Household Management") {
                 if (availableHouseholds.isEmpty()) {
                     Text("No available households")
@@ -92,7 +169,7 @@ fun SettingsScreen(
                 }
             }
 
-            // create household section
+            // --- CREATE HOUSEHOLD ---
             SettingsCard(title = "Create New Household") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -120,7 +197,7 @@ fun SettingsScreen(
                 }
             }
 
-            // edit household section
+            // --- EDIT HOUSEHOLD ---
             SettingsCard(title = "Edit Current Household") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -145,7 +222,7 @@ fun SettingsScreen(
                 }
             }
 
-            // invite and members section
+            // --- INVITE & MEMBERS ---
             if (currentHousehold != null) {
                 SettingsCard(title = "Invite & Members") {
                     Column(
@@ -170,17 +247,34 @@ fun SettingsScreen(
                         )
 
                         if (currentHousehold?.joinCode != null) {
+                            val code = currentHousehold?.joinCode ?: ""
+
                             Surface(
                                 color = MaterialTheme.colorScheme.secondaryContainer,
                                 shape = RoundedCornerShape(24.dp),
                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                             ) {
-                                Text(
-                                    text = currentHousehold?.joinCode ?: "",
-                                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.ExtraBold
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(start = 24.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)
+                                ) {
+                                    Text(
+                                        text = code,
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    IconButton(
+                                        onClick = {
+                                            clipboardManager.setText(AnnotatedString(code))
+                                            coroutineScope.launch {
+                                                snackbarHostState.showSnackbar("Code copied!")
+                                            }
+                                        }
+                                    ) {
+                                        Icon(Icons.Default.Share, contentDescription = "Copy code")
+                                    }
+                                }
                             }
                         } else {
                             Button(
@@ -195,7 +289,7 @@ fun SettingsScreen(
                 }
             }
 
-            // join household section
+            // --- JOIN HOUSEHOLD ---
             var joinInput by remember { mutableStateOf("") }
             SettingsCard(title = "Join a Household") {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -208,7 +302,7 @@ fun SettingsScreen(
                             value = joinInput,
                             onValueChange = {
                                 joinInput = it.uppercase()
-                                viewModel.clearJoinMessage() // Clear message when typing
+                                viewModel.clearJoinMessage()
                             },
                             label = { Text("6-character code") },
                             singleLine = true,
@@ -218,7 +312,7 @@ fun SettingsScreen(
                         Button(
                             onClick = {
                                 viewModel.joinHousehold(joinInput)
-                                joinInput = "" // Clear the input after clicking join
+                                joinInput = ""
                             },
                             enabled = joinInput.isNotBlank(),
                             shape = RoundedCornerShape(24.dp)
@@ -227,7 +321,6 @@ fun SettingsScreen(
                         }
                     }
 
-                    // NEW: Display the success or error message
                     if (joinMessage != null) {
                         val isSuccess = joinMessage?.contains("Successfully") == true
                         Text(
@@ -240,7 +333,7 @@ fun SettingsScreen(
                 }
             }
 
-            // Logout
+            // --- LOGOUT ---
             Button(
                 onClick = {
                     coroutineScope.launch {

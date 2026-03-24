@@ -44,14 +44,25 @@ class AuthViewModel(private val supabase: SupabaseClient) : ViewModel() {
                 _isLoading.value = true
                 _authError.value = null
 
-                supabase.auth.signUpWith(Email) {
+                val authResult = supabase.auth.signUpWith(Email) {
                     email = emailInput
                     password = passwordInput
                 }
 
+                // FIXED: Catch duplicate email via empty identities list
+                if (authResult?.identities?.isEmpty() == true) {
+                    _authError.value = "An account with this email already exists."
+                    return@launch
+                }
+
                 onSuccess()
             } catch (e: Exception) {
-                _authError.value = "Registration failed: ${e.message}"
+                val msg = e.message?.lowercase() ?: ""
+                if (msg.contains("already registered")) {
+                    _authError.value = "An account with this email already exists."
+                } else {
+                    _authError.value = "Registration failed: ${e.message}"
+                }
             } finally {
                 _isLoading.value = false
             }
