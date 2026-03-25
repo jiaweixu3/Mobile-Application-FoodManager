@@ -2,11 +2,13 @@ package com.example.foodmanager.data.repository
 
 // This file defines the basic interfaces and the used functions
 import com.example.foodmanager.data.MockDb
+import com.example.foodmanager.domain.model.FavoriteFoodItem
 import com.example.foodmanager.domain.model.ShoppingItem
 import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.domain.model.Household
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlin.random.Random
 
 
 // Inventory Repository
@@ -27,6 +29,13 @@ interface ShoppingRepository {
     suspend fun addShoppingItem(newShoppingItem: ShoppingItem)
     suspend fun deleteShoppingItem(id: Long)
     suspend fun updateShoppingItem(updatedShoppingItem: ShoppingItem)
+}
+
+interface FavoriteRepository {
+    fun getFavoriteItems(): Flow<List<FavoriteFoodItem>>
+
+    suspend fun addFavoriteItem(item: FavoriteFoodItem)
+    suspend fun deleteFavoriteItem(id: String)
 }
 
 // Settings Screen
@@ -51,6 +60,9 @@ interface SettingsRepository {
 
     // Joining a new household
     suspend fun joinHousehold(joinCode: String)
+
+    // Reading the current selection synchronously inside repositories
+    suspend fun getCurrentHouseholdValue(): Household?
 }
 
 
@@ -101,8 +113,8 @@ class MockInventoryRepository : InventoryRepository {
     }
 }
 
-    // Shopping Repository
-    class MockShoppingRepository : ShoppingRepository {
+// Shopping Repository
+class MockShoppingRepository : ShoppingRepository {
     // For the shopping list we also have to retrieve the current household
     override fun getShoppingList(): Flow<List<ShoppingItem>> {
         return combine(MockDb.currentHousehold, MockDb.shoppingitems){actualHousehold, allShoppingItems ->
@@ -141,6 +153,31 @@ class MockInventoryRepository : InventoryRepository {
     }
 }
 
+class InMemoryFavoriteRepository(
+    private val settingsRepository: SettingsRepository
+) : FavoriteRepository {
+    override fun getFavoriteItems(): Flow<List<FavoriteFoodItem>> {
+        return combine(settingsRepository.getCurrentHousehold, MockDb.favoriteItems) { actualHousehold, allFavorites ->
+            val householdId = actualHousehold?.id
+            allFavorites.filter { it.householdId == householdId }
+        }
+    }
+
+    override suspend fun addFavoriteItem(item: FavoriteFoodItem) {
+        val householdId = item.householdId ?: settingsRepository.getCurrentHouseholdValue()?.id
+        MockDb.addFavoriteItem(
+            item.copy(
+                id = item.id ?: Random.nextLong().toString(),
+                householdId = householdId
+            )
+        )
+    }
+
+    override suspend fun deleteFavoriteItem(id: String) {
+        MockDb.deleteFavoriteItem(id)
+    }
+}
+
 // Settings Repository
 class MockSettingsRepository : SettingsRepository {
 
@@ -168,6 +205,10 @@ class MockSettingsRepository : SettingsRepository {
 
     override suspend fun joinHousehold(joinCode: String) {
         TODO("Not yet implemented")
+    }
+
+    override suspend fun getCurrentHouseholdValue(): Household? {
+        return MockDb.currentHousehold.value
     }
 
 }

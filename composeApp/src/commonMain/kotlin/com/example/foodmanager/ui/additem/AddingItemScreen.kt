@@ -18,12 +18,11 @@ import androidx.navigation.NavController
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import com.example.foodmanager.data.supabase
 import androidx.compose.ui.Alignment
-import com.example.foodmanager.data.repository.SupabaseInventoryRepository
+import com.example.foodmanager.domain.model.FavoriteFoodItem
+import com.example.foodmanager.ui.navigation.AddItemDestination
 import com.example.foodmanager.ui.utils.CategoryConstants
 import java.util.TimeZone
 
@@ -31,7 +30,8 @@ import java.util.TimeZone
 @Composable
 fun AddingItemScreen(
     navController: NavController,
-    viewModel: AddItemViewModel
+    viewModel: AddItemViewModel,
+    initialDestination: AddItemDestination
 ) {
 
     var productName by remember { mutableStateOf("") }
@@ -40,31 +40,11 @@ fun AddingItemScreen(
     var expiryDateMs by remember { mutableStateOf<Long?>(null) }
     var selectedCategory by remember { mutableStateOf("Other") }
     var selectedUnit by remember { mutableStateOf("units") }
+    var selectedFavoriteLabel by remember { mutableStateOf("") }
 
     // New selector
-    var destination by remember { mutableStateOf("Inventory") }
-
-    Text("Where to add this item?", style = MaterialTheme.typography.labelLarge)
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
-                selected = destination == "Inventory",
-                onClick = { destination = "Inventory" }
-            )
-            Text("Inventory")
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
-                selected = destination == "Shopping List",
-                onClick = { destination = "Shopping List" }
-            )
-            Text("Shopping List")
-        }
-    }
+    var destination by remember(initialDestination) { mutableStateOf(initialDestination) }
+    var saveAsFavorite by remember { mutableStateOf(false) }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var expandedDropdown by remember { mutableStateOf(false) }
@@ -75,6 +55,7 @@ fun AddingItemScreen(
     val focusManager = LocalFocusManager.current
 
     val categories = CategoryConstants.menuCategories
+    val favoriteItems by viewModel.favoriteItems.collectAsState()
 
     val quantityTypes = listOf("grams", "kilograms", "millilitres", "litres", "units", "pieces")
 
@@ -107,6 +88,43 @@ fun AddingItemScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text("Where to add this item?", style = MaterialTheme.typography.labelLarge)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = destination == AddItemDestination.Inventory,
+                        onClick = { destination = AddItemDestination.Inventory }
+                    )
+                    Text("Inventory")
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = destination == AddItemDestination.ShoppingList,
+                        onClick = { destination = AddItemDestination.ShoppingList }
+                    )
+                    Text("Shopping List")
+                }
+            }
+
+            FavoriteItemsSection(
+                favorites = favoriteItems,
+                selectedFavoriteLabel = selectedFavoriteLabel,
+                onFavoriteSelected = { favorite ->
+                    selectedFavoriteLabel = favorite.name
+                    productName = favorite.name
+                    quantity = favorite.amount.toString()
+                    selectedUnit = favorite.unit
+                    selectedCategory = favorite.category
+
+                    val defaultMillis = CategoryConstants.getDefaultExpiryMillis(favorite.category)
+                    expiryDateMs = defaultMillis
+                    expiryDate = dateFormat(defaultMillis)
+                }
+            )
 
 
             // Product name handling
@@ -127,7 +145,7 @@ fun AddingItemScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
+                    keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
@@ -235,10 +253,29 @@ fun AddingItemScreen(
 
                 // Save Button.
                 Button(onClick = {
-                    viewModel.saveItem(productName, quantity, selectedCategory, selectedUnit, expiryDateMs)
+                    viewModel.saveItem(
+                        name = productName,
+                        quantity = quantity,
+                        category = selectedCategory,
+                        unit = selectedUnit,
+                        expiryDateMs = expiryDateMs,
+                        destination = destination,
+                        saveAsFavorite = saveAsFavorite
+                    )
                 }) {
                     Text("Save Item")
                 }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = saveAsFavorite,
+                    onCheckedChange = { saveAsFavorite = it }
+                )
+                Text("Save this item as favorite")
             }
         }
     }
@@ -269,6 +306,67 @@ fun AddingItemScreen(
         ) {
             DatePicker(state = datePickerState)
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FavoriteItemsSection(
+    favorites: List<FavoriteFoodItem>,
+    selectedFavoriteLabel: String,
+    onFavoriteSelected: (FavoriteFoodItem) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Favorite items", style = MaterialTheme.typography.labelLarge)
+        var expanded by remember { mutableStateOf(false) }
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            OutlinedTextField(
+                value = selectedFavoriteLabel,
+                onValueChange = {},
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                readOnly = true,
+                label = { Text("Choose a favorite") },
+                placeholder = {
+                    Text(
+                        if (favorites.isEmpty()) "No favorite items yet" else "Select a saved favorite item"
+                    )
+                },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                if (favorites.isEmpty()) {
+                    DropdownMenuItem(
+                        text = { Text("No favorite items yet") },
+                        onClick = { expanded = false },
+                        enabled = false
+                    )
+                } else {
+                    favorites.forEach { favorite ->
+                        DropdownMenuItem(
+                            text = { Text("${favorite.name} • ${favorite.amount} ${favorite.unit}") },
+                            onClick = {
+                                onFavoriteSelected(favorite)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+        Text(
+            text = "Choosing a favorite only pre-fills the form. You can still change quantity and expiry date before saving.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

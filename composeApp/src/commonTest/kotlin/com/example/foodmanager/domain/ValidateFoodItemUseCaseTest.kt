@@ -84,4 +84,16 @@ class ValidateFoodItemUseCaseTest {
         assertTrue(result is ValidationResult.Error)
         assertEquals("You cannot add already expired items.", (result as ValidationResult.Error).message)
     }
+
+    @Test
+    fun `shopping item can skip expiry date`() {
+        val result = validateFoodItem.execute(
+            name = "Rice",
+            quantityStr = "1.5",
+            expiryDateMs = null,
+            requireExpiryDate = false
+        )
+
+        assertTrue(result is ValidationResult.Success)
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.foodmanager.data
 
 import com.example.foodmanager.domain.model.FoodItem
+import com.example.foodmanager.domain.model.FavoriteFoodItem
 import com.example.foodmanager.domain.model.Household
 import com.example.foodmanager.domain.model.Inventory
 import com.example.foodmanager.domain.model.ShoppingItem
@@ -251,6 +252,28 @@ object MockDb {
     )
     val shoppingitems = _shoppingitems.asStateFlow()
 
+    private val _favoriteItems = MutableStateFlow(
+        listOf(
+            FavoriteFoodItem(
+                id = "favorite_1",
+                householdId = "house_1",
+                name = "Milk",
+                amount = 1.0,
+                unit = "litres",
+                category = "Dairy"
+            ),
+            FavoriteFoodItem(
+                id = "favorite_2",
+                householdId = "house_1",
+                name = "Apples",
+                amount = 6.0,
+                unit = "pieces",
+                category = "Fruits"
+            )
+        )
+    )
+    val favoriteItems = _favoriteItems.asStateFlow()
+
     fun addShoppingItem(newShoppingItem: ShoppingItem) {
         if (newShoppingItem.name.isBlank()) {
             return
@@ -272,6 +295,48 @@ object MockDb {
     fun updateShoppingItem(updatedShoppingItem: ShoppingItem) {
         _shoppingitems.value =
             _shoppingitems.value.map { if (it.id == updatedShoppingItem.id) updatedShoppingItem else it }
+    }
+
+    fun addFavoriteItem(newFavoriteItem: FavoriteFoodItem) {
+        if (newFavoriteItem.name.isBlank()) {
+            return
+        }
+
+        val exists = _favoriteItems.value.any {
+            it.householdId == newFavoriteItem.householdId &&
+                it.name.equals(newFavoriteItem.name, ignoreCase = true) &&
+                it.unit.equals(newFavoriteItem.unit, ignoreCase = true) &&
+                it.category.equals(newFavoriteItem.category, ignoreCase = true)
+        }
+
+        if (!exists) {
+            _favoriteItems.value = _favoriteItems.value + newFavoriteItem
+        }
+    }
+
+    fun deleteFavoriteItem(favoriteId: String) {
+        _favoriteItems.value = _favoriteItems.value.filterNot { it.id == favoriteId }
+    }
+
+    fun resetFavoriteState() {
+        _favoriteItems.value = listOf(
+            FavoriteFoodItem(
+                id = "favorite_1",
+                householdId = "house_1",
+                name = "Milk",
+                amount = 1.0,
+                unit = "litres",
+                category = "Dairy"
+            ),
+            FavoriteFoodItem(
+                id = "favorite_2",
+                householdId = "house_1",
+                name = "Apples",
+                amount = 6.0,
+                unit = "pieces",
+                category = "Fruits"
+            )
+        )
     }
 
     // Resetting Shopping State for Unit Tests, to avoid dependencies

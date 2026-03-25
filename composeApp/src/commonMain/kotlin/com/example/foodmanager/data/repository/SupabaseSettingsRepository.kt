@@ -115,6 +115,10 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
         }
     }
 
+    override suspend fun getCurrentHouseholdValue(): Household? {
+        return _currentHousehold.value
+    }
+
 
     // Updating the name of a household
     override suspend fun updateHouseholdName(householdId: String, newName: String) {
