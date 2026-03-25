@@ -110,6 +110,9 @@ fun ShoppingListScreen(
                             item = item,
                             onCheckedChange = { isChecked ->
                                 viewModel.toggleItem(item, isChecked)
+                            },
+                            onDelete = {
+                                item.id?.let { id -> viewModel.deleteItem(id) }
                             }
                         )
                     }
@@ -142,7 +145,13 @@ fun ShoppingListScreen(
 }
 
 @Composable
-fun ShoppingItemRow(item: ShoppingItem, onCheckedChange: (Boolean) -> Unit) {
+fun ShoppingItemRow(
+    item: ShoppingItem,
+    onCheckedChange: (Boolean) -> Unit,
+    onDelete: () -> Unit
+) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -175,6 +184,39 @@ fun ShoppingItemRow(item: ShoppingItem, onCheckedChange: (Boolean) -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            IconButton(
+                onClick = { showDeleteDialog = true }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete ${item.name}",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
         }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete ${item.name}?") },
+            text = { Text("This item will be removed from your shopping list.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete()
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

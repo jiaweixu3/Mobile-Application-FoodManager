@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Job
 
 //  Define the sorting options
 enum class SortType {
@@ -30,7 +29,6 @@ class ShoppingViewModel(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _shoppingList = MutableStateFlow<List<ShoppingItem>>(emptyList())
-    private var listJob: Job? = null
 
     // UI State: Error Messages
     private val _errorMessage = MutableStateFlow<String?>(null)
@@ -54,9 +52,7 @@ class ShoppingViewModel(
     }
 
     fun loadItems() {
-        listJob?.cancel()
-
-        listJob = viewModelScope.launch {
+        viewModelScope.launch {
             _isLoading.value = true
 
             repository.getShoppingList()
@@ -77,8 +73,6 @@ class ShoppingViewModel(
     }
 
     fun toggleItem(item: ShoppingItem, isChecked: Boolean) {
-        listJob?.cancel()
-
         val currentList = _shoppingList.value
         _shoppingList.value = currentList.map {
             if (it.id == item.id) it.copy(isChecked = isChecked) else it
@@ -87,20 +81,19 @@ class ShoppingViewModel(
         viewModelScope.launch {
             try {
                 repository.updateShoppingItem(item.copy(isChecked = isChecked))
-
-                loadItems()
-
             } catch (e: Exception) {
                 _errorMessage.value = "Sync error."
-                loadItems()
             }
         }
     }
 
     fun deleteItem(id: Long) {
         viewModelScope.launch {
-            repository.deleteShoppingItem(id)
-            loadItems()
+            try {
+                repository.deleteShoppingItem(id)
+            } catch (e: Exception) {
+                _errorMessage.value = "Failed to delete item."
+            }
         }
     }
 

@@ -158,6 +158,22 @@ class InventoryViewModel(
         }
     }
 
+    fun deleteItem(item: FoodItem) {
+        val itemId = item.id ?: return
+
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                repository.deleteFoodItem(itemId)
+                refreshInventory()
+            } catch (e: Exception) {
+                _errorMessage.value = "Error deleting item"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     // Call this from the UI (like an alert dialog "OK" button) to dismiss errors
     fun clearError() {
         _errorMessage.value = null
