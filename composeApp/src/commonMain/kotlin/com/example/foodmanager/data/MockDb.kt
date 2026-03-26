@@ -3,6 +3,7 @@ package com.example.foodmanager.data
 import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.domain.model.FavoriteFoodItem
 import com.example.foodmanager.domain.model.Household
+import com.example.foodmanager.domain.model.HouseholdMember
 import com.example.foodmanager.domain.model.Inventory
 import com.example.foodmanager.domain.model.ShoppingItem
 import com.example.foodmanager.domain.model.ShoppingList
@@ -22,6 +23,9 @@ object MockDb {
     )
 
     val households = _households.asStateFlow()
+
+    private val mockCurrentUserId = "mock_user_1"
+    private val mockCurrentUserEmail = "owner@foodmanager.test"
 
     // Keeping track of the current household
     private val _currentHousehold = MutableStateFlow<Household?>(households.value.firstOrNull())
@@ -57,6 +61,16 @@ object MockDb {
         _households.value = _households.value.plus(newHousehold)
         // Automatically switches to newly created inventory
         _currentHousehold.value = newHousehold
+        addHouseholdMember(
+            HouseholdMember(
+                id = "member_${newHousehold.id}_$mockCurrentUserId",
+                householdId = newHousehold.id,
+                userId = mockCurrentUserId,
+                email = mockCurrentUserEmail,
+                displayName = "Owner",
+                role = "Owner"
+            )
+        )
 
     }
 
@@ -252,6 +266,36 @@ object MockDb {
     )
     val shoppingitems = _shoppingitems.asStateFlow()
 
+    private val _householdMembers = MutableStateFlow(
+        listOf(
+            HouseholdMember(
+                id = "member_1",
+                householdId = "house_1",
+                userId = "mock_user_1",
+                email = "owner@foodmanager.test",
+                displayName = "House 1 Owner",
+                role = "Owner"
+            ),
+            HouseholdMember(
+                id = "member_2",
+                householdId = "house_1",
+                userId = "mock_user_2",
+                email = "member1@foodmanager.test",
+                displayName = "Member One",
+                role = "Member"
+            ),
+            HouseholdMember(
+                id = "member_3",
+                householdId = "house_2",
+                userId = "mock_user_3",
+                email = "owner2@foodmanager.test",
+                displayName = "House 2 Owner",
+                role = "Owner"
+            )
+        )
+    )
+    val householdMembers = _householdMembers.asStateFlow()
+
     private val _favoriteItems = MutableStateFlow(
         listOf(
             FavoriteFoodItem(
@@ -316,6 +360,49 @@ object MockDb {
 
     fun deleteFavoriteItem(favoriteId: String) {
         _favoriteItems.value = _favoriteItems.value.filterNot { it.id == favoriteId }
+    }
+
+    fun addHouseholdMember(newMember: HouseholdMember) {
+        val exists = _householdMembers.value.any {
+            it.householdId == newMember.householdId && it.userId == newMember.userId
+        }
+
+        if (!exists) {
+            _householdMembers.value = _householdMembers.value + newMember
+        }
+    }
+
+    fun deleteHouseholdMember(memberId: String) {
+        _householdMembers.value = _householdMembers.value.filterNot { it.id == memberId }
+    }
+
+    fun resetHouseholdMembersState() {
+        _householdMembers.value = listOf(
+            HouseholdMember(
+                id = "member_1",
+                householdId = "house_1",
+                userId = "mock_user_1",
+                email = "owner@foodmanager.test",
+                displayName = "House 1 Owner",
+                role = "Owner"
+            ),
+            HouseholdMember(
+                id = "member_2",
+                householdId = "house_1",
+                userId = "mock_user_2",
+                email = "member1@foodmanager.test",
+                displayName = "Member One",
+                role = "Member"
+            ),
+            HouseholdMember(
+                id = "member_3",
+                householdId = "house_2",
+                userId = "mock_user_3",
+                email = "owner2@foodmanager.test",
+                displayName = "House 2 Owner",
+                role = "Owner"
+            )
+        )
     }
 
     fun resetFavoriteState() {

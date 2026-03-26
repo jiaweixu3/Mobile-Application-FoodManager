@@ -31,6 +31,7 @@ import com.example.foodmanager.data.repository.SupabaseShoppingRepository
 import com.example.foodmanager.domain.useCase.ConsumeFoodItemUseCase
 import com.example.foodmanager.domain.useCase.MarkAsBoughtUseCase
 import com.example.foodmanager.ui.auth.LoginScreen
+import com.example.foodmanager.ui.household.HouseholdViewModel
 import com.example.foodmanager.ui.inventory.InventoryScreen
 import com.example.foodmanager.ui.inventory.InventoryViewModel
 import com.example.foodmanager.ui.navigation.AddItemDestination
@@ -113,6 +114,10 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
         SettingsViewModel(
             settingsRepository = settingsRepo,
         )
+    }
+
+    val householdViewModel = remember {
+        HouseholdViewModel(settingsRepository = settingsRepo)
     }
 
 
@@ -227,6 +232,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
             composable<ScreenDestination.HouseholdMembers> {
                 com.example.foodmanager.ui.household.HouseholdScreen(
+                    viewModel = householdViewModel,
                     onBackClick = { navController.popBackStack() }
                 )
             }

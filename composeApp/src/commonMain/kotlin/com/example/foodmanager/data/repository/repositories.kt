@@ -6,6 +6,7 @@ import com.example.foodmanager.domain.model.FavoriteFoodItem
 import com.example.foodmanager.domain.model.ShoppingItem
 import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.domain.model.Household
+import com.example.foodmanager.domain.model.HouseholdMember
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlin.random.Random
@@ -63,6 +64,9 @@ interface SettingsRepository {
 
     // Reading the current selection synchronously inside repositories
     suspend fun getCurrentHouseholdValue(): Household?
+
+    fun getCurrentHouseholdMembers(): Flow<List<HouseholdMember>>
+    suspend fun deleteHouseholdMember(memberId: String)
 }
 
 
@@ -209,6 +213,17 @@ class MockSettingsRepository : SettingsRepository {
 
     override suspend fun getCurrentHouseholdValue(): Household? {
         return MockDb.currentHousehold.value
+    }
+
+    override fun getCurrentHouseholdMembers(): Flow<List<HouseholdMember>> {
+        return combine(MockDb.currentHousehold, MockDb.householdMembers) { household, members ->
+            val householdId = household?.id ?: return@combine emptyList()
+            members.filter { it.householdId == householdId }
+        }
+    }
+
+    override suspend fun deleteHouseholdMember(memberId: String) {
+        MockDb.deleteHouseholdMember(memberId)
     }
 
 }
