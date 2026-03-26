@@ -9,6 +9,12 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
 
+@Serializable
+enum class AddItemDestination {
+    Inventory,
+    ShoppingList
+}
+
 // This file defines where to find each of the screens for navigation
 // Uses Serializable as data type passing is safer and sealed to avoid compilation errors
 
@@ -32,8 +38,14 @@ sealed interface ScreenDestination {
     }
 
     @Serializable
-    data object AddItem : ScreenDestination{
-        override val title = "AddItem"
+    data object AddInventoryItem : ScreenDestination{
+        override val title = "AddInventoryItem"
+        override val icon = Icons.Filled.Add
+    }
+
+    @Serializable
+    data object AddShoppingItem : ScreenDestination{
+        override val title = "AddShoppingItem"
         override val icon = Icons.Filled.Add
     }
 

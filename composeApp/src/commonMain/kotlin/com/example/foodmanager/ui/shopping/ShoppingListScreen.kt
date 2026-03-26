@@ -13,11 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.navigation.NavController
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import com.example.foodmanager.domain.model.ShoppingItem
-import com.example.foodmanager.ui.utils.CategoryConstants
+import com.example.foodmanager.ui.navigation.AddItemDestination
+import com.example.foodmanager.ui.navigation.ScreenDestination
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,17 +27,6 @@ fun ShoppingListScreen(
     val shoppingList by viewModel.items.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-
-    var showAddDialog by remember { mutableStateOf(false) }
-    var newName by remember { mutableStateOf("") }
-    var newQuantity by remember { mutableStateOf("") }
-    var newUnit by remember { mutableStateOf("units") }
-    var newCategory by remember { mutableStateOf("Other") }
-    var expandedUnit by remember { mutableStateOf(false) }
-    var expandedCategory by remember { mutableStateOf(false) }
-
-    val quantityTypes = listOf("grams", "kilograms", "millilitres", "litres", "units", "pieces")
-    val categoryOptions = CategoryConstants.menuCategories
 
     Scaffold(
         topBar = {
@@ -85,7 +73,7 @@ fun ShoppingListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showAddDialog = true },
+                onClick = { navController.navigate(ScreenDestination.AddShoppingItem) },
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Create shopping item")
@@ -122,6 +110,9 @@ fun ShoppingListScreen(
                             item = item,
                             onCheckedChange = { isChecked ->
                                 viewModel.toggleItem(item, isChecked)
+                            },
+                            onDelete = {
+                                item.id?.let { id -> viewModel.deleteItem(id) }
                             }
                         )
                     }
@@ -136,114 +127,6 @@ fun ShoppingListScreen(
                     CircularProgressIndicator()
                 }
             }
-        }
-
-        // Add item dialog box
-        if (showAddDialog) {
-            AlertDialog(
-                onDismissRequest = { showAddDialog = false },
-                title = { Text("Create shopping item") },
-                text = {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = newName,
-                            onValueChange = { newName = it },
-                            label = { Text("Item name") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        OutlinedTextField(
-                            value = newQuantity,
-                            onValueChange = { newQuantity = it },
-                            label = { Text("Quantity") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        ExposedDropdownMenuBox(
-                            expanded = expandedUnit,
-                            onExpandedChange = { expandedUnit = it }
-                        ) {
-                            OutlinedTextField(
-                                value = newUnit,
-                                onValueChange = {},
-                                label = { Text("Quantity type") },
-                                modifier = Modifier.fillMaxWidth().menuAnchor(),
-                                readOnly = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedUnit) },
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                            ExposedDropdownMenu(
-                                expanded = expandedUnit,
-                                onDismissRequest = { expandedUnit = false }
-                            ) {
-                                quantityTypes.forEach { unit ->
-                                    DropdownMenuItem(
-                                        text = { Text(unit) },
-                                        onClick = {
-                                            newUnit = unit
-                                            expandedUnit = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                        ExposedDropdownMenuBox(
-                            expanded = expandedCategory,
-                            onExpandedChange = { expandedCategory = it }
-                        ) {
-                            OutlinedTextField(
-                                value = newCategory,
-                                onValueChange = {},
-                                label = { Text("Category") },
-                                modifier = Modifier.fillMaxWidth().menuAnchor(),
-                                readOnly = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategory) },
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                            ExposedDropdownMenu(
-                                expanded = expandedCategory,
-                                onDismissRequest = { expandedCategory = false }
-                            ) {
-                                categoryOptions.forEach { cat ->
-                                    DropdownMenuItem(
-                                        text = { Text(cat) },
-                                        onClick = {
-                                            newCategory = cat
-                                            expandedCategory = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            val qty = newQuantity.toDoubleOrNull() ?: 0.0
-                            viewModel.addItem(newName.trim(), qty, newUnit, newCategory.trim())
-                            showAddDialog = false
-                            newName = ""
-                            newQuantity = ""
-                            newUnit = "units"
-                            newCategory = "Other"
-                        },
-                        shape = RoundedCornerShape(24.dp)
-                    ) {
-                        Text("Add")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showAddDialog = false }) {
-                        Text("Cancel")
-                    }
-                }
-            )
         }
 
         if (errorMessage != null) {
@@ -262,7 +145,13 @@ fun ShoppingListScreen(
 }
 
 @Composable
-fun ShoppingItemRow(item: ShoppingItem, onCheckedChange: (Boolean) -> Unit) {
+fun ShoppingItemRow(
+    item: ShoppingItem,
+    onCheckedChange: (Boolean) -> Unit,
+    onDelete: () -> Unit
+) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -295,6 +184,39 @@ fun ShoppingItemRow(item: ShoppingItem, onCheckedChange: (Boolean) -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            IconButton(
+                onClick = { showDeleteDialog = true }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete ${item.name}",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
         }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete ${item.name}?") },
+            text = { Text("This item will be removed from your shopping list.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete()
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

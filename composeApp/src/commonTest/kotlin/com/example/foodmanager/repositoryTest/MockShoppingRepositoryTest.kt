@@ -68,7 +68,7 @@ internal class MockShoppingRepositoryTest {
     // Deleting a Shop Item
     @Test
     fun testDeleteShoppingItem() = runTest {
-        val food_id = 1
+        val food_id = 1L
         repository.deleteShoppingItem(food_id)
         val current_Inventory = repository.getShoppingList().first()
 
@@ -78,7 +78,7 @@ internal class MockShoppingRepositoryTest {
     // Deleting an item which does not exist will not yield problems
     @Test
     fun testDeleteNonExistentShoppingItem() = runTest {
-        val food_id = 100
+        val food_id = 100L
         repository.deleteShoppingItem(food_id)
         val current_Inventory = repository.getShoppingList().first()
 

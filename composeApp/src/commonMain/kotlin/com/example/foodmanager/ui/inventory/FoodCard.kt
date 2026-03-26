@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +30,7 @@ fun FoodCard(
     modifier: Modifier = Modifier
 ) {
     var showConsumeDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     val suggestedItem by viewModel.suggestedItem.collectAsState()
     // Calculate days until expiration
     val daysRemaining = calculateDaysRemaining(item)
@@ -106,11 +109,25 @@ fun FoodCard(
                     color = Color.Gray
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = { showConsumeDialog = true }, // Shows consume popup box
-                    modifier = Modifier.height(36.dp)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Consume", fontSize = 12.sp)
+                    Button(
+                        onClick = { showConsumeDialog = true }, // Shows consume popup box
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text("Consume", fontSize = 12.sp)
+                    }
+                    IconButton(
+                        onClick = { showDeleteDialog = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete ${item.name}",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             }
         }
@@ -124,6 +141,29 @@ fun FoodCard(
                 // Updates the viewModel
                 viewModel.consumeItem(item, consumed, addToList, buy)
                 showConsumeDialog = false
+            }
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete ${item.name}?") },
+            text = { Text("This item will be removed from your inventory.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteItem(item)
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
             }
         )
     }
