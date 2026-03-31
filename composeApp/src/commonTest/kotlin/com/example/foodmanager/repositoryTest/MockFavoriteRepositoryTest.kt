@@ -11,7 +11,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class InMemoryFavoriteRepositoryTest {
+class MockFavoriteRepositoryTest {
     private val settingsRepository = MockSettingsRepository()
     private val repository = InMemoryFavoriteRepository(settingsRepository)
 
@@ -21,16 +21,18 @@ class InMemoryFavoriteRepositoryTest {
         MockDb.storeHousehold(Household(id = "house_1", name = "House 1"))
     }
 
+    // Favorites are filtered by current household
     @Test
-    fun `favorites are filtered by current household`() = runTest {
+    fun testFilteredFavorites() = runTest {
         val favorites = repository.getFavoriteItems().first()
 
         assertEquals(2, favorites.size)
         assertEquals(setOf("Milk", "Apples"), favorites.map { it.name }.toSet())
     }
 
+    // Adding a favorite item stores it for the active household
     @Test
-    fun `adding a favorite stores it for the active household`() = runTest {
+    fun testAddFavoriteItem() = runTest {
         repository.addFavoriteItem(
             FavoriteFoodItem(
                 id = "favorite_3",
@@ -46,4 +48,24 @@ class InMemoryFavoriteRepositoryTest {
         assertEquals(3, favorites.size)
         assertEquals("house_1", favorites.first { it.name == "Yogurt" }.householdId)
     }
+
+    // Deleting a favorite item removes it
+    @Test
+    fun testDeleteFavoriteItem() = runTest {
+        val favorites = repository.getFavoriteItems().first()
+        val itemToDelete = favorites.first()
+
+        repository.deleteFavoriteItem(itemToDelete.id ?: "")
+
+        val updatedFavorites = repository.getFavoriteItems().first()
+
+        assertEquals(1, updatedFavorites.size,  "Size should decrease by 1")
+        assertEquals(
+            false,
+            updatedFavorites.any {it.id == itemToDelete.id},
+            "Deleted item will not appear in the list"
+        )
+    }
+
+
 }
