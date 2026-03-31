@@ -425,18 +425,18 @@ object MockDb {
     }
 
     // Joining a household
-    fun joinHousehold(joinCode: String) {
+    fun joinHousehold(householdId: String) {
         // Ensuring housheold exists
         val householdExists = _households.value.isNotEmpty()
         if (householdExists) {
             // Linking to the first house
-            val houseJoining = _households.value.first()
+            val houseJoining = _households.value.find { it.id == householdId }
 
             // Adding mock user to the household
             addHouseholdMember(
                 HouseholdMember(
                     id = "member_${System.currentTimeMillis()}",
-                    householdId = houseJoining.id,
+                    householdId = houseJoining?.id ?: "",
                     userId = mockCurrentUserId,
                     email = mockCurrentUserEmail,
                     displayName = "New Memer",
