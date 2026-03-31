@@ -21,8 +21,9 @@ import com.example.foodmanager.ui.navigation.ScreenDestination
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoppingListScreen(
-    navController: NavController,
-    viewModel: ShoppingViewModel
+    viewModel: ShoppingViewModel,
+    onNavigateBack: () -> Unit,
+    onNavigatetoAddItem: () -> Unit
 ) {
     val shoppingList by viewModel.items.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -33,7 +34,7 @@ fun ShoppingListScreen(
             CenterAlignedTopAppBar(
                 title = { Text("Shopping List") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -73,7 +74,7 @@ fun ShoppingListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(ScreenDestination.AddShoppingItem) },
+                onClick = onNavigatetoAddItem,
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Create shopping item")

@@ -265,7 +265,10 @@ object MockDb {
         )
     )
     val shoppingitems = _shoppingitems.asStateFlow()
-
+    // Will be used for testing
+    fun clearShoppingState() {
+        _shoppingitems.value = emptyList()
+    }
     private val _householdMembers = MutableStateFlow(
         listOf(
             HouseholdMember(

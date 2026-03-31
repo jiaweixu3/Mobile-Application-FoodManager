@@ -206,8 +206,9 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
             composable<ScreenDestination.ShoppingList> {
                 ShoppingListScreen(
-                    navController = navController,
-                    viewModel = shoppingViewModel
+                    viewModel = shoppingViewModel,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigatetoAddItem = { navController.navigate(ScreenDestination.AddShoppingItem) }
                 )
             }
 
