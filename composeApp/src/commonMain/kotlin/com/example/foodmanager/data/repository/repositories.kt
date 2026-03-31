@@ -200,15 +200,15 @@ class MockSettingsRepository : SettingsRepository {
     }
 
     override suspend fun updateHouseholdName(householdId: String, newName: String) {
-        TODO("Not yet implemented")
+        MockDb.updateHouseholdName(householdId = householdId, newName = newName)
     }
 
     override suspend fun generateCode(householdId: String): String {
-        TODO("Not yet implemented")
+        return MockDb.generateCode(householdId)
     }
 
     override suspend fun joinHousehold(joinCode: String) {
-        TODO("Not yet implemented")
+        MockDb.joinHousehold(joinCode)
     }
 
     override suspend fun getCurrentHouseholdValue(): Household? {
@@ -225,5 +225,6 @@ class MockSettingsRepository : SettingsRepository {
     override suspend fun deleteHouseholdMember(memberId: String) {
         MockDb.deleteHouseholdMember(memberId)
     }
+
 
 }

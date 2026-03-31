@@ -362,48 +362,7 @@ object MockDb {
         _favoriteItems.value = _favoriteItems.value.filterNot { it.id == favoriteId }
     }
 
-    fun addHouseholdMember(newMember: HouseholdMember) {
-        val exists = _householdMembers.value.any {
-            it.householdId == newMember.householdId && it.userId == newMember.userId
-        }
 
-        if (!exists) {
-            _householdMembers.value = _householdMembers.value + newMember
-        }
-    }
-
-    fun deleteHouseholdMember(memberId: String) {
-        _householdMembers.value = _householdMembers.value.filterNot { it.id == memberId }
-    }
-
-    fun resetHouseholdMembersState() {
-        _householdMembers.value = listOf(
-            HouseholdMember(
-                id = "member_1",
-                householdId = "house_1",
-                userId = "mock_user_1",
-                email = "owner@foodmanager.test",
-                displayName = "House 1 Owner",
-                role = "Owner"
-            ),
-            HouseholdMember(
-                id = "member_2",
-                householdId = "house_1",
-                userId = "mock_user_2",
-                email = "member1@foodmanager.test",
-                displayName = "Member One",
-                role = "Member"
-            ),
-            HouseholdMember(
-                id = "member_3",
-                householdId = "house_2",
-                userId = "mock_user_3",
-                email = "owner2@foodmanager.test",
-                displayName = "House 2 Owner",
-                role = "Owner"
-            )
-        )
-    }
 
     fun resetFavoriteState() {
         _favoriteItems.value = listOf(
@@ -439,6 +398,115 @@ object MockDb {
             ShoppingItem(7, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
         )
     }
+
+    // Functions for settings and households
+
+    // Updating the name of a household
+    fun updateHouseholdName(householdId: String, newName: String){
+        if (newName.isBlank()) return
+
+        // Updating name
+        _households.value = _households.value.map{
+            if (it.id == householdId) it.copy(name = newName) else it
+        }
+
+        // Updating if household is also the current one
+        if (_currentHousehold.value?.id == householdId) {
+            _currentHousehold.value = _currentHousehold.value?.copy(name = newName)
+        }
+    }
+
+    // Generating the join code
+    fun generateCode(householdId: String): String {
+        val allowedChars = ('A'..'Z')
+        return (1..6)
+            .map{allowedChars.random()}
+            .joinToString("")
+    }
+
+    // Joining a household
+    fun joinHousehold(joinCode: String) {
+        // Ensuring housheold exists
+        val householdExists = _households.value.isNotEmpty()
+        if (householdExists) {
+            // Linking to the first house
+            val houseJoining = _households.value.first()
+
+            // Adding mock user to the household
+            addHouseholdMember(
+                HouseholdMember(
+                    id = "member_${System.currentTimeMillis()}",
+                    householdId = houseJoining.id,
+                    userId = mockCurrentUserId,
+                    email = mockCurrentUserEmail,
+                    displayName = "New Memer",
+                    role = "editor"
+                )
+            )
+
+            _currentHousehold.value = houseJoining
+        }
+    }
+
+
+    fun addHouseholdMember(newMember: HouseholdMember) {
+        val exists = _householdMembers.value.any {
+            it.householdId == newMember.householdId && it.userId == newMember.userId
+        }
+
+        if (!exists) {
+            _householdMembers.value = _householdMembers.value + newMember
+        }
+    }
+
+    fun deleteHouseholdMember(memberId: String) {
+        _householdMembers.value = _householdMembers.value.filterNot { it.id == memberId }
+    }
+
+
+    // Functions for testing
+    fun resetHouseholdMembersState() {
+        _householdMembers.value = listOf(
+            HouseholdMember(
+                id = "member_1",
+                householdId = "house_1",
+                userId = "mock_user_1",
+                email = "owner@foodmanager.test",
+                displayName = "House 1 Owner",
+                role = "Owner"
+            ),
+            HouseholdMember(
+                id = "member_2",
+                householdId = "house_1",
+                userId = "mock_user_2",
+                email = "member1@foodmanager.test",
+                displayName = "Member One",
+                role = "Member"
+            ),
+            HouseholdMember(
+                id = "member_3",
+                householdId = "house_2",
+                userId = "mock_user_3",
+                email = "owner2@foodmanager.test",
+                displayName = "House 2 Owner",
+                role = "Owner"
+            )
+        )
+    }
+
+    fun resetHouseholdsState() {
+        val initialHouseholds = listOf(
+            Household(id = "house_1", name = "House 1"),
+            Household(id = "house_2", name = "House 2"),
+            Household(id = "house_3", name = "House 3")
+        )
+
+        _households.value = initialHouseholds
+        _currentHousehold.value = initialHouseholds.firstOrNull()
+
+    }
+
+
 
 
 
