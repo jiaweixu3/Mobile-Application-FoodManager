@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 // using an object as this will be better for both Inventory and Shopping List.
 object MockDb {
-    // Creting the households
+    // Creating the households
     private val _households = MutableStateFlow(
         listOf(
             Household(id = "house_1", name = "House 1"),

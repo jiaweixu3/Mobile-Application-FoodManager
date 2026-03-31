@@ -7,7 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextDecoration
-import com.example.foodmanager.domain.model.ShoppingItem // CRITICAL: This links your model
+import com.example.foodmanager.domain.model.ShoppingItem
 
 @Composable
 fun ShoppingListRow(

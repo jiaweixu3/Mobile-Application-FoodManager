@@ -171,7 +171,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
         NavHost(
             navController = navController,
-            startDestination = ScreenDestination.Inventory, // El destino inicial
+            startDestination = ScreenDestination.Inventory,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable<ScreenDestination.Inventory> {
@@ -222,7 +222,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
             composable<ScreenDestination.HouseholdMembers> {
                 com.example.foodmanager.ui.household.HouseholdScreen(
-                    viewModel = settingsViewModel, // <-- THIS IS THE NEW FIX!
+                    viewModel = settingsViewModel,
                     onBackClick = { navController.popBackStack() }
                 )
             }

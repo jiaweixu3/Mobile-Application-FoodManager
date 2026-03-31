@@ -126,7 +126,6 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
     // Fetches members using your user_household join table
     override suspend fun getHouseholdMembers(householdId: String): List<HouseholdMember> {
         return try {
-            // 1. Query the join table and explicitly ask for the attached 'users' data
             val joinRecords = supabase.postgrest["user_household"].select(
                 columns = Columns.raw("*, users(*)")
             ) {
@@ -135,20 +134,37 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
                 }
             }.decodeList<UserHouseholdJoin>()
 
-            // 2. Map the complex join data into a clean, simple list for your UI
             joinRecords.mapNotNull { record ->
                 record.users?.let { user ->
                     HouseholdMember(
                         id = user.id,
                         email = user.email,
-                        name = user.username, // Maps your database 'username' to 'name'
-                        role = record.role    // Grabs their role from the join table
+                        name = user.username,
+                        role = record.role
                     )
                 }
             }
         } catch (e: Exception) {
             println("Supabase Error fetching members: ${e.message}")
             emptyList()
+        }
+    }
+
+    // 👇 Added the removeMember function here 👇
+    override suspend fun removeMember(memberId: String) {
+        val currentHouseholdId = _currentHousehold.value?.id ?: return
+
+        try {
+            // Delete from the join table where the user matches AND the household matches
+            supabase.postgrest["user_household"].delete {
+                filter {
+                    eq("user_id", memberId)
+                    eq("household_id", currentHouseholdId)
+                }
+            }
+        } catch (e: Exception) {
+            println("Supabase Error removing member: ${e.message}")
+            throw e
         }
     }
 }
@@ -178,7 +194,7 @@ data class UserHouseholdJoin(
     val user_id: String,
     val household_id: String,
     val role: String,
-    val users: UserDto? = null // Holds the attached data from your 'users' table
+    val users: UserDto? = null
 )
 
 @Serializable

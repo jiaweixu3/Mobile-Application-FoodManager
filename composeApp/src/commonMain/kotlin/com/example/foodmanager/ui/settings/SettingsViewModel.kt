@@ -24,18 +24,15 @@ class SettingsViewModel(
 
     val currentHousehold = settingsRepository.getCurrentHousehold.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    // --- Member State ---
     private val _members = MutableStateFlow<List<HouseholdMember>>(emptyList())
     val members: StateFlow<List<HouseholdMember>> = _members.asStateFlow()
 
     private val _isLoadingMembers = MutableStateFlow(false)
     val isLoadingMembers: StateFlow<Boolean> = _isLoadingMembers.asStateFlow()
-    // -------------------------
 
     private val _joinMessage = MutableStateFlow<String?>(null)
     val joinMessage: StateFlow<String?> = _joinMessage.asStateFlow()
 
-    // Account state
     private val _userEmail = MutableStateFlow<String>("")
     val userEmail: StateFlow<String> = _userEmail.asStateFlow()
 
@@ -45,7 +42,6 @@ class SettingsViewModel(
     private var isInitialized = false
 
     init {
-        // Fetch the user's email when the ViewModel starts
         _userEmail.value = supabase.auth.currentUserOrNull()?.email ?: "Unknown Email"
 
         viewModelScope.launch {
@@ -63,7 +59,6 @@ class SettingsViewModel(
             }
         }
 
-        // --- Automatically listen for household changes and fetch members! ---
         viewModelScope.launch {
             currentHousehold.collectLatest { household ->
                 if (household != null) {
@@ -75,7 +70,6 @@ class SettingsViewModel(
         }
     }
 
-    // --- Fetch Members Function (Internal) ---
     private fun fetchMembers(householdId: String) {
         viewModelScope.launch {
             _isLoadingMembers.value = true
@@ -91,7 +85,6 @@ class SettingsViewModel(
         }
     }
 
-    // --- NEW PUBLIC FUNCTION: Called by the UI when the screen opens ---
     fun getHouseholdMembers() {
         val currentId = currentHousehold.value?.id
         if (currentId != null) {
@@ -99,7 +92,18 @@ class SettingsViewModel(
         }
     }
 
-    // Change password function
+    // Removes a member from the household and refreshes the local member list
+    fun removeMember(memberId: String) {
+        viewModelScope.launch {
+            try {
+                settingsRepository.removeMember(memberId)
+                currentHousehold.value?.id?.let { fetchMembers(it) }
+            } catch (e: Exception) {
+                println("Error removing member: ${e.message}")
+            }
+        }
+    }
+
     fun changePassword(newPassword: String) {
         if (newPassword.length < 6) {
             _passwordMessage.value = "Password must be at least 6 characters."
@@ -156,10 +160,7 @@ class SettingsViewModel(
             try {
                 _joinMessage.value = null
                 settingsRepository.joinHousehold(code.trim())
-
-                // Refresh members immediately after successfully joining!
                 currentHousehold.value?.id?.let { fetchMembers(it) }
-
                 _joinMessage.value = "Successfully joined the household!"
             } catch (e: Exception) {
                 val errorString = e.message?.lowercase() ?: ""

@@ -54,6 +54,8 @@ interface SettingsRepository {
 
     // Fetching household members
     suspend fun getHouseholdMembers(householdId: String): List<HouseholdMember>
+
+    suspend fun removeMember(memberId: String)
 }
 
 
@@ -159,6 +161,10 @@ class MockSettingsRepository : SettingsRepository {
 
     override suspend fun addHousehold(newHousehold: Household) {
         MockDb.addHousehold(newHousehold)
+    }
+    override suspend fun removeMember(memberId: String) {
+
+        println("Mock: Removed member $memberId")
     }
 
     override suspend fun updateHouseholdName(householdId: String, newName: String) {

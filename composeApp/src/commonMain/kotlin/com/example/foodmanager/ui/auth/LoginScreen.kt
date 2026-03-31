@@ -75,7 +75,7 @@ fun LoginScreen(
                     isLoading = true
                     errorMessage = null
                     try {
-                        // This is the magic line that actually logs the user in!
+
                         supabase.auth.signInWith(Email) {
                             this.email = email
                             this.password = password

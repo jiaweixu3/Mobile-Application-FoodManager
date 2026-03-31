@@ -37,7 +37,7 @@ fun ShoppingListScreen(
     var expandedUnit by remember { mutableStateOf(false) }
     var expandedCategory by remember { mutableStateOf(false) }
 
-    // NEW: State to hold validation errors inside the dialog
+    // State to hold validation errors inside the dialog
     var dialogError by remember { mutableStateOf<String?>(null) }
 
     val quantityTypes = listOf("grams", "kilograms", "millilitres", "litres", "units", "pieces")
@@ -156,7 +156,7 @@ fun ShoppingListScreen(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // NEW: Display the error message at the top of the form if it exists
+                        // Display the error message at the top of the form if it exists
                         if (dialogError != null) {
                             Text(
                                 text = dialogError ?: "",
@@ -250,7 +250,7 @@ fun ShoppingListScreen(
                 confirmButton = {
                     Button(
                         onClick = {
-                            // NEW: Validate before saving!
+
                             val parsedQty = newQuantity.toDoubleOrNull()
 
                             when {

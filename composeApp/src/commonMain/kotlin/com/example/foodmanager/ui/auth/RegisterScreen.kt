@@ -44,7 +44,6 @@ fun RegisterScreen(
     val hasUpper = password.any { it.isUpperCase() }
     val hasLower = password.any { it.isLowerCase() }
     val hasDigit = password.any { it.isDigit() }
-    // FIXED: Added Special Character Check
     val hasSpecialChar = password.any { !it.isLetterOrDigit() }
 
     Column(
@@ -91,7 +90,6 @@ fun RegisterScreen(
             RequirementText(text = "Contains uppercase letter", isMet = hasUpper)
             RequirementText(text = "Contains lowercase letter", isMet = hasLower)
             RequirementText(text = "Contains a number", isMet = hasDigit)
-            // FIXED: Added Special Character to UI Checklist
             RequirementText(text = "Contains a special character", isMet = hasSpecialChar)
         }
 
@@ -120,7 +118,7 @@ fun RegisterScreen(
                 when {
                     !isValidEmail(email) -> errorMessage = "Please enter a valid email address."
                     passwordError != null -> errorMessage = passwordError
-                    !hasSpecialChar -> errorMessage = "Password must contain a special character." // Enforce special char!
+                    !hasSpecialChar -> errorMessage = "Password must contain a special character."
                     password != confirmPassword -> errorMessage = "Passwords do not match."
                     else -> {
                         coroutineScope.launch {
@@ -132,7 +130,7 @@ fun RegisterScreen(
                                     this.password = password
                                 }
 
-                                // FIXED: Check if Supabase silently rejected the duplicate email
+                                // Check if Supabase silently rejected the duplicate email
                                 if (authResult?.identities?.isEmpty() == true) {
                                     errorMessage = "An account with this email already exists."
                                     isLoading = false

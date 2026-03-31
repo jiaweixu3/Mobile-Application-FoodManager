@@ -31,7 +31,7 @@ fun SettingsScreen(
     val currentHousehold by viewModel.currentHousehold.collectAsState()
     val joinMessage by viewModel.joinMessage.collectAsState()
 
-    // NEW: Account States
+
     val userEmail by viewModel.userEmail.collectAsState()
     val passwordMessage by viewModel.passwordMessage.collectAsState()
 
@@ -42,7 +42,7 @@ fun SettingsScreen(
     val coroutineScope = rememberCoroutineScope()
     var editHouseholdName by remember { mutableStateOf("") }
 
-    // NEW: Password field state
+
     var newPassword by remember { mutableStateOf("") }
 
     val clipboardManager = LocalClipboardManager.current
@@ -66,7 +66,7 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // --- NEW: ACCOUNT SECTION ---
+            // ACCOUNT SECTION
             SettingsCard(title = "Account Details") {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(

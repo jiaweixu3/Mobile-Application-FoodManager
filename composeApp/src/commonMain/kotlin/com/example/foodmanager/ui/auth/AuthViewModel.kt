@@ -49,7 +49,7 @@ class AuthViewModel(private val supabase: SupabaseClient) : ViewModel() {
                     password = passwordInput
                 }
 
-                // FIXED: Catch duplicate email via empty identities list
+                // Catch duplicate email via empty identities list
                 if (authResult?.identities?.isEmpty() == true) {
                     _authError.value = "An account with this email already exists."
                     return@launch

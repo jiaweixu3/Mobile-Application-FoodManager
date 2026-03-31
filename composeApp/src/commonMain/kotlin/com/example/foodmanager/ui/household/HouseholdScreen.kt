@@ -22,12 +22,11 @@ fun HouseholdScreen(
     viewModel: SettingsViewModel,
     onBackClick: () -> Unit
 ) {
-    // 1. Observe the REAL data from Supabase!
+    //Observe the data from Supabase!
     val members by viewModel.members.collectAsState()
     val isLoading by viewModel.isLoadingMembers.collectAsState()
 
-    // 👇 THIS IS THE MISSING PIECE! 👇
-    // This tells the ViewModel to actually fetch the data the moment the screen opens
+
     LaunchedEffect(Unit) {
         viewModel.getHouseholdMembers()
     }
@@ -49,11 +48,11 @@ fun HouseholdScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // 2. Show a loading spinner while Supabase fetches the data
+            // Show a loading spinner while Supabase fetches the data
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
-            // 3. Show a message if no one is in the list
+            // Show a message if no one is in the list
             else if (members.isEmpty()) {
                 Text(
                     text = "No members found.",
@@ -61,7 +60,7 @@ fun HouseholdScreen(
                     color = Color.Gray
                 )
             }
-            // 4. Display the real members using YOUR design!
+            // Display the real members
             else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -104,10 +103,12 @@ fun HouseholdScreen(
                                 // Delete button logic
                                 if (role.lowercase() != "owner") {
                                     IconButton(onClick = {
-                                        // TODO: Add a function like viewModel.removeMember(member.id) here!
+                                        // Calls the ViewModel
+                                        viewModel.removeMember(member.id)
                                     }) {
                                         Icon(Icons.Default.Delete, contentDescription = "Remove", tint = Color.Red)
                                     }
+
                                 }
                             }
                         }
