@@ -17,7 +17,7 @@ import kotlinx.serialization.json.buildJsonObject
 // Supabase declaration for settings screen
 class SupabaseSettingsRepository(private val supabase: SupabaseClient) : SettingsRepository {
     private val tableName = "households"
-    private val membersTableName = "household_members"
+    private val membersTableName = "user_household"
 
     // Storing the currently active household, null until selected otherwise
     private val _currentHousehold = MutableStateFlow<Household?>(null)
@@ -109,7 +109,7 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
                 })
 
             // Updating current household
-            val household = result.decodeSingle<Household>()
+            val household = result.decodeAs<Household>()
             _currentHousehold.value = household
 
             ensureCurrentUserMembership(household.id, "Member")
@@ -118,7 +118,7 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
             refreshTrigger.tryEmit(Unit)
             memberRefreshTrigger.tryEmit(Unit)
         } catch (e: Exception) {
-            println("Supabase error joining a household")
+            println("Supabase error joining a household  ${e.message}")
 
 
         }
