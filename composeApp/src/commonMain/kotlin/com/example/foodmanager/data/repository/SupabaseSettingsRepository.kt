@@ -17,7 +17,7 @@ import kotlinx.serialization.json.buildJsonObject
 // Supabase declaration for settings screen
 class SupabaseSettingsRepository(private val supabase: SupabaseClient) : SettingsRepository {
     private val tableName = "households"
-    private val membersTableName = "household_members"
+    private val membersTableName = "user_household"
 
     // Storing the currently active household, null until selected otherwise
     private val _currentHousehold = MutableStateFlow<Household?>(null)

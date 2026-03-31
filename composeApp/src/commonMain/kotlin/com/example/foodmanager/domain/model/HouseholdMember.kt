@@ -5,13 +5,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class HouseholdMember(
+    @SerialName("id")
     val id: String? = null,
     @SerialName("household_id")
     val householdId: String,
     @SerialName("user_id")
     val userId: String,
-    val email: String,
+    val email: String = "",
     @SerialName("display_name")
-    val displayName: String,
+    val displayName: String = "",
     val role: String
 )
