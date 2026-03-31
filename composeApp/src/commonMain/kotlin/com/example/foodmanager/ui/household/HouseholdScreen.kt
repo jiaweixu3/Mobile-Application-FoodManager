@@ -49,6 +49,8 @@ fun HouseholdScreen(
 ) {
     val currentHousehold by viewModel.currentHousehold.collectAsState()
     val members by viewModel.members.collectAsState()
+    val currentUserId by viewModel.currentUserId.collectAsState()
+    val currentUserIsOwner by viewModel.currentUserIsOwner.collectAsState()
 
     Scaffold(
         topBar = {
@@ -104,6 +106,7 @@ fun HouseholdScreen(
                     items(members, key = { it.id ?: it.userId }) { member ->
                         HouseholdMemberCard(
                             member = member,
+                            canDelete = currentUserIsOwner || member.userId == currentUserId,
                             onDelete = { viewModel.removeMember(member) }
                         )
                     }
@@ -116,6 +119,7 @@ fun HouseholdScreen(
 @Composable
 private fun HouseholdMemberCard(
     member: HouseholdMember,
+    canDelete: Boolean,
     onDelete: () -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -152,7 +156,7 @@ private fun HouseholdMemberCard(
                     )
                 }
             }
-            if (member.role != "Owner") {
+            if (canDelete) {
                 IconButton(onClick = { showDeleteDialog = true }) {
                     Icon(Icons.Default.Delete, contentDescription = "Remove", tint = Color.Red)
                 }

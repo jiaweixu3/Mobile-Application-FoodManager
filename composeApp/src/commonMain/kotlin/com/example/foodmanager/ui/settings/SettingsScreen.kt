@@ -28,6 +28,7 @@ fun SettingsScreen(
     val availableHouseholds by viewModel.availableHouseholds.collectAsState()
     var expandedDropdown by remember { mutableStateOf(false) }
     val currentHousehold by viewModel.currentHousehold.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
     var newHouseholdName by remember { mutableStateOf("") }
     var logoutErrorMessage by remember { mutableStateOf<String?>(null) }
     var isLoggingOut by remember { mutableStateOf(false) }
@@ -39,10 +40,19 @@ fun SettingsScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(title = { Text("Settings") })
         }
     ) { innerPadding ->
+        LaunchedEffect(viewModel) {
+            viewModel.uiEvent.collect { event ->
+                when (event) {
+                    is SettingsUiEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
+                }
+            }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -180,14 +190,14 @@ fun SettingsScreen(
                                     fontWeight = FontWeight.ExtraBold
                                 )
                             }
-                        } else {
-                            Button(
-                                onClick = { viewModel.generateCodeHousehold() },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(24.dp)
-                            ) {
-                                Text("Generate Code")
-                            }
+                        }
+
+                        Button(
+                            onClick = { viewModel.generateCodeHousehold() },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp)
+                        ) {
+                            Text(if (currentHousehold?.joinCode == null) "Generate Code" else "Regenerate Code")
                         }
                     }
                 }
@@ -203,7 +213,12 @@ fun SettingsScreen(
                 ) {
                     OutlinedTextField(
                         value = joinInput,
-                        onValueChange = { joinInput = it.uppercase() },
+                        onValueChange = { input ->
+                            joinInput = input
+                                .filter(Char::isLetterOrDigit)
+                                .uppercase()
+                                .take(6)
+                        },
                         label = { Text("6-character code") },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
@@ -214,7 +229,7 @@ fun SettingsScreen(
                             viewModel.joinHousehold(joinInput)
                             joinInput = ""
                         },
-                        enabled = joinInput.isNotBlank(),
+                        enabled = joinInput.length == 6,
                         shape = RoundedCornerShape(24.dp)
                     ) {
                         Text("Join")

@@ -11,6 +11,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlin.random.Random
 
+sealed class HouseholdJoinResult {
+    data class Success(val household: Household) : HouseholdJoinResult()
+    data class Error(val message: String) : HouseholdJoinResult()
+}
+
 
 // Inventory Repository
 interface InventoryRepository {
@@ -60,10 +65,11 @@ interface SettingsRepository {
     suspend fun generateCode(householdId: String): String
 
     // Joining a new household
-    suspend fun joinHousehold(joinCode: String)
+    suspend fun joinHousehold(joinCode: String): HouseholdJoinResult
 
     // Reading the current selection synchronously inside repositories
     suspend fun getCurrentHouseholdValue(): Household?
+    suspend fun getCurrentUserId(): String?
 
     fun getCurrentHouseholdMembers(): Flow<List<HouseholdMember>>
     suspend fun deleteHouseholdMember(memberId: String)
@@ -207,12 +213,16 @@ class MockSettingsRepository : SettingsRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun joinHousehold(joinCode: String) {
+    override suspend fun joinHousehold(joinCode: String): HouseholdJoinResult {
         TODO("Not yet implemented")
     }
 
     override suspend fun getCurrentHouseholdValue(): Household? {
         return MockDb.currentHousehold.value
+    }
+
+    override suspend fun getCurrentUserId(): String? {
+        return "mock_user_1"
     }
 
     override fun getCurrentHouseholdMembers(): Flow<List<HouseholdMember>> {
