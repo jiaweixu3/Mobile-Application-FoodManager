@@ -27,10 +27,10 @@ internal class MockShoppingRepositoryTest {
     // Shopping List is correctly obtained
     @Test
     fun testInitialShopping() = runTest {
-        val current_Inventory = repository.getShoppingList().first()
+        val currentShoppingList = repository.getShoppingList().first()
 
 
-        assertEquals(5, current_Inventory.size, "Initial shopping list has 5 items")
+        assertEquals(5, currentShoppingList.size, "Initial shopping list has 5 items")
 
     }
 
@@ -40,9 +40,9 @@ internal class MockShoppingRepositoryTest {
         val new_item = ShoppingItem(id = 6, "shopping_list_1", name = "sausage",amount = 2.0, unit = "pieces", category = "Meat")
 
         repository.addShoppingItem(new_item)
-        val current_Inventory = repository.getShoppingList().first()
+        val currentShoppingList = repository.getShoppingList().first()
 
-        assertEquals(6, current_Inventory.size, "Our new shopping list has 6 items")
+        assertEquals(6, currentShoppingList.size, "Our new shopping list has 6 items")
     }
 
     // Adding a shop item, different cases
@@ -50,9 +50,9 @@ internal class MockShoppingRepositoryTest {
     fun testAddDuplicatesShoppingItem() = runTest {
         val new_item = ShoppingItem(id = 1, "shopping_list_1",name = "aPPleS", amount = 6.0, unit = "pieces", category = "Fruits")
         repository.addShoppingItem(new_item)
-        val current_Inventory = repository.getShoppingList().first()
+        val currentShoppingList = repository.getShoppingList().first()
 
-        assertEquals(5, current_Inventory.size, "Our new shopping list has 5 items")
+        assertEquals(5, currentShoppingList.size, "Our new shopping list has 5 items")
     }
 
     // Adding an empty element should not increase the size
@@ -60,9 +60,9 @@ internal class MockShoppingRepositoryTest {
     fun testAddEmptyShoppingItem() = runTest {
         val new_item = ShoppingItem(id = 7,"shopping_list_1", name = "",amount = 0.0, unit = "", category = "")
         repository.addShoppingItem(new_item)
-        val current_Inventory = repository.getShoppingList().first()
+        val currentShoppingList = repository.getShoppingList().first()
 
-        assertEquals(5, current_Inventory.size, "Our new shopping list has 5 items")
+        assertEquals(5, currentShoppingList.size, "Our new shopping list has 5 items")
     }
 
     // Deleting a Shop Item
@@ -70,9 +70,9 @@ internal class MockShoppingRepositoryTest {
     fun testDeleteShoppingItem() = runTest {
         val food_id = 1L
         repository.deleteShoppingItem(food_id)
-        val current_Inventory = repository.getShoppingList().first()
+        val currentShoppingList = repository.getShoppingList().first()
 
-        assertEquals(4, current_Inventory.size, "Our new shopping list has 4 items")
+        assertEquals(4, currentShoppingList.size, "Our new shopping list has 4 items")
     }
 
     // Deleting an item which does not exist will not yield problems
@@ -80,9 +80,9 @@ internal class MockShoppingRepositoryTest {
     fun testDeleteNonExistentShoppingItem() = runTest {
         val food_id = 100L
         repository.deleteShoppingItem(food_id)
-        val current_Inventory = repository.getShoppingList().first()
+        val currentShoppingList = repository.getShoppingList().first()
 
-        assertEquals(5, current_Inventory.size, "Our new shopping list should not change in size")
+        assertEquals(5, currentShoppingList.size, "Our new shopping list should not change in size")
     }
 
     // Empty Shopping List will not yield problems
@@ -93,9 +93,9 @@ internal class MockShoppingRepositoryTest {
         repository.deleteShoppingItem(3)
         repository.deleteShoppingItem(4)
         repository.deleteShoppingItem(5)
-        val current_Inventory = repository.getShoppingList().first()
+        val currentShoppingList = repository.getShoppingList().first()
 
-        assertEquals(0, current_Inventory.size, "Our shopping list is now empty")
+        assertEquals(0, currentShoppingList.size, "Our shopping list is now empty")
     }
 
 
@@ -111,11 +111,11 @@ internal class MockShoppingRepositoryTest {
             isChecked = true
         )
         repository.updateShoppingItem(updated_item)
-        val current_Inventory = repository.getShoppingList().first()
+        val currentShoppingList = repository.getShoppingList().first()
 
-        assertEquals(5, current_Inventory.size, "Our new shopping list should have 5 items")
+        assertEquals(5, currentShoppingList.size, "Our new shopping list should have 5 items")
 
-        val updatedItem = current_Inventory.first { it.id == updated_item.id }
+        val updatedItem = currentShoppingList.first { it.id == updated_item.id }
         assertEquals(true, updatedItem.isChecked, "Apples now appear on the shopping list")
     }
 
@@ -124,11 +124,11 @@ internal class MockShoppingRepositoryTest {
     fun testUpdateNonExistentFoodItem() = runTest {
         val updated_item = ShoppingItem(id = 100,"shopping_list_1", name = "Orange Juice", amount = 1.0, unit = "liter", category = "other")
         repository.updateShoppingItem(updated_item)
-        val current_Inventory = repository.getShoppingList().first()
+        val currentShoppingList = repository.getShoppingList().first()
 
-        assertEquals(5, current_Inventory.size, "Our inventory should have 5 items")
+        assertEquals(5, currentShoppingList.size, "Our inventory should have 5 items")
 
-        val updatedItem = current_Inventory.find { it.id == updated_item.id }
+        val updatedItem = currentShoppingList.find { it.id == updated_item.id }
         assertNull(updatedItem, "Orange Juice is not in the inventory")
     }
 }
