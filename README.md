@@ -27,3 +27,5 @@ Our milestone for [Sprint 1](https://git.uwaterloo.ca/j2mascar/mobileapplication
 Our milestone for [Sprint 2](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/3) is included here
 
 Our milestone for [Sprint 3](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/4) is included here
+
+Our milestone for [Sprint 4](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/5) is included here
