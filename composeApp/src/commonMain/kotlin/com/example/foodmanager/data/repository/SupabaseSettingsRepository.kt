@@ -61,6 +61,7 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
     }
 
     override suspend fun storeHousehold(household: Household) {
+        ensureHouseholdResources(household.id)
         _currentHousehold.value = household
     }
 
@@ -72,6 +73,7 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
                     select()
                 }.decodeSingle<Household>()
 
+            ensureHouseholdResources(insertedHousehold.id)
             _currentHousehold.value = insertedHousehold
 
             ensureCurrentUserMembership(insertedHousehold.id, "Owner")
@@ -120,6 +122,7 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
                 }
             ).decodeAs<Household>()
 
+            ensureHouseholdResources(household.id)
             _currentHousehold.value = household
 
             ensureCurrentUserMembership(household.id, "Member")
@@ -243,6 +246,39 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
         }
     }
 
+    private suspend fun ensureHouseholdResources(householdId: String) {
+        ensureInventoryExists(householdId)
+        ensureShoppingListExists(householdId)
+    }
+
+    private suspend fun ensureInventoryExists(householdId: String) {
+        try {
+            val existingInventory = supabase.postgrest["inventories"].select {
+                filter { eq("household_id", householdId) }
+            }.decodeSingleOrNull<HouseholdResourceRow>()
+
+            if (existingInventory == null) {
+                supabase.postgrest["inventories"].insert(HouseholdResourceInsert(householdId))
+            }
+        } catch (e: Exception) {
+            println("Exception while ensuring inventory exists: ${e.message}")
+        }
+    }
+
+    private suspend fun ensureShoppingListExists(householdId: String) {
+        try {
+            val existingShoppingList = supabase.postgrest["shopping_lists"].select {
+                filter { eq("household_id", householdId) }
+            }.decodeSingleOrNull<HouseholdResourceRow>()
+
+            if (existingShoppingList == null) {
+                supabase.postgrest["shopping_lists"].insert(HouseholdResourceInsert(householdId))
+            }
+        } catch (e: Exception) {
+            println("Exception while ensuring shopping list exists: ${e.message}")
+        }
+    }
+
     private suspend fun loadFirstAvailableHouseholdForCurrentUser(currentUserId: String): Household? {
         val memberships = getMembershipsForUser(currentUserId)
 
@@ -306,6 +342,17 @@ private data class UpdateHouseholdName(val name: String)
 
 @Serializable
 private data class UpdatingJoinCode(val joinCode: String)
+
+@Serializable
+private data class HouseholdResourceInsert(
+    @kotlinx.serialization.SerialName("household_id")
+    val householdId: String
+)
+
+@Serializable
+private data class HouseholdResourceRow(
+    val id: String
+)
 
 @Serializable
 private data class LegacyMembershipRow(

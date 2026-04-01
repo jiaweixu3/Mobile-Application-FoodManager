@@ -143,7 +143,7 @@ fun FoodCard(
                 color = Color(0xFFD9D9D9)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text("📦", fontSize = 24.sp)
+                    Text(CategoryConstants.getIcon(item.category), fontSize = 24.sp)
                 }
             }
 
@@ -223,10 +223,6 @@ fun InventoryScreen(
 ) {
 
     val categoryScrollState = rememberScrollState()
-
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        viewModel.refreshInventory()
-    }
 
     // Collect data
     val inventoryList by viewModel.visibleInventory.collectAsState()

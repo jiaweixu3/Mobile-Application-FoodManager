@@ -1,5 +1,6 @@
 package com.example.foodmanager.ui.utils
 
+import com.example.foodmanager.domain.normalizeCategory
 import java.util.Calendar
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -10,29 +11,29 @@ object CategoryConstants {
     )
 
     fun getIcon(category: String): String {
-        return when (category.lowercase()) {
-            "vegetables" -> "🥦"
-            "fruits" -> "🍎"
-            "meat" -> "🥩"
-            "dairy" -> "🥛"
-            "bread" -> "🍞"
-            "pasta" -> "🍝"
-            "rice" -> "🍚"
-            "frozen" -> "🧊"
-            "other" ->  "📦"
+        return when (normalizeCategory(category)) {
+            "Vegetables" -> "🥦"
+            "Fruits" -> "🍎"
+            "Meat" -> "🥩"
+            "Dairy" -> "🥛"
+            "Bread" -> "🍞"
+            "Pasta" -> "🍝"
+            "Rice" -> "🍚"
+            "Frozen" -> "🧊"
+            "Other" -> "📦"
             else -> "📦"
         }
     }
 
     private fun getDaysForCategory(category: String): Int {
-        return when (category.lowercase()) {
-            "meat" -> 3
-            "vegetables", "fruits" -> 7
-            "dairy" -> 10
-            "bread" -> 5
-            "frozen" -> 180
-            "pasta", "rice" -> 365
-            "other" -> 10
+        return when (normalizeCategory(category)) {
+            "Meat" -> 3
+            "Vegetables", "Fruits" -> 7
+            "Dairy" -> 10
+            "Bread" -> 5
+            "Frozen" -> 180
+            "Pasta", "Rice" -> 365
+            "Other" -> 10
             else -> 14
         }
     }
