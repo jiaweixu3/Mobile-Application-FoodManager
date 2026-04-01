@@ -127,13 +127,13 @@ class MockShoppingRepository : ShoppingRepository {
     // For the shopping list we also have to retrieve the current household
     override fun getShoppingList(): Flow<List<ShoppingItem>> {
         return combine(MockDb.currentHousehold, MockDb.shoppingitems){actualHousehold, allShoppingItems ->
-        // If there is no household, we do not return anything
-        if (actualHousehold == null) return@combine emptyList()
+            // If there is no household, we do not return anything
+            if (actualHousehold == null) return@combine emptyList()
 
-        val actualShoppingList = MockDb.shoppingLists.find { it.household_id == actualHousehold.id }
+            val actualShoppingList = MockDb.shoppingLists.find { it.household_id == actualHousehold.id }
 
-        // If list does not exist, return empty list
-        if (actualShoppingList == null) return@combine emptyList()
+            // If list does not exist, return empty list
+            if (actualShoppingList == null) return@combine emptyList()
 
             allShoppingItems.filter { it.shopping_list_id == actualShoppingList.id }
         }
@@ -202,6 +202,10 @@ class MockSettingsRepository : SettingsRepository {
 
     override suspend fun addHousehold(newHousehold: Household) {
         MockDb.addHousehold(newHousehold)
+    }
+    override suspend fun removeMember(memberId: String) {
+
+        println("Mock: Removed member $memberId")
     }
 
     override suspend fun updateHouseholdName(householdId: String, newName: String) {

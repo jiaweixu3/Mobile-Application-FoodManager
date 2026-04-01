@@ -29,42 +29,115 @@ class SettingsViewModel(
     val availableHouseholds =
         settingsRepository.getHouseholdsList().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // Selected household
     val currentHousehold = settingsRepository.getCurrentHousehold.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    // To know whether we have to initialize the first household when a new user enters the app
+    private val _members = MutableStateFlow<List<HouseholdMember>>(emptyList())
+    val members: StateFlow<List<HouseholdMember>> = _members.asStateFlow()
+
+    private val _isLoadingMembers = MutableStateFlow(false)
+    val isLoadingMembers: StateFlow<Boolean> = _isLoadingMembers.asStateFlow()
+
+    private val _joinMessage = MutableStateFlow<String?>(null)
+    val joinMessage: StateFlow<String?> = _joinMessage.asStateFlow()
+
+    private val _userEmail = MutableStateFlow<String>("")
+    val userEmail: StateFlow<String> = _userEmail.asStateFlow()
+
+    private val _passwordMessage = MutableStateFlow<String?>(null)
+    val passwordMessage: StateFlow<String?> = _passwordMessage.asStateFlow()
+
     private var isInitialized = false
 
     init {
+        _userEmail.value = supabase.auth.currentUserOrNull()?.email ?: "Unknown Email"
+
         viewModelScope.launch {
             settingsRepository.getHouseholdsList().collect { households ->
-                // Only if it has not initialized
                 if (!isInitialized) {
-
-                    // If no household, we have to create one
                     if (households.isEmpty()) {
                         val defaultHousehold = Household(id = "", name = "House 1")
                         settingsRepository.addHousehold(defaultHousehold)
                         isInitialized = true
                     } else if (!isInitialized) {
-                        // Selects the first household so the app can load an inventory and shopping list
                         settingsRepository.storeHousehold(households.first())
                         isInitialized = true
                     }
                 }
             }
         }
-    }
 
-    // Updates the system based on the chosen household
-    fun onHouseholdChanged(newHousehold: Household) {
-        // As we had a suspend function, we will use launch to call the function
         viewModelScope.launch {
-            settingsRepository.storeHousehold(newHousehold)
+            currentHousehold.collectLatest { household ->
+                if (household != null) {
+                    fetchMembers(household.id)
+                } else {
+                    _members.value = emptyList()
+                }
+            }
         }
     }
 
-    // Adding a new Household
+    private fun fetchMembers(householdId: String) {
+        viewModelScope.launch {
+            _isLoadingMembers.value = true
+            try {
+                val fetchedMembers = settingsRepository.getHouseholdMembers(householdId)
+                _members.value = fetchedMembers
+            } catch (e: Exception) {
+                println("ViewModel Error fetching members: ${e.message}")
+                _members.value = emptyList()
+            } finally {
+                _isLoadingMembers.value = false
+            }
+        }
+    }
+
+    fun getHouseholdMembers() {
+        val currentId = currentHousehold.value?.id
+        if (currentId != null) {
+            fetchMembers(currentId)
+        }
+    }
+
+    // Removes a member from the household and refreshes the local member list
+    fun removeMember(memberId: String) {
+        viewModelScope.launch {
+            try {
+                settingsRepository.removeMember(memberId)
+                currentHousehold.value?.id?.let { fetchMembers(it) }
+            } catch (e: Exception) {
+                println("Error removing member: ${e.message}")
+            }
+        }
+    }
+
+    fun changePassword(newPassword: String) {
+        if (newPassword.length < 6) {
+            _passwordMessage.value = "Password must be at least 6 characters."
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                _passwordMessage.value = null
+                supabase.auth.updateUser {
+                    password = newPassword
+                }
+                _passwordMessage.value = "Successfully updated password!"
+            } catch (e: Exception) {
+                _passwordMessage.value = "Failed to update: ${e.message}"
+            }
+        }
+    }
+
+    fun clearPasswordMessage() {
+        _passwordMessage.value = null
+    }
+
+    fun onHouseholdChanged(newHousehold: Household) {
+        viewModelScope.launch { settingsRepository.storeHousehold(newHousehold) }
+    }
+
     fun addNewHousehold(name: String) {
         viewModelScope.launch {
             val newHousehold = Household("", name)
@@ -72,27 +145,24 @@ class SettingsViewModel(
         }
     }
 
-
-    // Updating the name of a household
     fun updateHouseholdName(newName: String) {
         val currentHousehold = currentHousehold.value ?: return
-
         viewModelScope.launch {
-            // Updating the household
             settingsRepository.updateHouseholdName(currentHousehold.id, newName)
         }
     }
 
-    // Generating a code for joining
     fun generateCodeHousehold() {
         val household = currentHousehold.value ?: return
-        viewModelScope.launch {
-            settingsRepository.generateCode(household.id)
-        }
+        viewModelScope.launch { settingsRepository.generateCode(household.id) }
     }
 
-    // Function for actually joining
     fun joinHousehold(code: String) {
+        if (code.isBlank()) {
+            _joinMessage.value = "Please enter a valid join code."
+            return
+        }
+
         viewModelScope.launch {
             val normalizedCode = code.trim().uppercase()
             val existingHousehold = availableHouseholds.value.firstOrNull {

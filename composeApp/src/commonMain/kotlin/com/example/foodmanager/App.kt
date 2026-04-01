@@ -44,6 +44,10 @@ import com.example.foodmanager.ui.theme.DarkBlue
 import com.example.foodmanager.ui.theme.FoodManagerTheme
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
+import io.github.jan.supabase.postgrest.postgrest
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.example.foodmanager.ui.auth.RegisterScreen
 
 // Storing all screens in the app in a list, for simplified looping
 val screens = listOf(
@@ -55,12 +59,29 @@ val screens = listOf(
 @Composable
 fun App() {
     val sessionStatus by supabase.auth.sessionStatus.collectAsState()
+    var currentAuthScreen by remember { mutableStateOf("login") }
+
     FoodManagerTheme {
         // Handling log in and log out logic
         when (sessionStatus) {
             is SessionStatus.Authenticated -> MainAppLayout()
             SessionStatus.Initializing -> Text("Loading session...")
-            else -> LoginScreen {}
+            else -> {
+                when (currentAuthScreen) {
+                    "login" -> {
+                        LoginScreen(
+                            loginSuccess = { },
+                            onNavigateToRegister = { currentAuthScreen = "register" }
+                        )
+                    }
+                    "register" -> {
+                        RegisterScreen(
+                            onRegisterSuccess = { currentAuthScreen = "login" },
+                            onNavigateToLogin = { currentAuthScreen = "login" }
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -159,7 +180,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
         NavHost(
             navController = navController,
-            startDestination = ScreenDestination.Inventory, // El destino inicial
+            startDestination = ScreenDestination.Inventory,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable<ScreenDestination.Inventory> {

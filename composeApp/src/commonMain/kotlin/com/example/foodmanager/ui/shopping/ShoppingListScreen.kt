@@ -29,6 +29,20 @@ fun ShoppingListScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
+    var showAddDialog by remember { mutableStateOf(false) }
+    var newName by remember { mutableStateOf("") }
+    var newQuantity by remember { mutableStateOf("") }
+    var newUnit by remember { mutableStateOf("units") }
+    var newCategory by remember { mutableStateOf("Other") }
+    var expandedUnit by remember { mutableStateOf(false) }
+    var expandedCategory by remember { mutableStateOf(false) }
+
+    // State to hold validation errors inside the dialog
+    var dialogError by remember { mutableStateOf<String?>(null) }
+
+    val quantityTypes = listOf("grams", "kilograms", "millilitres", "litres", "units", "pieces")
+    val categoryOptions = CategoryConstants.menuCategories
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -74,7 +88,10 @@ fun ShoppingListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onNavigatetoAddItem,
+                onClick = {
+                    showAddDialog = true
+                    dialogError = null // Clear any old errors when opening the dialog
+                },
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Create shopping item")
@@ -105,33 +122,143 @@ fun ShoppingListScreen(
             }
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentAlignment = Alignment.TopCenter
-        ) {
-            Box(modifier = Modifier.widthIn(max = 600.dp).fillMaxSize()) {
-                if (shoppingList.isNotEmpty()) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            if (shoppingList.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(shoppingList, key = { it.id ?: it.hashCode() }) { item ->
+                        ShoppingItemRow(
+                            item = item,
+                            onCheckedChange = { isChecked ->
+                                viewModel.toggleItem(item, isChecked)
+                            }
+                        )
+                    }
+                }
+            } else if (!isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Your shopping list is empty!")
+                }
+            }
+            if (isLoading && shoppingList.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+        }
+
+        // Add item dialog box
+        if (showAddDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showAddDialog = false
+                    dialogError = null
+                },
+                title = { Text("Create shopping item") },
+                text = {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(shoppingList, key = { it.id ?: it.hashCode() }) { item ->
-                            ShoppingItemRow(
-                                item = item,
-                                onCheckedChange = { isChecked ->
-                                    viewModel.toggleItem(item, isChecked)
-                                },
-                                onDelete = {
-                                    item.id?.let { id -> viewModel.deleteItem(id) }
+                        // Display the error message at the top of the form if it exists
+                        if (dialogError != null) {
+                            Text(
+                                text = dialogError ?: "",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
+                        }
+
+                        OutlinedTextField(
+                            value = newName,
+                            onValueChange = {
+                                newName = it
+                                dialogError = null // Clear error when typing
+                            },
+                            label = { Text("Item name") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        OutlinedTextField(
+                            value = newQuantity,
+                            onValueChange = {
+                                newQuantity = it
+                                dialogError = null // Clear error when typing
+                            },
+                            label = { Text("Quantity") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        ExposedDropdownMenuBox(
+                            expanded = expandedUnit,
+                            onExpandedChange = { expandedUnit = it }
+                        ) {
+                            OutlinedTextField(
+                                value = newUnit,
+                                onValueChange = {},
+                                label = { Text("Quantity type") },
+                                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedUnit) },
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedUnit,
+                                onDismissRequest = { expandedUnit = false }
+                            ) {
+                                quantityTypes.forEach { unit ->
+                                    DropdownMenuItem(
+                                        text = { Text(unit) },
+                                        onClick = {
+                                            newUnit = unit
+                                            expandedUnit = false
+                                        }
+                                    )
                                 }
                             )
                         }
                     }
-                } else if (!isLoading) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Your shopping list is empty!")
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+
+                            val parsedQty = newQuantity.toDoubleOrNull()
+
+                            when {
+                                newName.isBlank() -> dialogError = "Item name cannot be blank."
+                                parsedQty == null -> dialogError = "Please enter a valid number for quantity."
+                                parsedQty <= 0 -> dialogError = "Quantity must be greater than zero."
+                                else -> {
+                                    // Passed validation, send to ViewModel
+                                    viewModel.addItem(newName.trim(), parsedQty, newUnit, newCategory.trim())
+
+                                    // Reset fields and close dialog
+                                    showAddDialog = false
+                                    newName = ""
+                                    newQuantity = ""
+                                    newUnit = "units"
+                                    newCategory = "Other"
+                                    dialogError = null
+                                }
+                            }
+                        },
+                        shape = RoundedCornerShape(24.dp)
+                    ) {
+                        Text("Add")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showAddDialog = false
+                        dialogError = null
+                    }) {
+                        Text("Cancel")
                     }
                 }
                 if (isLoading && shoppingList.isEmpty()) {

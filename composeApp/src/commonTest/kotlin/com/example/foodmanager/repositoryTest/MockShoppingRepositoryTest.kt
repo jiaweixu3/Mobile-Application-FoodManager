@@ -15,6 +15,7 @@ import kotlin.test.assertNull
 // The current tests work with an initial hardcoded list of 5 items, if this changes, all tests should be changed accordingly
 internal class MockShoppingRepositoryTest {
     private val repository = MockShoppingRepository()
+
     @BeforeTest
     fun setUp() {
         MockDb.resetShoppingState() // Resetting list back to original size
@@ -97,7 +98,6 @@ internal class MockShoppingRepositoryTest {
 
         assertEquals(0, currentShoppingList.size, "Our shopping list is now empty")
     }
-
 
     @Test
     fun testUpdateShoppingItem() = runTest {
