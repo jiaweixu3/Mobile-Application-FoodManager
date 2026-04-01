@@ -203,10 +203,6 @@ class MockSettingsRepository : SettingsRepository {
     override suspend fun addHousehold(newHousehold: Household) {
         MockDb.addHousehold(newHousehold)
     }
-    override suspend fun removeMember(memberId: String) {
-
-        println("Mock: Removed member $memberId")
-    }
 
     override suspend fun updateHouseholdName(householdId: String, newName: String) {
         MockDb.updateHouseholdName(householdId = householdId, newName = newName)

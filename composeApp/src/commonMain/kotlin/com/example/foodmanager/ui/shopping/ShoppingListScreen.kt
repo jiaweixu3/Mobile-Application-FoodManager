@@ -1,22 +1,52 @@
 package com.example.foodmanager.ui.shopping
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.navigation.NavController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
 import com.example.foodmanager.domain.model.ShoppingItem
-import com.example.foodmanager.ui.navigation.AddItemDestination
-import com.example.foodmanager.ui.navigation.ScreenDestination
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,20 +58,7 @@ fun ShoppingListScreen(
     val shoppingList by viewModel.items.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-
-    var showAddDialog by remember { mutableStateOf(false) }
-    var newName by remember { mutableStateOf("") }
-    var newQuantity by remember { mutableStateOf("") }
-    var newUnit by remember { mutableStateOf("units") }
-    var newCategory by remember { mutableStateOf("Other") }
-    var expandedUnit by remember { mutableStateOf(false) }
-    var expandedCategory by remember { mutableStateOf(false) }
-
-    // State to hold validation errors inside the dialog
-    var dialogError by remember { mutableStateOf<String?>(null) }
-
-    val quantityTypes = listOf("grams", "kilograms", "millilitres", "litres", "units", "pieces")
-    val categoryOptions = CategoryConstants.menuCategories
+    var showSortMenu by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -53,9 +70,8 @@ fun ShoppingListScreen(
                     }
                 },
                 actions = {
-                    var showSortMenu by remember { mutableStateOf(false) }
                     IconButton(onClick = { showSortMenu = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Sort Options")
+                        Icon(Icons.Default.MoreVert, contentDescription = "Sort options")
                     }
                     DropdownMenu(
                         expanded = showSortMenu,
@@ -88,10 +104,7 @@ fun ShoppingListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    showAddDialog = true
-                    dialogError = null // Clear any old errors when opening the dialog
-                },
+                onClick = onNavigatetoAddItem,
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Create shopping item")
@@ -104,182 +117,65 @@ fun ShoppingListScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shadowElevation = 8.dp
             ) {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                Button(
+                    onClick = { viewModel.markCheckedItemsAsBought() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    enabled = hasCheckedItems && !isLoading,
+                    shape = RoundedCornerShape(24.dp)
                 ) {
-                    Button(
-                        onClick = { viewModel.markCheckedItemsAsBought() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        enabled = hasCheckedItems && !isLoading
-                    ) {
-                        Text("Mark Checked as Bought")
-                    }
+                    Text("Mark Checked as Bought")
                 }
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (shoppingList.isNotEmpty()) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(shoppingList, key = { it.id ?: it.hashCode() }) { item ->
-                        ShoppingItemRow(
-                            item = item,
-                            onCheckedChange = { isChecked ->
-                                viewModel.toggleItem(item, isChecked)
-                            }
-                        )
-                    }
-                }
-            } else if (!isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Your shopping list is empty!")
-                }
-            }
-            if (isLoading && shoppingList.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-        }
-
-        // Add item dialog box
-        if (showAddDialog) {
-            AlertDialog(
-                onDismissRequest = {
-                    showAddDialog = false
-                    dialogError = null
-                },
-                title = { Text("Create shopping item") },
-                text = {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            when {
+                shoppingList.isNotEmpty() -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Display the error message at the top of the form if it exists
-                        if (dialogError != null) {
-                            Text(
-                                text = dialogError ?: "",
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(bottom = 4.dp)
-                            )
-                        }
-
-                        OutlinedTextField(
-                            value = newName,
-                            onValueChange = {
-                                newName = it
-                                dialogError = null // Clear error when typing
-                            },
-                            label = { Text("Item name") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        OutlinedTextField(
-                            value = newQuantity,
-                            onValueChange = {
-                                newQuantity = it
-                                dialogError = null // Clear error when typing
-                            },
-                            label = { Text("Quantity") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        ExposedDropdownMenuBox(
-                            expanded = expandedUnit,
-                            onExpandedChange = { expandedUnit = it }
-                        ) {
-                            OutlinedTextField(
-                                value = newUnit,
-                                onValueChange = {},
-                                label = { Text("Quantity type") },
-                                modifier = Modifier.fillMaxWidth().menuAnchor(),
-                                readOnly = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedUnit) },
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                            ExposedDropdownMenu(
-                                expanded = expandedUnit,
-                                onDismissRequest = { expandedUnit = false }
-                            ) {
-                                quantityTypes.forEach { unit ->
-                                    DropdownMenuItem(
-                                        text = { Text(unit) },
-                                        onClick = {
-                                            newUnit = unit
-                                            expandedUnit = false
-                                        }
-                                    )
-                                }
+                        items(shoppingList, key = { it.id ?: it.hashCode() }) { item ->
+                            ShoppingItemRow(
+                                item = item,
+                                onCheckedChange = { isChecked -> viewModel.toggleItem(item, isChecked) },
+                                onDelete = { item.id?.let(viewModel::deleteItem) }
                             )
                         }
                     }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-
-                            val parsedQty = newQuantity.toDoubleOrNull()
-
-                            when {
-                                newName.isBlank() -> dialogError = "Item name cannot be blank."
-                                parsedQty == null -> dialogError = "Please enter a valid number for quantity."
-                                parsedQty <= 0 -> dialogError = "Quantity must be greater than zero."
-                                else -> {
-                                    // Passed validation, send to ViewModel
-                                    viewModel.addItem(newName.trim(), parsedQty, newUnit, newCategory.trim())
-
-                                    // Reset fields and close dialog
-                                    showAddDialog = false
-                                    newName = ""
-                                    newQuantity = ""
-                                    newUnit = "units"
-                                    newCategory = "Other"
-                                    dialogError = null
-                                }
-                            }
-                        },
-                        shape = RoundedCornerShape(24.dp)
-                    ) {
-                        Text("Add")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = {
-                        showAddDialog = false
-                        dialogError = null
-                    }) {
-                        Text("Cancel")
-                    }
                 }
-                if (isLoading && shoppingList.isEmpty()) {
+                isLoading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
-            }
-
-            if (errorMessage != null) {
-                AlertDialog(
-                    onDismissRequest = { viewModel.clearError() },
-                    title = { Text("Database Error") },
-                    text = { Text(errorMessage ?: "An unknown error occurred.") },
-                    confirmButton = {
-                        TextButton(onClick = { viewModel.clearError() }) {
-                            Text("OK")
-                        }
+                else -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Your shopping list is empty!")
                     }
-                )
+                }
             }
+        }
+
+        if (errorMessage != null) {
+            AlertDialog(
+                onDismissRequest = { viewModel.clearError() },
+                title = { Text("Database Error") },
+                text = { Text(errorMessage ?: "An unknown error occurred.") },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.clearError() }) {
+                        Text("OK")
+                    }
+                }
+            )
         }
     }
 }
@@ -325,9 +221,7 @@ fun ShoppingItemRow(
                 )
             }
 
-            IconButton(
-                onClick = { showDeleteDialog = true }
-            ) {
+            IconButton(onClick = { showDeleteDialog = true }) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete ${item.name}",
