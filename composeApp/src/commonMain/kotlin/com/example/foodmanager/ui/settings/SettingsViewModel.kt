@@ -2,13 +2,18 @@ package com.example.foodmanager.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.foodmanager.data.supabase
 import com.example.foodmanager.data.repository.HouseholdJoinResult
 import com.example.foodmanager.data.repository.SettingsRepository
 import com.example.foodmanager.domain.model.Household
+import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -30,12 +35,6 @@ class SettingsViewModel(
         settingsRepository.getHouseholdsList().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val currentHousehold = settingsRepository.getCurrentHousehold.stateIn(viewModelScope, SharingStarted.Lazily, null)
-
-    private val _members = MutableStateFlow<List<HouseholdMember>>(emptyList())
-    val members: StateFlow<List<HouseholdMember>> = _members.asStateFlow()
-
-    private val _isLoadingMembers = MutableStateFlow(false)
-    val isLoadingMembers: StateFlow<Boolean> = _isLoadingMembers.asStateFlow()
 
     private val _joinMessage = MutableStateFlow<String?>(null)
     val joinMessage: StateFlow<String?> = _joinMessage.asStateFlow()
@@ -68,45 +67,8 @@ class SettingsViewModel(
 
         viewModelScope.launch {
             currentHousehold.collectLatest { household ->
-                if (household != null) {
-                    fetchMembers(household.id)
-                } else {
-                    _members.value = emptyList()
-                }
-            }
-        }
-    }
-
-    private fun fetchMembers(householdId: String) {
-        viewModelScope.launch {
-            _isLoadingMembers.value = true
-            try {
-                val fetchedMembers = settingsRepository.getHouseholdMembers(householdId)
-                _members.value = fetchedMembers
-            } catch (e: Exception) {
-                println("ViewModel Error fetching members: ${e.message}")
-                _members.value = emptyList()
-            } finally {
-                _isLoadingMembers.value = false
-            }
-        }
-    }
-
-    fun getHouseholdMembers() {
-        val currentId = currentHousehold.value?.id
-        if (currentId != null) {
-            fetchMembers(currentId)
-        }
-    }
-
-    // Removes a member from the household and refreshes the local member list
-    fun removeMember(memberId: String) {
-        viewModelScope.launch {
-            try {
-                settingsRepository.removeMember(memberId)
-                currentHousehold.value?.id?.let { fetchMembers(it) }
-            } catch (e: Exception) {
-                println("Error removing member: ${e.message}")
+                if (household == null) return@collectLatest
+                _joinMessage.value = null
             }
         }
     }
@@ -179,9 +141,11 @@ class SettingsViewModel(
 
             when (val result = settingsRepository.joinHousehold(code)) {
                 is HouseholdJoinResult.Success -> {
+                    _joinMessage.value = "Joined '${result.household.name}' successfully."
                     _uiEvent.emit(SettingsUiEvent.ShowMessage("Joined '${result.household.name}' successfully."))
                 }
                 is HouseholdJoinResult.Error -> {
+                    _joinMessage.value = result.message
                     _uiEvent.emit(SettingsUiEvent.ShowMessage(result.message))
                 }
             }

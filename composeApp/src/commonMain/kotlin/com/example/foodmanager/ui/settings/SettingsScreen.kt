@@ -1,13 +1,50 @@
 package com.example.foodmanager.ui.settings
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -30,50 +67,46 @@ fun SettingsScreen(
     val availableHouseholds by viewModel.availableHouseholds.collectAsState()
     val currentHousehold by viewModel.currentHousehold.collectAsState()
     val joinMessage by viewModel.joinMessage.collectAsState()
-
-
     val userEmail by viewModel.userEmail.collectAsState()
     val passwordMessage by viewModel.passwordMessage.collectAsState()
 
     var expandedDropdown by remember { mutableStateOf(false) }
     var newHouseholdName by remember { mutableStateOf("") }
+    var editHouseholdName by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var joinInput by remember { mutableStateOf("") }
     var logoutErrorMessage by remember { mutableStateOf<String?>(null) }
     var isLoggingOut by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
-    var editHouseholdName by remember { mutableStateOf("") }
-
-
-    var newPassword by remember { mutableStateOf("") }
 
     val clipboardManager = LocalClipboardManager.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(currentHousehold) {
-        editHouseholdName = currentHousehold?.name ?: ""
+        editHouseholdName = currentHousehold?.name.orEmpty()
+    }
+
+    LaunchedEffect(viewModel) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is SettingsUiEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
+            }
+        }
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            CenterAlignedTopAppBar(title = { Text("Settings") })
-        }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = { CenterAlignedTopAppBar(title = { Text("Settings") }) }
     ) { innerPadding ->
-        LaunchedEffect(viewModel) {
-            viewModel.uiEvent.collect { event ->
-                when (event) {
-                    is SettingsUiEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
-                }
-            }
-        }
-
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.TopCenter
+                .padding(innerPadding)
+                .verticalScroll(scrollState)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            // ACCOUNT SECTION
             SettingsCard(title = "Account Details") {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
@@ -84,18 +117,10 @@ fun SettingsScreen(
                     Text(
                         text = userEmail,
                         style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        fontWeight = FontWeight.Bold
                     )
 
-                    HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
-
-                    Text(
-                        text = "Change Password",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -127,10 +152,13 @@ fun SettingsScreen(
                     }
 
                     if (passwordMessage != null) {
-                        val isSuccess = passwordMessage?.contains("Successfully") == true
                         Text(
-                            text = passwordMessage ?: "",
-                            color = if (isSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            text = passwordMessage.orEmpty(),
+                            color = if (passwordMessage?.contains("Successfully") == true) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.error
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(top = 8.dp, start = 4.dp)
                         )
@@ -138,26 +166,26 @@ fun SettingsScreen(
                 }
             }
 
-            // --- HOUSEHOLD MANAGEMENT ---
             SettingsCard(title = "Household Management") {
                 if (availableHouseholds.isEmpty()) {
                     Text("No available households")
                 } else {
                     ExposedDropdownMenuBox(
                         expanded = expandedDropdown,
-                        onExpandedChange = { expandedDropdown = it },
-                        modifier = Modifier.fillMaxWidth()
+                        onExpandedChange = { expandedDropdown = it }
                     ) {
                         OutlinedTextField(
-                            value = currentHousehold?.name ?: "",
+                            value = currentHousehold?.name.orEmpty(),
                             onValueChange = {},
                             readOnly = true,
                             label = { Text("Active Household") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown) },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown)
+                            },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
                             shape = RoundedCornerShape(24.dp)
                         )
-                        ExposedDropdownMenu(
+                        DropdownMenu(
                             expanded = expandedDropdown,
                             onDismissRequest = { expandedDropdown = false }
                         ) {
@@ -176,7 +204,6 @@ fun SettingsScreen(
                 }
             }
 
-            // --- CREATE HOUSEHOLD ---
             SettingsCard(title = "Create New Household") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -204,7 +231,6 @@ fun SettingsScreen(
                 }
             }
 
-            // --- EDIT HOUSEHOLD ---
             SettingsCard(title = "Edit Current Household") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -221,7 +247,9 @@ fun SettingsScreen(
                     )
                     Button(
                         onClick = { viewModel.updateHouseholdName(editHouseholdName) },
-                        enabled = editHouseholdName.isNotBlank() && editHouseholdName != currentHousehold?.name,
+                        enabled = currentHousehold != null &&
+                            editHouseholdName.isNotBlank() &&
+                            editHouseholdName != currentHousehold?.name,
                         shape = RoundedCornerShape(24.dp)
                     ) {
                         Text("Save")
@@ -229,7 +257,6 @@ fun SettingsScreen(
                 }
             }
 
-            // --- INVITE & MEMBERS ---
             if (currentHousehold != null) {
                 SettingsCard(title = "Invite & Members") {
                     Column(
@@ -237,25 +264,22 @@ fun SettingsScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         TextButton(
-                            onClick = { onNavigateToMembers() },
+                            onClick = onNavigateToMembers,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(Icons.Default.Info, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text("View Household Members", fontWeight = FontWeight.Bold)
                         }
 
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        HorizontalDivider()
 
                         Text(
                             text = "Share Join Code",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurface
+                            style = MaterialTheme.typography.labelLarge
                         )
 
-                        if (currentHousehold?.joinCode != null) {
-                            val code = currentHousehold?.joinCode ?: ""
-
+                        currentHousehold?.joinCode?.let { code ->
                             Surface(
                                 color = MaterialTheme.colorScheme.secondaryContainer,
                                 shape = RoundedCornerShape(24.dp),
@@ -275,7 +299,7 @@ fun SettingsScreen(
                                         onClick = {
                                             clipboardManager.setText(AnnotatedString(code))
                                             coroutineScope.launch {
-                                                snackbarHostState.showSnackbar("Code copied!")
+                                                snackbarHostState.showSnackbar("Code copied")
                                             }
                                         }
                                     ) {
@@ -284,114 +308,18 @@ fun SettingsScreen(
                                 }
                             }
                         }
-                    }
-                }
 
-                // create household section
-                SettingsCard(title = "Create New Household") {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = newHouseholdName,
-                            onValueChange = { newHouseholdName = it },
-                            label = { Text("Name") },
-                            singleLine = true,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(24.dp)
-                        )
                         Button(
-                            onClick = {
-                                viewModel.addNewHousehold(newHouseholdName)
-                                newHouseholdName = ""
-                            },
-                            enabled = newHouseholdName.isNotBlank(),
-                            shape = RoundedCornerShape(24.dp)
-                        ) {
-                            Text("Add")
-                        }
-                    }
-                }
-
-                // edit household section
-                SettingsCard(title = "Edit Current Household") {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = editHouseholdName,
-                            onValueChange = { editHouseholdName = it },
-                            label = { Text("Rename to...") },
-                            singleLine = true,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        Button(
-                            onClick = { viewModel.updateHouseholdName(editHouseholdName) },
-                            enabled = editHouseholdName.isNotBlank() && editHouseholdName != currentHousehold?.name,
-                            shape = RoundedCornerShape(24.dp)
-                        ) {
-                            Text("Save")
-                        }
-                    }
-                }
-
-                // invite and members section
-                if (currentHousehold != null) {
-                    SettingsCard(title = "Invite & Members") {
-                        Column(
+                            onClick = { viewModel.generateCodeHousehold() },
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                            shape = RoundedCornerShape(24.dp)
                         ) {
-                            TextButton(
-                                onClick = { onNavigateToMembers() },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(Icons.Default.Info, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("View Household Members", fontWeight = FontWeight.Bold)
-                            }
-
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                            Text(
-                                text = "Share Join Code",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-
-                            if (currentHousehold?.joinCode != null) {
-                                Surface(
-                                    color = MaterialTheme.colorScheme.secondaryContainer,
-                                    shape = RoundedCornerShape(24.dp),
-                                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                                ) {
-                                    Text(
-                                        text = currentHousehold?.joinCode ?: "",
-                                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                                        style = MaterialTheme.typography.headlineSmall,
-                                        fontWeight = FontWeight.ExtraBold
-                                    )
-                                }
-                            }
-
-                            Button(
-                                onClick = { viewModel.generateCodeHousehold() },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(24.dp)
-                            ) {
-                                Text(if (currentHousehold?.joinCode == null) "Generate Code" else "Regenerate Code")
-                            }
+                            Text(if (currentHousehold?.joinCode == null) "Generate Code" else "Regenerate Code")
                         }
                     }
                 }
+            }
 
-            // --- JOIN HOUSEHOLD ---
-            var joinInput by remember { mutableStateOf("") }
             SettingsCard(title = "Join a Household") {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
@@ -402,10 +330,7 @@ fun SettingsScreen(
                         OutlinedTextField(
                             value = joinInput,
                             onValueChange = { input ->
-                                joinInput = input
-                                    .filter(Char::isLetterOrDigit)
-                                    .uppercase()
-                                    .take(6)
+                                joinInput = input.filter(Char::isLetterOrDigit).uppercase().take(6)
                             },
                             label = { Text("6-character code") },
                             singleLine = true,
@@ -425,10 +350,13 @@ fun SettingsScreen(
                     }
 
                     if (joinMessage != null) {
-                        val isSuccess = joinMessage?.contains("Successfully") == true
                         Text(
-                            text = joinMessage ?: "",
-                            color = if (isSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            text = joinMessage.orEmpty(),
+                            color = if (joinMessage?.contains("successfully", ignoreCase = true) == true) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.error
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(top = 8.dp, start = 4.dp)
                         )
@@ -436,7 +364,6 @@ fun SettingsScreen(
                 }
             }
 
-            // --- LOGOUT ---
             Button(
                 onClick = {
                     coroutineScope.launch {
@@ -451,32 +378,25 @@ fun SettingsScreen(
                             isLoggingOut = false
                         }
                     }
-                }
-
-                // Logout
-                Button(
-                    onClick = {
-                        coroutineScope.launch {
-                            isLoggingOut = true
-                            logoutErrorMessage = null
-                            try {
-                                supabase.auth.signOut()
-                                logoutSuccess()
-                            } catch (e: Exception) {
-                                logoutErrorMessage = e.message ?: "Logout failed."
-                            } finally {
-                                isLoggingOut = false
-                            }
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                    enabled = !isLoggingOut,
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
-                ) {
-                    Text(text = "Log Out")
-                }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                enabled = !isLoggingOut,
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Log Out")
             }
+
+            if (logoutErrorMessage != null) {
+                Text(
+                    text = logoutErrorMessage.orEmpty(),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
@@ -497,7 +417,7 @@ fun SettingsCard(title: String, content: @Composable () -> Unit) {
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Box(modifier = Modifier.padding(16.dp)) {
                 content()
             }
         }
