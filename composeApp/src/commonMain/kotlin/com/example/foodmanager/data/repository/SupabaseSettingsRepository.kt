@@ -1,6 +1,7 @@
 package com.example.foodmanager.data.repository
 
 import com.example.foodmanager.domain.model.Household
+import com.example.foodmanager.domain.model.HouseholdMember
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns // REQUIRED for the join query
@@ -15,18 +16,44 @@ import kotlinx.serialization.json.buildJsonObject
 
 class SupabaseSettingsRepository(private val supabase: SupabaseClient) : SettingsRepository {
     private val tableName = "households"
+    private val membersTableName = "user_household"
 
     private val _currentHousehold = MutableStateFlow<Household?>(null)
     override val getCurrentHousehold: Flow<Household?> = _currentHousehold
 
     private val refreshTrigger = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
+    private val memberRefreshTrigger = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
 
     override fun getHouseholdsList(): Flow<List<Household>> = refreshTrigger.flatMapLatest {
         flow {
             try {
-                val households = supabase.postgrest[tableName].select().decodeList<Household>()
+                val currentUser = supabase.auth.currentUserOrNull()
+                if (currentUser == null) {
+                    emit(emptyList())
+                    return@flow
+                }
+
+                val memberships = supabase.postgrest[membersTableName].select {
+                    filter {
+                        eq("user_id", currentUser.id)
+                    }
+                }.decodeList<HouseholdMember>()
+
+                val households = memberships.mapNotNull { membership ->
+                    try {
+                        supabase.postgrest[tableName].select {
+                            filter {
+                                eq("id", membership.householdId)
+                            }
+                        }.decodeSingleOrNull<Household>()
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+
                 emit(households)
-            } catch (e: Exception) {
+
+            } catch (e: Exception) { //Handling errors
                 println("Exception while fetching households: ${e.message}")
                 emit(emptyList())
             }
@@ -46,7 +73,11 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
                 }.decodeSingle<Household>()
 
             _currentHousehold.value = insertedHousehold
+
+            ensureCurrentUserMembership(insertedHousehold.id, "Owner")
+
             refreshTrigger.tryEmit(Unit)
+            memberRefreshTrigger.tryEmit(Unit)
         } catch (e: Exception) {
             println("SUPABASE ERROR adding household: ${e.message}")
             throw e
@@ -55,7 +86,10 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
 
     override suspend fun generateCode(householdId: String): String {
         return try {
-            val code = (1..6).map { ('A'..'Z').random() }.joinToString("")
+            // Generating a 6-digit code for joining a household
+            val code = (1..6).map { ('0'..'9').random() }.joinToString("")
+
+            // Saving it in the database
             supabase.postgrest["households"].update(UpdatingJoinCode(code)) {
                 filter { eq("id", householdId) }
             }
@@ -73,34 +107,96 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
         }
     }
 
-    override suspend fun joinHousehold(joinCode: String) {
+    // Function for joining a household using a code
+    override suspend fun joinHousehold(joinCode: String): HouseholdJoinResult {
         try {
-            supabase.postgrest.rpc(
-                "join_household_by_code",
-                buildJsonObject {
-                    put("code_input", joinCode.uppercase())
-                }
-            )
+            val normalizedCode = joinCode.trim().uppercase()
 
-            refreshTrigger.tryEmit(Unit)
-
-            val newHouseholdList = supabase.postgrest[tableName].select {
-                filter {
-                    eq("joinCode", joinCode.uppercase())
-                }
-            }.decodeList<Household>()
-
-            val joinedHousehold = newHouseholdList.firstOrNull()
-
-            if (joinedHousehold != null) {
-                _currentHousehold.value = joinedHousehold
-            } else {
-                throw Exception("Invalid Code")
+            if (normalizedCode.length != 6) {
+                return HouseholdJoinResult.Error("The household code must contain 6 characters.")
             }
 
+            val household = supabase.postgrest.rpc(
+                "join_household_by_code",
+                buildJsonObject {
+                    put("code_input", normalizedCode)
+                }
+            ).decodeAs<Household>()
+
+            _currentHousehold.value = household
+
+            ensureCurrentUserMembership(household.id, "Member")
+
+            // Refreshing
+            refreshTrigger.tryEmit(Unit)
+            memberRefreshTrigger.tryEmit(Unit)
+            return HouseholdJoinResult.Success(household)
         } catch (e: Exception) {
-            println("Supabase error joining a household: ${e.message}")
-            throw e
+            val message = e.message ?: "Unable to join the household."
+            println("Supabase error joining a household: $message")
+            return HouseholdJoinResult.Error(message)
+        }
+    }
+
+    override suspend fun getCurrentHouseholdValue(): Household? {
+        return _currentHousehold.value
+    }
+
+    override suspend fun getCurrentUserId(): String? {
+        return supabase.auth.currentUserOrNull()?.id
+    }
+
+    override fun getCurrentHouseholdMembers(): Flow<List<HouseholdMember>> = memberRefreshTrigger.flatMapLatest {
+        flow {
+            val householdId = _currentHousehold.value?.id
+            if (householdId == null) {
+                emit(emptyList())
+                return@flow
+            }
+
+            try {
+                val members = supabase.postgrest[membersTableName].select {
+                    filter { eq("household_id", householdId) }
+                }.decodeList<HouseholdMember>()
+
+                emit(
+                    members.sortedWith(
+                        compareBy<HouseholdMember> { it.role != "Owner" }
+                            .thenBy { it.displayName.lowercase() }
+                            .thenBy { it.email.lowercase() }
+                    )
+                )
+            } catch (e: Exception) {
+                println("Exception while fetching household members: ${e.message}")
+                emit(emptyList())
+            }
+        }
+    }
+
+    override suspend fun deleteHouseholdMember(memberId: String) {
+        try {
+            val currentUserId = supabase.auth.currentUserOrNull()?.id
+            val memberToDelete = supabase.postgrest[membersTableName].select {
+                filter { eq("id", memberId) }
+            }.decodeSingleOrNull<HouseholdMember>()
+
+            supabase.postgrest[membersTableName].delete {
+                filter { eq("id", memberId) }
+            }
+
+            if (
+                memberToDelete != null &&
+                currentUserId != null &&
+                memberToDelete.userId == currentUserId &&
+                _currentHousehold.value?.id == memberToDelete.householdId
+            ) {
+                _currentHousehold.value = loadFirstAvailableHouseholdForCurrentUser(currentUserId)
+            }
+
+            refreshTrigger.tryEmit(Unit)
+            memberRefreshTrigger.tryEmit(Unit)
+        } catch (e: Exception) {
+            println("Exception while deleting household member: ${e.message}")
         }
     }
 
@@ -165,6 +261,52 @@ class SupabaseSettingsRepository(private val supabase: SupabaseClient) : Setting
         } catch (e: Exception) {
             println("Supabase Error removing member: ${e.message}")
             throw e
+        }
+    }
+
+    private suspend fun ensureCurrentUserMembership(householdId: String, role: String) {
+        val currentUser = supabase.auth.currentUserOrNull() ?: return
+        val userId = currentUser.id
+        val email = currentUser.email ?: "unknown@foodmanager.app"
+        val displayName = email.substringBefore("@").ifBlank { email }
+
+        try {
+            val existingMembership = supabase.postgrest[membersTableName].select {
+                filter {
+                    eq("household_id", householdId)
+                    eq("user_id", userId)
+                }
+            }.decodeSingleOrNull<HouseholdMember>()
+
+            if (existingMembership == null) {
+                supabase.postgrest[membersTableName].insert(
+                    HouseholdMember(
+                        householdId = householdId,
+                        userId = userId,
+                        email = email,
+                        displayName = displayName,
+                        role = role
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            println("Exception while ensuring household membership: ${e.message}")
+        }
+    }
+
+    private suspend fun loadFirstAvailableHouseholdForCurrentUser(currentUserId: String): Household? {
+        val memberships = supabase.postgrest[membersTableName].select {
+            filter {
+                eq("user_id", currentUserId)
+            }
+        }.decodeList<HouseholdMember>()
+
+        return memberships.firstNotNullOfOrNull { membership ->
+            supabase.postgrest[tableName].select {
+                filter {
+                    eq("id", membership.householdId)
+                }
+            }.decodeSingleOrNull<Household>()
         }
     }
 }

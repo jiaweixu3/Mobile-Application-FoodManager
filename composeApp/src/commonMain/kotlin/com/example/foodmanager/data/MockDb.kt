@@ -1,7 +1,9 @@
 package com.example.foodmanager.data
 
 import com.example.foodmanager.domain.model.FoodItem
+import com.example.foodmanager.domain.model.FavoriteFoodItem
 import com.example.foodmanager.domain.model.Household
+import com.example.foodmanager.domain.model.HouseholdMember
 import com.example.foodmanager.domain.model.Inventory
 import com.example.foodmanager.domain.model.ShoppingItem
 import com.example.foodmanager.domain.model.ShoppingList
@@ -21,6 +23,9 @@ object MockDb {
     )
 
     val households = _households.asStateFlow()
+
+    private val mockCurrentUserId = "mock_user_1"
+    private val mockCurrentUserEmail = "owner@foodmanager.test"
 
     // Keeping track of the current household
     private val _currentHousehold = MutableStateFlow<Household?>(households.value.firstOrNull())
@@ -56,6 +61,16 @@ object MockDb {
         _households.value = _households.value.plus(newHousehold)
         // Automatically switches to newly created inventory
         _currentHousehold.value = newHousehold
+        addHouseholdMember(
+            HouseholdMember(
+                id = "member_${newHousehold.id}_$mockCurrentUserId",
+                householdId = newHousehold.id,
+                userId = mockCurrentUserId,
+                email = mockCurrentUserEmail,
+                displayName = "Owner",
+                role = "Owner"
+            )
+        )
 
     }
 
@@ -250,6 +265,61 @@ object MockDb {
         )
     )
     val shoppingitems = _shoppingitems.asStateFlow()
+    // Will be used for testing
+    fun clearShoppingState() {
+        _shoppingitems.value = emptyList()
+    }
+    private val _householdMembers = MutableStateFlow(
+        listOf(
+            HouseholdMember(
+                id = "member_1",
+                householdId = "house_1",
+                userId = "mock_user_1",
+                email = "owner@foodmanager.test",
+                displayName = "House 1 Owner",
+                role = "Owner"
+            ),
+            HouseholdMember(
+                id = "member_2",
+                householdId = "house_1",
+                userId = "mock_user_2",
+                email = "member1@foodmanager.test",
+                displayName = "Member One",
+                role = "Member"
+            ),
+            HouseholdMember(
+                id = "member_3",
+                householdId = "house_2",
+                userId = "mock_user_3",
+                email = "owner2@foodmanager.test",
+                displayName = "House 2 Owner",
+                role = "Owner"
+            )
+        )
+    )
+    val householdMembers = _householdMembers.asStateFlow()
+
+    private val _favoriteItems = MutableStateFlow(
+        listOf(
+            FavoriteFoodItem(
+                id = "favorite_1",
+                householdId = "house_1",
+                name = "Milk",
+                amount = 1.0,
+                unit = "litres",
+                category = "Dairy"
+            ),
+            FavoriteFoodItem(
+                id = "favorite_2",
+                householdId = "house_1",
+                name = "Apples",
+                amount = 6.0,
+                unit = "pieces",
+                category = "Fruits"
+            )
+        )
+    )
+    val favoriteItems = _favoriteItems.asStateFlow()
 
     fun addShoppingItem(newShoppingItem: ShoppingItem) {
         if (newShoppingItem.name.isBlank()) {
@@ -274,6 +344,50 @@ object MockDb {
             _shoppingitems.value.map { if (it.id == updatedShoppingItem.id) updatedShoppingItem else it }
     }
 
+    fun addFavoriteItem(newFavoriteItem: FavoriteFoodItem) {
+        if (newFavoriteItem.name.isBlank()) {
+            return
+        }
+
+        val exists = _favoriteItems.value.any {
+            it.householdId == newFavoriteItem.householdId &&
+                it.name.equals(newFavoriteItem.name, ignoreCase = true) &&
+                it.unit.equals(newFavoriteItem.unit, ignoreCase = true) &&
+                it.category.equals(newFavoriteItem.category, ignoreCase = true)
+        }
+
+        if (!exists) {
+            _favoriteItems.value = _favoriteItems.value + newFavoriteItem
+        }
+    }
+
+    fun deleteFavoriteItem(favoriteId: String) {
+        _favoriteItems.value = _favoriteItems.value.filterNot { it.id == favoriteId }
+    }
+
+
+
+    fun resetFavoriteState() {
+        _favoriteItems.value = listOf(
+            FavoriteFoodItem(
+                id = "favorite_1",
+                householdId = "house_1",
+                name = "Milk",
+                amount = 1.0,
+                unit = "litres",
+                category = "Dairy"
+            ),
+            FavoriteFoodItem(
+                id = "favorite_2",
+                householdId = "house_1",
+                name = "Apples",
+                amount = 6.0,
+                unit = "pieces",
+                category = "Fruits"
+            )
+        )
+    }
+
     // Resetting Shopping State for Unit Tests, to avoid dependencies
     fun resetShoppingState() {
         _shoppingitems.value = listOf(
@@ -287,6 +401,115 @@ object MockDb {
             ShoppingItem(7, "shopping_list_2","Watermelon", 1.0, "kg", "Fruits", true)
         )
     }
+
+    // Functions for settings and households
+
+    // Updating the name of a household
+    fun updateHouseholdName(householdId: String, newName: String){
+        if (newName.isBlank()) return
+
+        // Updating name
+        _households.value = _households.value.map{
+            if (it.id == householdId) it.copy(name = newName) else it
+        }
+
+        // Updating if household is also the current one
+        if (_currentHousehold.value?.id == householdId) {
+            _currentHousehold.value = _currentHousehold.value?.copy(name = newName)
+        }
+    }
+
+    // Generating the join code
+    fun generateCode(householdId: String): String {
+        val allowedChars = ('A'..'Z')
+        return (1..6)
+            .map{allowedChars.random()}
+            .joinToString("")
+    }
+
+    // Joining a household
+    fun joinHousehold(householdId: String) {
+        // Ensuring housheold exists
+        val householdExists = _households.value.isNotEmpty()
+        if (householdExists) {
+            // Linking to the first house
+            val houseJoining = _households.value.find { it.id == householdId }
+
+            // Adding mock user to the household
+            addHouseholdMember(
+                HouseholdMember(
+                    id = "member_${System.currentTimeMillis()}",
+                    householdId = houseJoining?.id ?: "",
+                    userId = mockCurrentUserId,
+                    email = mockCurrentUserEmail,
+                    displayName = "New Memer",
+                    role = "editor"
+                )
+            )
+
+            _currentHousehold.value = houseJoining
+        }
+    }
+
+
+    fun addHouseholdMember(newMember: HouseholdMember) {
+        val exists = _householdMembers.value.any {
+            it.householdId == newMember.householdId && it.userId == newMember.userId
+        }
+
+        if (!exists) {
+            _householdMembers.value = _householdMembers.value + newMember
+        }
+    }
+
+    fun deleteHouseholdMember(memberId: String) {
+        _householdMembers.value = _householdMembers.value.filterNot { it.id == memberId }
+    }
+
+
+    // Functions for testing
+    fun resetHouseholdMembersState() {
+        _householdMembers.value = listOf(
+            HouseholdMember(
+                id = "member_1",
+                householdId = "house_1",
+                userId = "mock_user_1",
+                email = "owner@foodmanager.test",
+                displayName = "House 1 Owner",
+                role = "Owner"
+            ),
+            HouseholdMember(
+                id = "member_2",
+                householdId = "house_1",
+                userId = "mock_user_2",
+                email = "member1@foodmanager.test",
+                displayName = "Member One",
+                role = "Member"
+            ),
+            HouseholdMember(
+                id = "member_3",
+                householdId = "house_2",
+                userId = "mock_user_3",
+                email = "owner2@foodmanager.test",
+                displayName = "House 2 Owner",
+                role = "Owner"
+            )
+        )
+    }
+
+    fun resetHouseholdsState() {
+        val initialHouseholds = listOf(
+            Household(id = "house_1", name = "House 1"),
+            Household(id = "house_2", name = "House 2"),
+            Household(id = "house_3", name = "House 3")
+        )
+
+        _households.value = initialHouseholds
+        _currentHousehold.value = initialHouseholds.firstOrNull()
+
+    }
+
+
 
 
 

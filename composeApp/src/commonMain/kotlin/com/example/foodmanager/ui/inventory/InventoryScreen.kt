@@ -10,13 +10,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -31,6 +37,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,6 +53,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.DatePicker
@@ -93,6 +103,118 @@ fun SummaryBox(
     }
 }
 
+@Composable
+fun FoodCard(
+    item: FoodItem,
+    viewModel: InventoryViewModel,
+    onDeleteClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = { viewModel.toggleFavorite(item) },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = if (item.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favorite",
+                    tint = if (item.isFavorite) Color(0xFFE53935) else Color.LightGray,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(4.dp))
+
+            Surface(
+                modifier = Modifier.size(56.dp),
+                shape = CircleShape,
+                color = Color(0xFFD9D9D9)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text("📦", fontSize = 24.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color.Black
+                )
+                Text(
+                    text = "${item.amount} ${item.unit ?: ""}",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+            }
+
+            Column(horizontalAlignment = Alignment.End) {
+                val days = calculateDaysRemaining(item)
+                val statusColor = when {
+                    days < 0 -> Color(0xFFE53935)
+                    days <= 3 -> Color(0xFFFFB300)
+                    else -> Color(0xFF76FF03)
+                }
+
+                Text(
+                    text = if (days < 0) "Expired" else "$days days",
+                    color = statusColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = item.expiryDate ?: "",
+                    color = Color.Gray,
+                    fontSize = 12.sp
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Button(
+                        onClick = { viewModel.consumeItem(item, 1.0, false, 0.0) },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B71CA)),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text("Consume", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    IconButton(
+                        onClick = onDeleteClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = Color(0xFFE57373),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryScreen(
@@ -120,6 +242,7 @@ fun InventoryScreen(
     val freshCount = inventoryList.count { calculateDaysRemaining(it) > 3 }
 
     var editingItem by remember { mutableStateOf<FoodItem?>(null) }
+    var itemToDelete by remember { mutableStateOf<FoodItem?>(null) }
 
     Scaffold(
         topBar = {
@@ -134,207 +257,245 @@ fun InventoryScreen(
         }
     ) { innerPadding ->
 
-        // Wrapped the content in a Box to handle the loading spinner overlay correctly
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
+        ) {
 
-            Column(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp, 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+            // Wrapped the content in a Box to handle the loading spinner overlay correctly
+            Box(modifier = Modifier.widthIn(max = 600.dp).fillMaxSize()) {
+
+                Column(
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    SummaryBox(
-                        count = freshCount,
-                        label = "Fresh",
-                        backgroundColor = Color(0xFF4CAF50),
-                        modifier = Modifier.weight(1f)
-                    )
-                    SummaryBox(
-                        count = warningCount,
-                        label = "Soon",
-                        backgroundColor = Color(0xFFFFB300),
-                        modifier = Modifier.weight(1f)
-                    )
-                    SummaryBox(
-                        count = expiredCount,
-                        label = "Expired",
-                        backgroundColor = Color(0xFFE53935),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                // Category filtering (Pasta, Meat, etc.)
-                val categories = listOf("All") + CategoryConstants.menuCategories
-                val selectedSortOption by viewModel.selectedSortOption.collectAsState()
-                var sortMenuExpanded by remember { mutableStateOf(false) }
-                val selectedCategory by viewModel.selectedCategory.collectAsState()
-                var categoryMenuExpanded by remember { mutableStateOf(false) }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(categoryScrollState)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ExposedDropdownMenuBox(
-                        expanded = sortMenuExpanded,
-                        onExpandedChange = { sortMenuExpanded = it },
-                        modifier = Modifier.weight(1f) // Moved weight up here
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp, 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        OutlinedTextField(
-                            value = selectedSortOption.label,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Sort by") },
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortMenuExpanded)
-                            },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(), // Changed to fillMaxWidth
-                            shape = RoundedCornerShape(24.dp)
+                        SummaryBox(
+                            count = freshCount,
+                            label = "Fresh",
+                            backgroundColor = Color(0xFF4CAF50),
+                            modifier = Modifier.weight(1f)
                         )
-                        ExposedDropdownMenu(
+                        SummaryBox(
+                            count = warningCount,
+                            label = "Soon",
+                            backgroundColor = Color(0xFFFFB300),
+                            modifier = Modifier.weight(1f)
+                        )
+                        SummaryBox(
+                            count = expiredCount,
+                            label = "Expired",
+                            backgroundColor = Color(0xFFE53935),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    // Category filtering (Pasta, Meat, etc.)
+                    val categories = listOf("All") + CategoryConstants.menuCategories
+                    val selectedSortOption by viewModel.selectedSortOption.collectAsState()
+                    var sortMenuExpanded by remember { mutableStateOf(false) }
+                    val selectedCategory by viewModel.selectedCategory.collectAsState()
+                    var categoryMenuExpanded by remember { mutableStateOf(false) }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(categoryScrollState)
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ExposedDropdownMenuBox(
                             expanded = sortMenuExpanded,
-                            onDismissRequest = { sortMenuExpanded = false }
+                            onExpandedChange = { sortMenuExpanded = it },
+                            modifier = Modifier.weight(1f)
                         ) {
-                            InventorySortOption.values().forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option.label) },
-                                    onClick = {
-                                        viewModel.setSortOption(option)
-                                        sortMenuExpanded = false
-                                    },
-                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                                )
+                            OutlinedTextField(
+                                value = selectedSortOption.label,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Sort by") },
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortMenuExpanded)
+                                },
+                                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            ExposedDropdownMenu(
+                                expanded = sortMenuExpanded,
+                                onDismissRequest = { sortMenuExpanded = false }
+                            ) {
+                                InventorySortOption.values().forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option.label) },
+                                        onClick = {
+                                            viewModel.setSortOption(option)
+                                            sortMenuExpanded = false
+                                        },
+                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                    )
+                                }
                             }
                         }
-                    }
 
-                    ExposedDropdownMenuBox(
-                        expanded = categoryMenuExpanded,
-                        onExpandedChange = { categoryMenuExpanded = it },
-                        modifier = Modifier.weight(1f) // Moved weight up here
-                    ) {
-                        val categoryLabel = selectedCategory ?: "All"
-                        OutlinedTextField(
-                            value = categoryLabel,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Filter by") },
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryMenuExpanded)
-                            },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(), // Changed to fillMaxWidth
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        ExposedDropdownMenu(
+                        ExposedDropdownMenuBox(
                             expanded = categoryMenuExpanded,
-                            onDismissRequest = { categoryMenuExpanded = false }
+                            onExpandedChange = { categoryMenuExpanded = it },
+                            modifier = Modifier.weight(1f)
                         ) {
-                            categories.forEach { label ->
-                                val value = if (label == "All") null else label
-                                DropdownMenuItem(
-                                    text = { Text(label) },
-                                    onClick = {
-                                        viewModel.setCategoryFilter(value)
-                                        categoryMenuExpanded = false
-                                    },
-                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                            val categoryLabel = selectedCategory ?: "All"
+                            OutlinedTextField(
+                                value = categoryLabel,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Filter by") },
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryMenuExpanded)
+                                },
+                                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            ExposedDropdownMenu(
+                                expanded = categoryMenuExpanded,
+                                onDismissRequest = { categoryMenuExpanded = false }
+                            ) {
+                                categories.forEach { label ->
+                                    val value = if (label == "All") null else label
+                                    DropdownMenuItem(
+                                        text = { Text(label) },
+                                        onClick = {
+                                            viewModel.setCategoryFilter(value)
+                                            categoryMenuExpanded = false
+                                        },
+                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        items(inventoryList) { foodItem ->
+                            Box(modifier = Modifier.clickable { editingItem = foodItem }) {
+                                FoodCard(
+                                    item = foodItem,
+                                    viewModel = viewModel,
+                                    onDeleteClick = { itemToDelete = foodItem }
                                 )
                             }
                         }
                     }
                 }
 
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
-                    items(inventoryList) { foodItem ->
-                        Box(modifier = Modifier.clickable { editingItem = foodItem }) {
-                            FoodCard(item = foodItem, viewModel = viewModel)
-                        }
-                    }
-                }
-            }
-
-            // Show loading spinner in the center of the screen
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-        }
-
-        // Suggestion Dialog
-        suggestedItem?.let { foodToRestock ->
-            var buyQuantity by remember { mutableStateOf("1.0") }
-
-            AlertDialog(
-                onDismissRequest = { viewModel.dismissSuggestion() },
-                title = { Text("Out of ${foodToRestock.name}!") },
-                text = {
-                    Column {
-                        Text("Add ${foodToRestock.name} to your shopping list?")
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        OutlinedTextField(
-                            value = buyQuantity,
-                            onValueChange = { newValue -> buyQuantity = newValue },
-                            label = { Text("Quantity to buy") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            val qty = buyQuantity.toDoubleOrNull() ?: 1.0
-                            viewModel.consumeItem(foodToRestock, 0.0, true, qty)
-                            viewModel.dismissSuggestion()
-                        }
+                // Show loading spinner in the center of the screen
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text("Add to List")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { viewModel.dismissSuggestion() }) {
-                        Text("No thanks")
+                        CircularProgressIndicator()
                     }
                 }
-            )
-        }
-
-        // Error message dialog box
-        if (errorMessage != null) {
-            AlertDialog(
-                onDismissRequest = { viewModel.clearError() },
-                title = { Text("Database Error") },
-                text = { Text(errorMessage ?: "An unknown error occurred.") },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.clearError() }) {
-                        Text("OK")
-                    }
-                }
-            )
+            }
         }
     }
+
+    // Delete Confirmation Dialog
+    itemToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { itemToDelete = null },
+            title = { Text("Delete Item") },
+            text = { Text("Are you sure you want to delete ${item.name}?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteItem(item)
+                        itemToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { itemToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Suggestion Dialog
+    suggestedItem?.let { foodToRestock ->
+        var buyQuantity by remember { mutableStateOf("1.0") }
+
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissSuggestion() },
+            title = { Text("Out of ${foodToRestock.name}!") },
+            text = {
+                Column {
+                    Text("Add ${foodToRestock.name} to your shopping list?")
+                    Spacer(modifier = Modifier.padding(8.dp))
+                    OutlinedTextField(
+                        value = buyQuantity,
+                        onValueChange = { newValue -> buyQuantity = newValue },
+                        label = { Text("Quantity to buy") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val qty = buyQuantity.toDoubleOrNull() ?: 1.0
+                        viewModel.consumeItem(foodToRestock, 0.0, true, qty)
+                        viewModel.dismissSuggestion()
+                    }
+                ) {
+                    Text("Add to List")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissSuggestion() }) {
+                    Text("No thanks")
+                }
+            }
+        )
+    }
+
+    // Error message dialog box
+    if (errorMessage != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.clearError() },
+            title = { Text("Database Error") },
+            text = { Text(errorMessage ?: "An unknown error occurred.") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.clearError() }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
     if (editingItem != null) {
         val item = editingItem!!
 
         var editName by remember(item) { mutableStateOf(item.name) }
         var editAmount by remember(item) { mutableStateOf(item.amount.toString()) }
-        var editExpiry by remember(item) { mutableStateOf(item.expiryDate) }
-        var editUnit by remember(item) { mutableStateOf(item.unit) }
-        var editCategory by remember(item) { mutableStateOf(item.category) }
+        var editExpiry by remember(item) { mutableStateOf(item.expiryDate ?: "") }
+        var editUnit by remember(item) { mutableStateOf(item.unit ?: "") }
+        var editCategory by remember(item) { mutableStateOf(item.category ?: "") }
 
         var showDatePicker by remember { mutableStateOf(false) }
         var unitExpanded by remember { mutableStateOf(false) }
@@ -354,19 +515,41 @@ fun InventoryScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = editAmount,
-                            onValueChange = { editAmount = it },
-                            label = { Text("Qty") },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            IconButton(onClick = {
+                                val current = editAmount.toDoubleOrNull() ?: 1.0
+                                if (current > 0.5) editAmount = (current - 1).toString().replace(".0", "")
+                            }) {
+                                Text("-", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            OutlinedTextField(
+                                value = editAmount,
+                                onValueChange = { editAmount = it },
+                                label = { Text("Qty") },
+                                modifier = Modifier.width(70.dp),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                            )
+
+                            IconButton(onClick = {
+                                val current = editAmount.toDoubleOrNull() ?: 0.0
+                                editAmount = (current + 1).toString().replace(".0", "")
+                            }) {
+                                Text("+", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
 
                         ExposedDropdownMenuBox(
                             expanded = unitExpanded,
                             onExpandedChange = { unitExpanded = it },
-                            modifier = Modifier.weight(1.5f)
+                            modifier = Modifier.weight(1f)
                         ) {
                             OutlinedTextField(
                                 value = editUnit,

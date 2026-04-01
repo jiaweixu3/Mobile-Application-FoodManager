@@ -2,23 +2,30 @@ package com.example.foodmanager.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodmanager.data.repository.HouseholdMember
+import com.example.foodmanager.data.repository.HouseholdJoinResult
 import com.example.foodmanager.data.repository.SettingsRepository
 import com.example.foodmanager.domain.model.Household
-import com.example.foodmanager.data.supabase
-import io.github.jan.supabase.auth.auth
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+// This file creates the view model for settings
+
+sealed class SettingsUiEvent {
+    data class ShowMessage(val message: String) : SettingsUiEvent()
+}
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
+    private val _uiEvent = MutableSharedFlow<SettingsUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
+
+    // Stores current available households, no need to declare them privately as stateIn handles this
     val availableHouseholds =
         settingsRepository.getHouseholdsList().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -157,29 +164,29 @@ class SettingsViewModel(
         }
 
         viewModelScope.launch {
-            try {
-                _joinMessage.value = null
-                settingsRepository.joinHousehold(code.trim())
-                currentHousehold.value?.id?.let { fetchMembers(it) }
-                _joinMessage.value = "Successfully joined the household!"
-            } catch (e: Exception) {
-                val errorString = e.message?.lowercase() ?: ""
-                when {
-                    errorString.contains("already") || errorString.contains("duplicate") -> {
-                        _joinMessage.value = "You have already joined this household."
-                    }
-                    errorString.contains("not found") || errorString.contains("invalid") -> {
-                        _joinMessage.value = "Invalid Code. Please check and try again."
-                    }
-                    else -> {
-                        _joinMessage.value = "Failed to join: Invalid Code or Network Error."
-                    }
+            val normalizedCode = code.trim().uppercase()
+            val existingHousehold = availableHouseholds.value.firstOrNull {
+                it.joinCode?.equals(normalizedCode, ignoreCase = true) == true
+            }
+
+            if (existingHousehold != null) {
+                settingsRepository.storeHousehold(existingHousehold)
+                _uiEvent.emit(
+                    SettingsUiEvent.ShowMessage("You are already in household '${existingHousehold.name}'.")
+                )
+                return@launch
+            }
+
+            when (val result = settingsRepository.joinHousehold(code)) {
+                is HouseholdJoinResult.Success -> {
+                    _uiEvent.emit(SettingsUiEvent.ShowMessage("Joined '${result.household.name}' successfully."))
+                }
+                is HouseholdJoinResult.Error -> {
+                    _uiEvent.emit(SettingsUiEvent.ShowMessage(result.message))
                 }
             }
         }
     }
 
-    fun clearJoinMessage() {
-        _joinMessage.value = null
-    }
+
 }

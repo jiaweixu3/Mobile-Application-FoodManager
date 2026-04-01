@@ -13,17 +13,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.navigation.NavController
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import com.example.foodmanager.domain.model.ShoppingItem
-import com.example.foodmanager.ui.utils.CategoryConstants
+import com.example.foodmanager.ui.navigation.AddItemDestination
+import com.example.foodmanager.ui.navigation.ScreenDestination
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoppingListScreen(
-    navController: NavController,
-    viewModel: ShoppingViewModel
+    viewModel: ShoppingViewModel,
+    onNavigateBack: () -> Unit,
+    onNavigatetoAddItem: () -> Unit
 ) {
     val shoppingList by viewModel.items.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -48,7 +48,7 @@ fun ShoppingListScreen(
             CenterAlignedTopAppBar(
                 title = { Text("Shopping List") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -104,15 +104,20 @@ fun ShoppingListScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shadowElevation = 8.dp
             ) {
-                Button(
-                    onClick = { viewModel.markCheckedItemsAsBought() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    enabled = hasCheckedItems && !isLoading
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("Mark Checked as Bought")
+                    Button(
+                        onClick = { viewModel.markCheckedItemsAsBought() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        enabled = hasCheckedItems && !isLoading
+                    ) {
+                        Text("Mark Checked as Bought")
+                    }
                 }
             }
         }
@@ -215,35 +220,7 @@ fun ShoppingListScreen(
                                         }
                                     )
                                 }
-                            }
-                        }
-                        ExposedDropdownMenuBox(
-                            expanded = expandedCategory,
-                            onExpandedChange = { expandedCategory = it }
-                        ) {
-                            OutlinedTextField(
-                                value = newCategory,
-                                onValueChange = {},
-                                label = { Text("Category") },
-                                modifier = Modifier.fillMaxWidth().menuAnchor(),
-                                readOnly = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategory) },
-                                shape = RoundedCornerShape(24.dp)
                             )
-                            ExposedDropdownMenu(
-                                expanded = expandedCategory,
-                                onDismissRequest = { expandedCategory = false }
-                            ) {
-                                categoryOptions.forEach { cat ->
-                                    DropdownMenuItem(
-                                        text = { Text(cat) },
-                                        onClick = {
-                                            newCategory = cat
-                                            expandedCategory = false
-                                        }
-                                    )
-                                }
-                            }
                         }
                     }
                 },
@@ -284,26 +261,37 @@ fun ShoppingListScreen(
                         Text("Cancel")
                     }
                 }
-            )
-        }
-
-        if (errorMessage != null) {
-            AlertDialog(
-                onDismissRequest = { viewModel.clearError() },
-                title = { Text("Database Error") },
-                text = { Text(errorMessage ?: "An unknown error occurred.") },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.clearError() }) {
-                        Text("OK")
+                if (isLoading && shoppingList.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
                 }
-            )
+            }
+
+            if (errorMessage != null) {
+                AlertDialog(
+                    onDismissRequest = { viewModel.clearError() },
+                    title = { Text("Database Error") },
+                    text = { Text(errorMessage ?: "An unknown error occurred.") },
+                    confirmButton = {
+                        TextButton(onClick = { viewModel.clearError() }) {
+                            Text("OK")
+                        }
+                    }
+                )
+            }
         }
     }
 }
 
 @Composable
-fun ShoppingItemRow(item: ShoppingItem, onCheckedChange: (Boolean) -> Unit) {
+fun ShoppingItemRow(
+    item: ShoppingItem,
+    onCheckedChange: (Boolean) -> Unit,
+    onDelete: () -> Unit
+) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -336,6 +324,39 @@ fun ShoppingItemRow(item: ShoppingItem, onCheckedChange: (Boolean) -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            IconButton(
+                onClick = { showDeleteDialog = true }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete ${item.name}",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
         }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete ${item.name}?") },
+            text = { Text("This item will be removed from your shopping list.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete()
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

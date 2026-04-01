@@ -88,6 +88,7 @@ class SupabaseShoppingRepository(
                     eq("id", itemId)
                 }
             }
+            refreshTrigger.emit(Unit)
 
         } catch ( e: Exception ){
             println("Error updating shopping item ${updatedShoppingItem.id}: ${e.message}")

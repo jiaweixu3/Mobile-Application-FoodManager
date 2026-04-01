@@ -1,6 +1,7 @@
 package com.example.foodmanager.domain.model
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Transient
 
 @Serializable
 data class FoodItem(
@@ -16,5 +17,8 @@ data class FoodItem(
 
     val amount: Double,
     val unit: String,
-    val category: String
+    val category: String,
+
+    @Transient
+    val isFavorite: Boolean = false
 )

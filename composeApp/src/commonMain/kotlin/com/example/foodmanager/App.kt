@@ -21,17 +21,20 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.layout.PaddingValues
 import com.example.foodmanager.ui.additem.AddingItemScreen
 import com.example.foodmanager.data.supabase
+import com.example.foodmanager.data.repository.FavoriteRepository
 import com.example.foodmanager.data.repository.InventoryRepository
-import com.example.foodmanager.data.repository.MockSettingsRepository
 import com.example.foodmanager.data.repository.ShoppingRepository
+import com.example.foodmanager.data.repository.SupabaseFavoriteRepository
 import com.example.foodmanager.data.repository.SupabaseInventoryRepository
 import com.example.foodmanager.data.repository.SupabaseSettingsRepository
 import com.example.foodmanager.data.repository.SupabaseShoppingRepository
 import com.example.foodmanager.domain.useCase.ConsumeFoodItemUseCase
 import com.example.foodmanager.domain.useCase.MarkAsBoughtUseCase
 import com.example.foodmanager.ui.auth.LoginScreen
+import com.example.foodmanager.ui.household.HouseholdViewModel
 import com.example.foodmanager.ui.inventory.InventoryScreen
 import com.example.foodmanager.ui.inventory.InventoryViewModel
+import com.example.foodmanager.ui.navigation.AddItemDestination
 import com.example.foodmanager.ui.navigation.ScreenDestination
 import com.example.foodmanager.ui.settings.SettingsScreen
 import com.example.foodmanager.ui.settings.SettingsViewModel
@@ -95,6 +98,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
     val settingsRepo = remember { SupabaseSettingsRepository(supabase) }
     val shoppingRepo: ShoppingRepository = remember { SupabaseShoppingRepository(supabase, settingsRepo) }
     val inventoryRepo: InventoryRepository = remember { SupabaseInventoryRepository(supabase, settingsRepo) }
+    val favoriteRepo: FavoriteRepository = remember { SupabaseFavoriteRepository(supabase, settingsRepo) }
 
 
     //  Create the Use Case and pass in the repositories you just created
@@ -121,6 +125,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
     val inventoryViewModel = remember {
         InventoryViewModel(
             repository = inventoryRepo,
+            favoriteRepository = favoriteRepo,
             shoppingRepository = shoppingRepo,
             consumeFoodItemUseCase = consumeUseCase
         )
@@ -131,6 +136,10 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
         SettingsViewModel(
             settingsRepository = settingsRepo,
         )
+    }
+
+    val householdViewModel = remember {
+        HouseholdViewModel(settingsRepository = settingsRepo)
     }
 
 
@@ -178,26 +187,50 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
                 InventoryScreen(
                     viewModel = inventoryViewModel,
                     onNavigateToAddItem = {
-                        navController.navigate(ScreenDestination.AddItem)
+                        navController.navigate(ScreenDestination.AddInventoryItem)
                     }
                 )
             }
 
-            composable<ScreenDestination.AddItem> {
+            composable<ScreenDestination.AddInventoryItem> {
                 val addItemViewModel = remember {
-                    com.example.foodmanager.ui.additem.AddItemViewModel(repository = inventoryRepo)
+                    com.example.foodmanager.ui.additem.AddItemViewModel(
+                        inventoryRepository = inventoryRepo,
+                        shoppingRepository = shoppingRepo,
+                        favoriteRepository = favoriteRepo,
+                        settingsRepository = settingsRepo
+                    )
                 }
 
                 AddingItemScreen(
                     navController = navController,
-                    viewModel = addItemViewModel
+                    viewModel = addItemViewModel,
+                    initialDestination = AddItemDestination.Inventory
+                )
+            }
+
+            composable<ScreenDestination.AddShoppingItem> {
+                val addItemViewModel = remember {
+                    com.example.foodmanager.ui.additem.AddItemViewModel(
+                        inventoryRepository = inventoryRepo,
+                        shoppingRepository = shoppingRepo,
+                        favoriteRepository = favoriteRepo,
+                        settingsRepository = settingsRepo
+                    )
+                }
+
+                AddingItemScreen(
+                    navController = navController,
+                    viewModel = addItemViewModel,
+                    initialDestination = AddItemDestination.ShoppingList
                 )
             }
 
             composable<ScreenDestination.ShoppingList> {
                 ShoppingListScreen(
-                    navController = navController,
-                    viewModel = shoppingViewModel
+                    viewModel = shoppingViewModel,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigatetoAddItem = { navController.navigate(ScreenDestination.AddShoppingItem) }
                 )
             }
 
@@ -222,7 +255,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
 
             composable<ScreenDestination.HouseholdMembers> {
                 com.example.foodmanager.ui.household.HouseholdScreen(
-                    viewModel = settingsViewModel,
+                    viewModel = householdViewModel,
                     onBackClick = { navController.popBackStack() }
                 )
             }

@@ -53,17 +53,24 @@ fun SettingsScreen(
     }
 
     Scaffold(
-        topBar = { CenterAlignedTopAppBar(title = { Text("Settings") }) },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        topBar = {
+            CenterAlignedTopAppBar(title = { Text("Settings") })
+        }
     ) { innerPadding ->
-        Column(
+        LaunchedEffect(viewModel) {
+            viewModel.uiEvent.collect { event ->
+                when (event) {
+                    is SettingsUiEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
+                }
+            }
+        }
+
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
         ) {
 
             // ACCOUNT SECTION
@@ -276,18 +283,112 @@ fun SettingsScreen(
                                     }
                                 }
                             }
-                        } else {
+                        }
+                    }
+                }
+
+                // create household section
+                SettingsCard(title = "Create New Household") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = newHouseholdName,
+                            onValueChange = { newHouseholdName = it },
+                            label = { Text("Name") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        Button(
+                            onClick = {
+                                viewModel.addNewHousehold(newHouseholdName)
+                                newHouseholdName = ""
+                            },
+                            enabled = newHouseholdName.isNotBlank(),
+                            shape = RoundedCornerShape(24.dp)
+                        ) {
+                            Text("Add")
+                        }
+                    }
+                }
+
+                // edit household section
+                SettingsCard(title = "Edit Current Household") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = editHouseholdName,
+                            onValueChange = { editHouseholdName = it },
+                            label = { Text("Rename to...") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        Button(
+                            onClick = { viewModel.updateHouseholdName(editHouseholdName) },
+                            enabled = editHouseholdName.isNotBlank() && editHouseholdName != currentHousehold?.name,
+                            shape = RoundedCornerShape(24.dp)
+                        ) {
+                            Text("Save")
+                        }
+                    }
+                }
+
+                // invite and members section
+                if (currentHousehold != null) {
+                    SettingsCard(title = "Invite & Members") {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            TextButton(
+                                onClick = { onNavigateToMembers() },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Default.Info, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("View Household Members", fontWeight = FontWeight.Bold)
+                            }
+
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                            Text(
+                                text = "Share Join Code",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+
+                            if (currentHousehold?.joinCode != null) {
+                                Surface(
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    shape = RoundedCornerShape(24.dp),
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                ) {
+                                    Text(
+                                        text = currentHousehold?.joinCode ?: "",
+                                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                }
+                            }
+
                             Button(
                                 onClick = { viewModel.generateCodeHousehold() },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(24.dp)
                             ) {
-                                Text("Generate Code")
+                                Text(if (currentHousehold?.joinCode == null) "Generate Code" else "Regenerate Code")
                             }
                         }
                     }
                 }
-            }
 
             // --- JOIN HOUSEHOLD ---
             var joinInput by remember { mutableStateOf("") }
@@ -300,9 +401,11 @@ fun SettingsScreen(
                     ) {
                         OutlinedTextField(
                             value = joinInput,
-                            onValueChange = {
-                                joinInput = it.uppercase()
-                                viewModel.clearJoinMessage()
+                            onValueChange = { input ->
+                                joinInput = input
+                                    .filter(Char::isLetterOrDigit)
+                                    .uppercase()
+                                    .take(6)
                             },
                             label = { Text("6-character code") },
                             singleLine = true,
@@ -348,13 +451,31 @@ fun SettingsScreen(
                             isLoggingOut = false
                         }
                     }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                enabled = !isLoggingOut,
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
-            ) {
-                Text(text = "Log Out")
+                }
+
+                // Logout
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            isLoggingOut = true
+                            logoutErrorMessage = null
+                            try {
+                                supabase.auth.signOut()
+                                logoutSuccess()
+                            } catch (e: Exception) {
+                                logoutErrorMessage = e.message ?: "Logout failed."
+                            } finally {
+                                isLoggingOut = false
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    enabled = !isLoggingOut,
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                ) {
+                    Text(text = "Log Out")
+                }
             }
         }
     }

@@ -2,11 +2,19 @@ package com.example.foodmanager.data.repository
 
 // This file defines the basic interfaces and the used functions
 import com.example.foodmanager.data.MockDb
+import com.example.foodmanager.domain.model.FavoriteFoodItem
 import com.example.foodmanager.domain.model.ShoppingItem
 import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.domain.model.Household
+import com.example.foodmanager.domain.model.HouseholdMember
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlin.random.Random
+
+sealed class HouseholdJoinResult {
+    data class Success(val household: Household) : HouseholdJoinResult()
+    data class Error(val message: String) : HouseholdJoinResult()
+}
 
 
 // Inventory Repository
@@ -27,6 +35,13 @@ interface ShoppingRepository {
     suspend fun addShoppingItem(newShoppingItem: ShoppingItem)
     suspend fun deleteShoppingItem(id: Long)
     suspend fun updateShoppingItem(updatedShoppingItem: ShoppingItem)
+}
+
+interface FavoriteRepository {
+    fun getFavoriteItems(): Flow<List<FavoriteFoodItem>>
+
+    suspend fun addFavoriteItem(item: FavoriteFoodItem)
+    suspend fun deleteFavoriteItem(id: String)
 }
 
 // Settings Screen
@@ -50,12 +65,13 @@ interface SettingsRepository {
     suspend fun generateCode(householdId: String): String
 
     // Joining a new household
-    suspend fun joinHousehold(joinCode: String)
+    suspend fun joinHousehold(householdId: String): HouseholdJoinResult
+    // Reading the current selection synchronously inside repositories
+    suspend fun getCurrentHouseholdValue(): Household?
+    suspend fun getCurrentUserId(): String?
 
-    // Fetching household members
-    suspend fun getHouseholdMembers(householdId: String): List<HouseholdMember>
-
-    suspend fun removeMember(memberId: String)
+    fun getCurrentHouseholdMembers(): Flow<List<HouseholdMember>>
+    suspend fun deleteHouseholdMember(memberId: String)
 }
 
 
@@ -146,6 +162,31 @@ class MockShoppingRepository : ShoppingRepository {
     }
 }
 
+class InMemoryFavoriteRepository(
+    private val settingsRepository: SettingsRepository
+) : FavoriteRepository {
+    override fun getFavoriteItems(): Flow<List<FavoriteFoodItem>> {
+        return combine(settingsRepository.getCurrentHousehold, MockDb.favoriteItems) { actualHousehold, allFavorites ->
+            val householdId = actualHousehold?.id
+            allFavorites.filter { it.householdId == householdId }
+        }
+    }
+
+    override suspend fun addFavoriteItem(item: FavoriteFoodItem) {
+        val householdId = item.householdId ?: settingsRepository.getCurrentHouseholdValue()?.id
+        MockDb.addFavoriteItem(
+            item.copy(
+                id = item.id ?: Random.nextLong().toString(),
+                householdId = householdId
+            )
+        )
+    }
+
+    override suspend fun deleteFavoriteItem(id: String) {
+        MockDb.deleteFavoriteItem(id)
+    }
+}
+
 // Settings Repository
 class MockSettingsRepository : SettingsRepository {
 
@@ -168,19 +209,36 @@ class MockSettingsRepository : SettingsRepository {
     }
 
     override suspend fun updateHouseholdName(householdId: String, newName: String) {
-        TODO("Not yet implemented")
+        MockDb.updateHouseholdName(householdId = householdId, newName = newName)
     }
 
     override suspend fun generateCode(householdId: String): String {
-        TODO("Not yet implemented")
+        return MockDb.generateCode(householdId)
     }
 
-    override suspend fun joinHousehold(joinCode: String) {
-        TODO("Not yet implemented")
+    override suspend fun joinHousehold(householdId: String): HouseholdJoinResult {
+        MockDb.joinHousehold(householdId)
+        return HouseholdJoinResult.Success(MockDb.currentHousehold.value!!)
+    }
+
+    override suspend fun getCurrentHouseholdValue(): Household? {
+        return MockDb.currentHousehold.value
+    }
+
+    override suspend fun getCurrentUserId(): String? {
+        return "mock_user_1"
+    }
+
+    override fun getCurrentHouseholdMembers(): Flow<List<HouseholdMember>> {
+        return combine(MockDb.currentHousehold, MockDb.householdMembers) { household, members ->
+            val householdId = household?.id ?: return@combine emptyList()
+            members.filter { it.householdId == householdId }
+        }
+    }
+
+    override suspend fun deleteHouseholdMember(memberId: String) {
+        MockDb.deleteHouseholdMember(memberId)
     }
 
 
-    override suspend fun getHouseholdMembers(householdId: String): List<HouseholdMember> {
-        return emptyList()
-    }
 }
