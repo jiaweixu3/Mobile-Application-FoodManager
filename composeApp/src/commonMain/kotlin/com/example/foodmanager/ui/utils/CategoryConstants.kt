@@ -19,6 +19,7 @@ object CategoryConstants {
             "pasta" -> "🍝"
             "rice" -> "🍚"
             "frozen" -> "🧊"
+            "other" ->  "📦"
             else -> "📦"
         }
     }
@@ -31,6 +32,7 @@ object CategoryConstants {
             "bread" -> 5
             "frozen" -> 180
             "pasta", "rice" -> 365
+            "other" -> 10
             else -> 14
         }
     }

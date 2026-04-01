@@ -104,6 +104,7 @@ fun MainAppLayout(isloggedout: () -> Unit = {}) {
     val inventoryViewModel = remember {
         InventoryViewModel(
             repository = inventoryRepo,
+            favoriteRepository = favoriteRepo,
             shoppingRepository = shoppingRepo,
             consumeFoodItemUseCase = consumeUseCase
         )

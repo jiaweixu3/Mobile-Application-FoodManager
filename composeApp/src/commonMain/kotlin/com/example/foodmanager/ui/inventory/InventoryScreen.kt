@@ -10,13 +10,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -31,6 +37,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,7 +53,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.DatePicker
@@ -90,6 +99,117 @@ fun SummaryBox(
                 fontWeight = FontWeight.Medium,
                 color = Color.White
             )
+        }
+    }
+}
+
+@Composable
+fun FoodCard(
+    item: FoodItem,
+    viewModel: InventoryViewModel
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = { viewModel.toggleFavorite(item) },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = if (item.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favorite",
+                    tint = if (item.isFavorite) Color(0xFFE53935) else Color.LightGray,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(4.dp))
+
+            Surface(
+                modifier = Modifier.size(56.dp),
+                shape = CircleShape,
+                color = Color(0xFFD9D9D9)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text("📦", fontSize = 24.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color.Black
+                )
+                Text(
+                    text = "${item.amount} ${item.unit ?: ""}",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+            }
+
+            Column(horizontalAlignment = Alignment.End) {
+                val days = calculateDaysRemaining(item)
+                val statusColor = when {
+                    days < 0 -> Color(0xFFE53935)
+                    days <= 3 -> Color(0xFFFFB300)
+                    else -> Color(0xFF76FF03)
+                }
+
+                Text(
+                    text = if (days < 0) "Expired" else "$days days",
+                    color = statusColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = item.expiryDate ?: "",
+                    color = Color.Gray,
+                    fontSize = 12.sp
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Button(
+                        onClick = { viewModel.consumeItem(item, 1.0, false, 0.0) },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B71CA)),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text("Consume", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    IconButton(
+                        onClick = { viewModel.deleteItem(item) },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = Color(0xFFE57373),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -342,9 +462,9 @@ fun InventoryScreen(
 
         var editName by remember(item) { mutableStateOf(item.name) }
         var editAmount by remember(item) { mutableStateOf(item.amount.toString()) }
-        var editExpiry by remember(item) { mutableStateOf(item.expiryDate) }
-        var editUnit by remember(item) { mutableStateOf(item.unit) }
-        var editCategory by remember(item) { mutableStateOf(item.category) }
+        var editExpiry by remember(item) { mutableStateOf(item.expiryDate ?: "") }
+        var editUnit by remember(item) { mutableStateOf(item.unit ?: "") }
+        var editCategory by remember(item) { mutableStateOf(item.category ?: "") }
 
         var showDatePicker by remember { mutableStateOf(false) }
         var unitExpanded by remember { mutableStateOf(false) }

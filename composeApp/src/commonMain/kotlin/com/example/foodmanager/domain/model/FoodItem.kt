@@ -16,5 +16,6 @@ data class FoodItem(
 
     val amount: Double,
     val unit: String,
-    val category: String
+    val category: String,
+    val isFavorite: Boolean = false
 )

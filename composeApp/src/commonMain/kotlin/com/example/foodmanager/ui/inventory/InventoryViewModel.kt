@@ -3,6 +3,7 @@ package com.example.foodmanager.ui.inventory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodmanager.domain.model.FoodItem
+import com.example.foodmanager.domain.model.FavoriteFoodItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,6 +12,7 @@ import kotlinx.coroutines.launch
 import com.example.foodmanager.domain.useCase.InventorySortOption
 import com.example.foodmanager.domain.useCase.sortAndFilterInventory
 import com.example.foodmanager.data.repository.InventoryRepository
+import com.example.foodmanager.data.repository.FavoriteRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.onStart
 
 class InventoryViewModel(
     private val repository: InventoryRepository,
+    private val favoriteRepository: FavoriteRepository,
     private val shoppingRepository: ShoppingRepository,
     private val consumeFoodItemUseCase: ConsumeFoodItemUseCase
 ) : ViewModel() {
@@ -50,8 +53,17 @@ class InventoryViewModel(
 
     // Public list the UI should show: sorted by expiry and filtered by category
     val visibleInventory: StateFlow<List<FoodItem>> =
-        combine(_inventory, _selectedCategory, _selectedSortOption) { items, category, sortOption ->
-            sortAndFilterInventory(items, category, sortOption)
+        combine(
+            _inventory,
+            _selectedCategory,
+            _selectedSortOption,
+            favoriteRepository.getFavoriteItems()
+        ) { items, category, sortOption, favorites ->
+            val filtered = sortAndFilterInventory(items, category, sortOption)
+            // Map items to check if they are in the favorite_items table by name
+            filtered.map { item ->
+                item.copy(isFavorite = favorites.any { it.name.equals(item.name, ignoreCase = true) })
+            }
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -87,6 +99,32 @@ class InventoryViewModel(
 
     fun dismissSuggestion() {
         _suggestedItem.value = null
+    }
+
+    fun toggleFavorite(item: FoodItem) {
+        viewModelScope.launch {
+            try {
+                val currentFavorites = favoriteRepository.getFavoriteItems().first()
+                val existing = currentFavorites.find { it.name.equals(item.name, ignoreCase = true) }
+
+                if (existing != null) {
+                    // If exists in favorite_items table, delete it
+                    existing.id?.let { favoriteRepository.deleteFavoriteItem(it) }
+                } else {
+                    // If not, create a new FavoriteFoodItem and add it
+                    val newFavorite = FavoriteFoodItem(
+                        name = item.name,
+                        amount = item.amount,
+                        unit = item.unit ?: "units",
+                        category = item.category ?: "Other",
+                        householdId = null // Repository will handle the ID
+                    )
+                    favoriteRepository.addFavoriteItem(newFavorite)
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Failed to update favorites."
+            }
+        }
     }
 
     fun consumeItem(item: FoodItem, consumed: Double, addToList: Boolean, buyQty: Double) {
