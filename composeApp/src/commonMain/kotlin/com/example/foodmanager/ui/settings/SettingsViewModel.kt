@@ -96,8 +96,8 @@ class SettingsViewModel(
         _passwordMessage.value = null
     }
 
-    fun onHouseholdChanged(newHousehold: Household) {
-        viewModelScope.launch { settingsRepository.storeHousehold(newHousehold) }
+    suspend fun onHouseholdChanged(newHousehold: Household) {
+        settingsRepository.storeHousehold(newHousehold)
     }
 
     fun addNewHousehold(name: String) {

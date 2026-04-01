@@ -1,5 +1,6 @@
 package com.example.foodmanager.data.repository
 
+import com.example.foodmanager.domain.favoriteKey
 import com.example.foodmanager.domain.model.FavoriteFoodItem
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
@@ -49,14 +50,16 @@ class SupabaseFavoriteRepository(
                 ?: settingsRepository.getCurrentHousehold.firstOrNull()?.id
                 ?: error("No current household")
 
-            val existingFavorite = supabase.postgrest[tableName].select {
+            val existingFavorites = supabase.postgrest[tableName].select {
                 filter {
                     eq("household_id", householdId)
-                    eq("name", item.name)
-                    eq("unit", item.unit)
-                    eq("category", item.category)
                 }
-            }.decodeSingleOrNull<FavoriteFoodItem>()
+            }.decodeList<FavoriteFoodItem>()
+
+            val requestedKey = favoriteKey(item.name, item.unit, item.category)
+            val existingFavorite = existingFavorites.firstOrNull {
+                favoriteKey(it.name, it.unit, it.category) == requestedKey
+            }
 
             if (existingFavorite == null) {
                 supabase.postgrest[tableName].insert(item.copy(id = null, householdId = householdId))

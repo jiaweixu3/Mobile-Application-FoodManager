@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.domain.model.FavoriteFoodItem
+import com.example.foodmanager.domain.favoriteKey
+import com.example.foodmanager.domain.normalizeCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +23,7 @@ import com.example.foodmanager.data.repository.ShoppingRepository
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 
 class InventoryViewModel(
     private val repository: InventoryRepository,
@@ -59,10 +62,14 @@ class InventoryViewModel(
             _selectedSortOption,
             favoriteRepository.getFavoriteItems()
         ) { items, category, sortOption, favorites ->
+            val favoriteKeys = favorites.mapTo(mutableSetOf()) {
+                favoriteKey(it.name, it.unit, it.category)
+            }
             val filtered = sortAndFilterInventory(items, category, sortOption)
-            // Map items to check if they are in the favorite_items table by name
             filtered.map { item ->
-                item.copy(isFavorite = favorites.any { it.name.equals(item.name, ignoreCase = true) })
+                item.copy(
+                    isFavorite = favoriteKey(item.name, item.unit, item.category) in favoriteKeys
+                )
             }
         }.stateIn(
             scope = viewModelScope,
@@ -90,7 +97,7 @@ class InventoryViewModel(
 
     // Call this from the UI to change category filter
     fun setCategoryFilter(category: String?) {
-        _selectedCategory.value = category
+        _selectedCategory.value = category?.let(::normalizeCategory)
     }
 
     fun setSortOption(sortOption: InventorySortOption) {
@@ -105,21 +112,32 @@ class InventoryViewModel(
         viewModelScope.launch {
             try {
                 val currentFavorites = favoriteRepository.getFavoriteItems().first()
-                val existing = currentFavorites.find { it.name.equals(item.name, ignoreCase = true) }
+                val requestedKey = favoriteKey(item.name, item.unit, item.category)
+                val existing = currentFavorites.find {
+                    favoriteKey(it.name, it.unit, it.category) == requestedKey
+                }
 
                 if (existing != null) {
-                    // If exists in favorite_items table, delete it
                     existing.id?.let { favoriteRepository.deleteFavoriteItem(it) }
                 } else {
-                    // If not, create a new FavoriteFoodItem and add it
                     val newFavorite = FavoriteFoodItem(
                         name = item.name,
                         amount = item.amount,
-                        unit = item.unit ?: "units",
-                        category = item.category ?: "Other",
-                        householdId = null // Repository will handle the ID
+                        unit = item.unit,
+                        category = normalizeCategory(item.category),
+                        householdId = null
                     )
                     favoriteRepository.addFavoriteItem(newFavorite)
+                }
+
+                _inventory.update { items ->
+                    items.map { currentItem ->
+                        if (currentItem.id == item.id) {
+                            currentItem.copy(isFavorite = existing == null)
+                        } else {
+                            currentItem
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Failed to update favorites."
@@ -167,27 +185,11 @@ class InventoryViewModel(
         }
     }
 
-    fun refreshInventory() {
-        viewModelScope.launch {
-            repository.getInventory()
-                .onStart { _isLoading.value = true }
-                .catch { e ->
-                    _isLoading.value = false
-                    _errorMessage.value = "Failed to refresh inventory."
-                }
-                .collect { items ->
-                    _inventory.value = items
-                    _isLoading.value = false
-                }
-        }
-    }
-
     fun updateItem(item: FoodItem) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
                 repository.updateFoodItem(item)
-                refreshInventory()
             } catch (e: Exception) {
                 _errorMessage.value = "Error updating item"
             } finally {
@@ -203,7 +205,6 @@ class InventoryViewModel(
             try {
                 _isLoading.value = true
                 repository.deleteFoodItem(itemId)
-                refreshInventory()
             } catch (e: Exception) {
                 _errorMessage.value = "Error deleting item"
             } finally {

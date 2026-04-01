@@ -10,6 +10,7 @@ import com.example.foodmanager.domain.model.FoodItem
 import com.example.foodmanager.data.repository.InventoryRepository
 import com.example.foodmanager.data.repository.SettingsRepository
 import com.example.foodmanager.data.repository.ShoppingRepository
+import com.example.foodmanager.domain.normalizeCategory
 import com.example.foodmanager.domain.model.ShoppingItem
 import com.example.foodmanager.ui.navigation.AddItemDestination
 import kotlinx.coroutines.flow.SharingStarted
@@ -72,6 +73,7 @@ class AddItemViewModel(
 
         val normalizedName = name.trim()
         val normalizedAmount = quantity.toDoubleOrNull() ?: 0.0
+        val normalizedCategory = normalizeCategory(category)
 
         val dateString: String = if (expiryDateMs != null) {
             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -90,7 +92,7 @@ class AddItemViewModel(
                             name = normalizedName,
                             amount = normalizedAmount,
                             unit = unit,
-                            category = category
+                            category = normalizedCategory
                         )
                     )
                 }
@@ -105,7 +107,7 @@ class AddItemViewModel(
                                 expiryDate = dateString,
                                 amount = normalizedAmount,
                                 unit = unit,
-                                category = category
+                                category = normalizedCategory
                             )
                         )
                     }
@@ -117,7 +119,7 @@ class AddItemViewModel(
                                 name = normalizedName,
                                 amount = normalizedAmount,
                                 unit = unit,
-                                category = category
+                                category = normalizedCategory
                             )
                         )
                     }

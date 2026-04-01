@@ -193,9 +193,11 @@ fun SettingsScreen(
                                 DropdownMenuItem(
                                     text = { Text(household.name) },
                                     onClick = {
-                                        viewModel.onHouseholdChanged(household)
-                                        expandedDropdown = false
-                                        onHouseholdSelected()
+                                        coroutineScope.launch {
+                                            viewModel.onHouseholdChanged(household)
+                                            expandedDropdown = false
+                                            onHouseholdSelected()
+                                        }
                                     }
                                 )
                             }
