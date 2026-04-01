@@ -106,7 +106,8 @@ fun SummaryBox(
 @Composable
 fun FoodCard(
     item: FoodItem,
-    viewModel: InventoryViewModel
+    viewModel: InventoryViewModel,
+    onDeleteClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -198,7 +199,7 @@ fun FoodCard(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     IconButton(
-                        onClick = { viewModel.deleteItem(item) },
+                        onClick = onDeleteClick,
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
@@ -241,6 +242,7 @@ fun InventoryScreen(
     val freshCount = inventoryList.count { calculateDaysRemaining(it) > 3 }
 
     var editingItem by remember { mutableStateOf<FoodItem?>(null) }
+    var itemToDelete by remember { mutableStateOf<FoodItem?>(null) }
 
     Scaffold(
         topBar = {
@@ -312,7 +314,7 @@ fun InventoryScreen(
                         ExposedDropdownMenuBox(
                             expanded = sortMenuExpanded,
                             onExpandedChange = { sortMenuExpanded = it },
-                            modifier = Modifier.weight(1f) // Moved weight up here
+                            modifier = Modifier.weight(1f)
                         ) {
                             OutlinedTextField(
                                 value = selectedSortOption.label,
@@ -322,7 +324,7 @@ fun InventoryScreen(
                                 trailingIcon = {
                                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = sortMenuExpanded)
                                 },
-                                modifier = Modifier.menuAnchor().fillMaxWidth(), // Changed to fillMaxWidth
+                                modifier = Modifier.menuAnchor().fillMaxWidth(),
                                 shape = RoundedCornerShape(24.dp)
                             )
                             ExposedDropdownMenu(
@@ -345,7 +347,7 @@ fun InventoryScreen(
                         ExposedDropdownMenuBox(
                             expanded = categoryMenuExpanded,
                             onExpandedChange = { categoryMenuExpanded = it },
-                            modifier = Modifier.weight(1f) // Moved weight up here
+                            modifier = Modifier.weight(1f)
                         ) {
                             val categoryLabel = selectedCategory ?: "All"
                             OutlinedTextField(
@@ -356,7 +358,7 @@ fun InventoryScreen(
                                 trailingIcon = {
                                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryMenuExpanded)
                                 },
-                                modifier = Modifier.menuAnchor().fillMaxWidth(), // Changed to fillMaxWidth
+                                modifier = Modifier.menuAnchor().fillMaxWidth(),
                                 shape = RoundedCornerShape(24.dp)
                             )
                             ExposedDropdownMenu(
@@ -384,7 +386,11 @@ fun InventoryScreen(
                     ) {
                         items(inventoryList) { foodItem ->
                             Box(modifier = Modifier.clickable { editingItem = foodItem }) {
-                                FoodCard(item = foodItem, viewModel = viewModel)
+                                FoodCard(
+                                    item = foodItem,
+                                    viewModel = viewModel,
+                                    onDeleteClick = { itemToDelete = foodItem }
+                                )
                             }
                         }
                     }
@@ -401,6 +407,31 @@ fun InventoryScreen(
                 }
             }
         }
+    }
+
+    // Delete Confirmation Dialog
+    itemToDelete?.let { item ->
+        AlertDialog(
+            onDismissRequest = { itemToDelete = null },
+            title = { Text("Delete Item") },
+            text = { Text("Are you sure you want to delete ${item.name}?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteItem(item)
+                        itemToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { itemToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     // Suggestion Dialog
@@ -484,19 +515,41 @@ fun InventoryScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = editAmount,
-                            onValueChange = { editAmount = it },
-                            label = { Text("Qty") },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            IconButton(onClick = {
+                                val current = editAmount.toDoubleOrNull() ?: 1.0
+                                if (current > 0.5) editAmount = (current - 1).toString().replace(".0", "")
+                            }) {
+                                Text("-", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            OutlinedTextField(
+                                value = editAmount,
+                                onValueChange = { editAmount = it },
+                                label = { Text("Qty") },
+                                modifier = Modifier.width(70.dp),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                            )
+
+                            IconButton(onClick = {
+                                val current = editAmount.toDoubleOrNull() ?: 0.0
+                                editAmount = (current + 1).toString().replace(".0", "")
+                            }) {
+                                Text("+", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
 
                         ExposedDropdownMenuBox(
                             expanded = unitExpanded,
                             onExpandedChange = { unitExpanded = it },
-                            modifier = Modifier.weight(1.5f)
+                            modifier = Modifier.weight(1f)
                         ) {
                             OutlinedTextField(
                                 value = editUnit,
