@@ -65,8 +65,7 @@ interface SettingsRepository {
     suspend fun generateCode(householdId: String): String
 
     // Joining a new household
-    suspend fun joinHousehold(householdId: String)
-
+    suspend fun joinHousehold(householdId: String): HouseholdJoinResult
     // Reading the current selection synchronously inside repositories
     suspend fun getCurrentHouseholdValue(): Household?
     suspend fun getCurrentUserId(): String?
@@ -213,8 +212,9 @@ class MockSettingsRepository : SettingsRepository {
         return MockDb.generateCode(householdId)
     }
 
-    override suspend fun joinHousehold(householdId: String) {
+    override suspend fun joinHousehold(householdId: String): HouseholdJoinResult {
         MockDb.joinHousehold(householdId)
+        return HouseholdJoinResult.Success(MockDb.currentHousehold.value!!)
     }
 
     override suspend fun getCurrentHouseholdValue(): Household? {

@@ -53,212 +53,221 @@ fun SettingsScreen(
             }
         }
 
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            // household management section
-            SettingsCard(title = "Household Management") {
-                if (availableHouseholds.isEmpty()) {
-                    Text("No available households")
-                } else {
-                    ExposedDropdownMenuBox(
-                        expanded = expandedDropdown,
-                        onExpandedChange = { expandedDropdown = it },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        OutlinedTextField(
-                            value = currentHousehold?.name ?: "",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Active Household") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        ExposedDropdownMenu(
+
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 600.dp)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+
+                // household management section
+                SettingsCard(title = "Household Management") {
+                    if (availableHouseholds.isEmpty()) {
+                        Text("No available households")
+                    } else {
+                        ExposedDropdownMenuBox(
                             expanded = expandedDropdown,
-                            onDismissRequest = { expandedDropdown = false }
-                        ) {
-                            availableHouseholds.forEach { household ->
-                                DropdownMenuItem(
-                                    text = { Text(household.name) },
-                                    onClick = {
-                                        viewModel.onHouseholdChanged(household)
-                                        expandedDropdown = false
-                                        onHouseholdSelected()
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // create household section
-            SettingsCard(title = "Create New Household") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value = newHouseholdName,
-                        onValueChange = { newHouseholdName = it },
-                        label = { Text("Name") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(24.dp)
-                    )
-                    Button(
-                        onClick = {
-                            viewModel.addNewHousehold(newHouseholdName)
-                            newHouseholdName = ""
-                        },
-                        enabled = newHouseholdName.isNotBlank(),
-                        shape = RoundedCornerShape(24.dp)
-                    ) {
-                        Text("Add")
-                    }
-                }
-            }
-
-            // edit household section
-            SettingsCard(title = "Edit Current Household") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value = editHouseholdName,
-                        onValueChange = { editHouseholdName = it },
-                        label = { Text("Rename to...") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(24.dp)
-                    )
-                    Button(
-                        onClick = { viewModel.updateHouseholdName(editHouseholdName) },
-                        enabled = editHouseholdName.isNotBlank() && editHouseholdName != currentHousehold?.name,
-                        shape = RoundedCornerShape(24.dp)
-                    ) {
-                        Text("Save")
-                    }
-                }
-            }
-
-            // invite and members section
-            if (currentHousehold != null) {
-                SettingsCard(title = "Invite & Members") {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        TextButton(
-                            onClick = { onNavigateToMembers() },
+                            onExpandedChange = { expandedDropdown = it },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(Icons.Default.Info, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("View Household Members", fontWeight = FontWeight.Bold)
-                        }
-
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                        Text(
-                            text = "Share Join Code",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        if (currentHousehold?.joinCode != null) {
-                            Surface(
-                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                shape = RoundedCornerShape(24.dp),
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            OutlinedTextField(
+                                value = currentHousehold?.name ?: "",
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Active Household") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown) },
+                                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedDropdown,
+                                onDismissRequest = { expandedDropdown = false }
                             ) {
-                                Text(
-                                    text = currentHousehold?.joinCode ?: "",
-                                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.ExtraBold
-                                )
+                                availableHouseholds.forEach { household ->
+                                    DropdownMenuItem(
+                                        text = { Text(household.name) },
+                                        onClick = {
+                                            viewModel.onHouseholdChanged(household)
+                                            expandedDropdown = false
+                                            onHouseholdSelected()
+                                        }
+                                    )
+                                }
                             }
                         }
+                    }
+                }
 
+                // create household section
+                SettingsCard(title = "Create New Household") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = newHouseholdName,
+                            onValueChange = { newHouseholdName = it },
+                            label = { Text("Name") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(24.dp)
+                        )
                         Button(
-                            onClick = { viewModel.generateCodeHousehold() },
-                            modifier = Modifier.fillMaxWidth(),
+                            onClick = {
+                                viewModel.addNewHousehold(newHouseholdName)
+                                newHouseholdName = ""
+                            },
+                            enabled = newHouseholdName.isNotBlank(),
                             shape = RoundedCornerShape(24.dp)
                         ) {
-                            Text(if (currentHousehold?.joinCode == null) "Generate Code" else "Regenerate Code")
+                            Text("Add")
                         }
                     }
                 }
-            }
 
-            // join household section
-            var joinInput by remember { mutableStateOf("") }
-            SettingsCard(title = "Join a Household") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value = joinInput,
-                        onValueChange = { input ->
-                            joinInput = input
-                                .filter(Char::isLetterOrDigit)
-                                .uppercase()
-                                .take(6)
-                        },
-                        label = { Text("6-character code") },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(24.dp)
-                    )
-                    Button(
-                        onClick = {
-                            viewModel.joinHousehold(joinInput)
-                            joinInput = ""
-                        },
-                        enabled = joinInput.length == 6,
-                        shape = RoundedCornerShape(24.dp)
+                // edit household section
+                SettingsCard(title = "Edit Current Household") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Join")
-                    }
-                }
-            }
-
-            // Logout
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        isLoggingOut = true
-                        logoutErrorMessage = null
-                        try {
-                            supabase.auth.signOut()
-                            logoutSuccess()
-                        } catch (e: Exception) {
-                            logoutErrorMessage = e.message ?: "Logout failed."
-                        } finally {
-                            isLoggingOut = false
+                        OutlinedTextField(
+                            value = editHouseholdName,
+                            onValueChange = { editHouseholdName = it },
+                            label = { Text("Rename to...") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        Button(
+                            onClick = { viewModel.updateHouseholdName(editHouseholdName) },
+                            enabled = editHouseholdName.isNotBlank() && editHouseholdName != currentHousehold?.name,
+                            shape = RoundedCornerShape(24.dp)
+                        ) {
+                            Text("Save")
                         }
                     }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                enabled = !isLoggingOut,
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
-            ) {
-                Text(text = "Log Out")
+                }
+
+                // invite and members section
+                if (currentHousehold != null) {
+                    SettingsCard(title = "Invite & Members") {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            TextButton(
+                                onClick = { onNavigateToMembers() },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Default.Info, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("View Household Members", fontWeight = FontWeight.Bold)
+                            }
+
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                            Text(
+                                text = "Share Join Code",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+
+                            if (currentHousehold?.joinCode != null) {
+                                Surface(
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    shape = RoundedCornerShape(24.dp),
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                ) {
+                                    Text(
+                                        text = currentHousehold?.joinCode ?: "",
+                                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                }
+                            }
+
+                            Button(
+                                onClick = { viewModel.generateCodeHousehold() },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(24.dp)
+                            ) {
+                                Text(if (currentHousehold?.joinCode == null) "Generate Code" else "Regenerate Code")
+                            }
+                        }
+                    }
+                }
+
+                // join household section
+                var joinInput by remember { mutableStateOf("") }
+                SettingsCard(title = "Join a Household") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = joinInput,
+                            onValueChange = { input ->
+                                joinInput = input
+                                    .filter(Char::isLetterOrDigit)
+                                    .uppercase()
+                                    .take(6)
+                            },
+                            label = { Text("6-character code") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        Button(
+                            onClick = {
+                                viewModel.joinHousehold(joinInput)
+                                joinInput = ""
+                            },
+                            enabled = joinInput.length == 6,
+                            shape = RoundedCornerShape(24.dp)
+                        ) {
+                            Text("Join")
+                        }
+                    }
+                }
+
+                // Logout
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            isLoggingOut = true
+                            logoutErrorMessage = null
+                            try {
+                                supabase.auth.signOut()
+                                logoutSuccess()
+                            } catch (e: Exception) {
+                                logoutErrorMessage = e.message ?: "Logout failed."
+                            } finally {
+                                isLoggingOut = false
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    enabled = !isLoggingOut,
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                ) {
+                    Text(text = "Log Out")
+                }
             }
         }
     }

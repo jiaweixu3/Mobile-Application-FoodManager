@@ -87,60 +87,72 @@ fun ShoppingListScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shadowElevation = 8.dp
             ) {
-                Button(
-                    onClick = { viewModel.markCheckedItemsAsBought() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    enabled = hasCheckedItems && !isLoading
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("Mark Checked as Bought")
+                    Button(
+                        onClick = { viewModel.markCheckedItemsAsBought() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        enabled = hasCheckedItems && !isLoading
+                    ) {
+                        Text("Mark Checked as Bought")
+                    }
                 }
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            if (shoppingList.isNotEmpty()) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(shoppingList, key = { it.id ?: it.hashCode() }) { item ->
-                        ShoppingItemRow(
-                            item = item,
-                            onCheckedChange = { isChecked ->
-                                viewModel.toggleItem(item, isChecked)
-                            },
-                            onDelete = {
-                                item.id?.let { id -> viewModel.deleteItem(id) }
-                            }
-                        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Box(modifier = Modifier.widthIn(max = 600.dp).fillMaxSize()) {
+                if (shoppingList.isNotEmpty()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(shoppingList, key = { it.id ?: it.hashCode() }) { item ->
+                            ShoppingItemRow(
+                                item = item,
+                                onCheckedChange = { isChecked ->
+                                    viewModel.toggleItem(item, isChecked)
+                                },
+                                onDelete = {
+                                    item.id?.let { id -> viewModel.deleteItem(id) }
+                                }
+                            )
+                        }
+                    }
+                } else if (!isLoading) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Your shopping list is empty!")
                     }
                 }
-            } else if (!isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Your shopping list is empty!")
+                if (isLoading && shoppingList.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
-            if (isLoading && shoppingList.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-        }
 
-        if (errorMessage != null) {
-            AlertDialog(
-                onDismissRequest = { viewModel.clearError() },
-                title = { Text("Database Error") },
-                text = { Text(errorMessage ?: "An unknown error occurred.") },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.clearError() }) {
-                        Text("OK")
+            if (errorMessage != null) {
+                AlertDialog(
+                    onDismissRequest = { viewModel.clearError() },
+                    title = { Text("Database Error") },
+                    text = { Text(errorMessage ?: "An unknown error occurred.") },
+                    confirmButton = {
+                        TextButton(onClick = { viewModel.clearError() }) {
+                            Text("OK")
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
