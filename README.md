@@ -15,6 +15,7 @@ We are a team of 4 people:
 - Sandra Perez Bueno sperezbu@uwaterloo.ca
 
 **2.Project Information**
+
 Our [team contract](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Team-Contract) includes details on how we will work together.
 
 Our [project proposal](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Project-Proposal) includes details about the project structure
@@ -28,14 +29,17 @@ Our [user guide](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Us
 
 
 **4. Design Documents**
+
 Our [database-schema](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Database-Schema) includes the Mermaid.js code on how the App will be structured.
 
 
 **5. Grading Instructions**
+
 Our [grading instructions](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Grading-Instructions) contains information on using the app, such as users to make it easier to test the app.
 
 
 **6.Milestones**
+
 Our milestone for [Sprint 1](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/2) is included here.
 
 Our milestone for [Sprint 2](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/3) is included here
@@ -46,4 +50,5 @@ Our milestone for [Sprint 4](https://git.uwaterloo.ca/j2mascar/mobileapplication
 
 
 **7. Release Notes**
+
 [Release Notes Version 1.0.0](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Release-Notes---Version-1.0.0) can be found here
