@@ -30,4 +30,4 @@ Our milestone for [Sprint 3](https://git.uwaterloo.ca/j2mascar/mobileapplication
 
 Our milestone for [Sprint 4](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/5) is included here
 
-Our [grading instructions](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Grading-Instructions) contains information on using the app, such as test users.
+Our [grading instructions](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Grading-Instructions) contains information on using the app, such as users to make it easier to test the app.
