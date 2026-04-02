@@ -20,12 +20,10 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@Ignore
 class ShoppingScreenUITest {
     private lateinit var  viewModel: ShoppingViewModel
     // Tracking navigation

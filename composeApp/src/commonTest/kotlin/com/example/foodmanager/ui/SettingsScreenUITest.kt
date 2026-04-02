@@ -2,6 +2,8 @@ package com.example.foodmanager.ui
 
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -19,11 +21,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@Ignore
 class SettingsScreenUITest {
     private lateinit var repository: MockSettingsRepository
     private lateinit var viewModel: HouseholdViewModel
@@ -83,7 +83,7 @@ class SettingsScreenUITest {
         }
 
         // Clicking delete
-        onNodeWithContentDescription("Remove").performClick()
+        onAllNodesWithContentDescription("Remove")[1].performClick()
 
         // Alert dialog
         onNodeWithText("Remove Member One?").assertIsDisplayed()
