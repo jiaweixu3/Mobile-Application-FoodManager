@@ -2,7 +2,7 @@
 
 FoodManager is an app that helps households manage their pantry and grocery shopping in one shared place. It tracks expiry dates with different colour warnings, keeps the shared inventory updated in real time, and makes it easy to restock products directly from the pantry to the shopping list.
 
-Team 102-13
+**Team 102-13**
 
 Our team consists of 4 members: 
 
@@ -13,11 +13,11 @@ Our team consists of 4 members:
 
 ### **Project Information**
 
-Our [Team Contract](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Team-Contract) includes details on how we will work together.
+Our [Team Contract](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Team-Contract) explains how the team is expected to work together.
 
-Our [Project Proposal](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Project-Proposal) includes details about the project structure
+Our [Project Proposal](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Project-Proposal) describes the main goals and structure of the project.
 
-Our [Team Meeting Minutes](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Meeting-Minutes) includes details about what was discussed in each of the meetings
+Our [Team Meeting Minutes](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Meeting-Minutes) summarize what was discussed in each meeting.
 
 
 ### **User Guide**
