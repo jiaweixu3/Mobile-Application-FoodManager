@@ -421,10 +421,23 @@ object MockDb {
 
     // Generating the join code
     fun generateCode(householdId: String): String {
+        val existingCode = _households.value.firstOrNull { it.id == householdId }?.joinCode
+        if (!existingCode.isNullOrBlank()) {
+            return existingCode
+        }
+
         val allowedChars = ('A'..'Z')
-        return (1..6)
+        val newCode = (1..6)
             .map{allowedChars.random()}
             .joinToString("")
+
+        _households.value = _households.value.map { household ->
+            if (household.id == householdId) household.copy(joinCode = newCode) else household
+        }
+        if (_currentHousehold.value?.id == householdId) {
+            _currentHousehold.value = _households.value.firstOrNull { it.id == householdId }
+        }
+        return newCode
     }
 
     // Joining a household
@@ -463,7 +476,73 @@ object MockDb {
     }
 
     fun deleteHouseholdMember(memberId: String) {
+        val removedMember = _householdMembers.value.firstOrNull { it.id == memberId }
         _householdMembers.value = _householdMembers.value.filterNot { it.id == memberId }
+
+        if (
+            removedMember != null &&
+            removedMember.userId == mockCurrentUserId &&
+            _currentHousehold.value?.id == removedMember.householdId
+        ) {
+            _currentHousehold.value = _households.value.firstOrNull { household ->
+                _householdMembers.value.any { member ->
+                    member.householdId == household.id && member.userId == mockCurrentUserId
+                }
+            }
+        }
+    }
+
+    fun transferOwnershipAndLeave(currentUserId: String, newOwnerUserId: String) {
+        val householdId = _currentHousehold.value?.id ?: return
+        val currentMember = _householdMembers.value.firstOrNull {
+            it.householdId == householdId && it.userId == currentUserId
+        } ?: return
+        val newOwner = _householdMembers.value.firstOrNull {
+            it.householdId == householdId && it.userId == newOwnerUserId
+        } ?: return
+
+        if (currentMember.householdId != newOwner.householdId || currentMember.role != "Owner") return
+
+        _householdMembers.value = _householdMembers.value.map { member ->
+            if (member.householdId == householdId && member.userId == newOwnerUserId) {
+                member.copy(role = "Owner")
+            } else {
+                member
+            }
+        }.filterNot { it.householdId == householdId && it.userId == currentUserId }
+
+        if (
+            currentMember.userId == mockCurrentUserId &&
+            _currentHousehold.value?.id == currentMember.householdId
+        ) {
+            _currentHousehold.value = _households.value.firstOrNull { household ->
+                _householdMembers.value.any { member ->
+                    member.householdId == household.id && member.userId == mockCurrentUserId
+                }
+            }
+        }
+    }
+
+    fun deleteCurrentHousehold() {
+        val householdId = _currentHousehold.value?.id ?: return
+
+        _households.value = _households.value.filterNot { it.id == householdId }
+        _householdMembers.value = _householdMembers.value.filterNot { it.householdId == householdId }
+        _favoriteItems.value = _favoriteItems.value.filterNot { it.householdId == householdId }
+        _fooditems.value = _fooditems.value.filterNot { item ->
+            inventories.any { inventory -> inventory.household_id == householdId && inventory.id == item.inventoryId }
+        }
+        _shoppingitems.value = _shoppingitems.value.filterNot { item ->
+            shoppingLists.any { shoppingList ->
+                shoppingList.household_id == householdId && shoppingList.id == item.shopping_list_id
+            }
+        }
+
+        _currentHousehold.value = _households.value.firstOrNull { household ->
+            _householdMembers.value.any { member ->
+                member.householdId == household.id && member.userId == mockCurrentUserId
+            }
+        } ?: _households.value.firstOrNull()
     }
 
 

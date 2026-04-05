@@ -72,6 +72,8 @@ interface SettingsRepository {
 
     fun getCurrentHouseholdMembers(): Flow<List<HouseholdMember>>
     suspend fun deleteHouseholdMember(memberId: String)
+    suspend fun transferOwnershipAndLeave(currentUserId: String, newOwnerUserId: String)
+    suspend fun deleteCurrentHousehold()
 }
 
 
@@ -234,6 +236,14 @@ class MockSettingsRepository : SettingsRepository {
 
     override suspend fun deleteHouseholdMember(memberId: String) {
         MockDb.deleteHouseholdMember(memberId)
+    }
+
+    override suspend fun transferOwnershipAndLeave(currentUserId: String, newOwnerUserId: String) {
+        MockDb.transferOwnershipAndLeave(currentUserId, newOwnerUserId)
+    }
+
+    override suspend fun deleteCurrentHousehold() {
+        MockDb.deleteCurrentHousehold()
     }
 
 

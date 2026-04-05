@@ -4,18 +4,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodmanager.data.repository.SettingsRepository
 import com.example.foodmanager.domain.model.HouseholdMember
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+sealed class HouseholdUiEvent {
+    data class ShowMessage(val message: String) : HouseholdUiEvent()
+    data object NavigateBack : HouseholdUiEvent()
+}
 
 class HouseholdViewModel(
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val currentUserIdFlow = MutableStateFlow<String?>(null)
+    private val _uiEvent = MutableSharedFlow<HouseholdUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
 
     val currentHousehold = settingsRepository.getCurrentHousehold
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -42,6 +51,17 @@ class HouseholdViewModel(
 
         viewModelScope.launch {
             settingsRepository.deleteHouseholdMember(memberId)
+            if (member.userId == currentUserIdFlow.value) {
+                _uiEvent.emit(HouseholdUiEvent.NavigateBack)
+            }
+        }
+    }
+
+    fun deleteCurrentHousehold() {
+        viewModelScope.launch {
+            settingsRepository.deleteCurrentHousehold()
+            _uiEvent.emit(HouseholdUiEvent.ShowMessage("Household deleted."))
+            _uiEvent.emit(HouseholdUiEvent.NavigateBack)
         }
     }
 }

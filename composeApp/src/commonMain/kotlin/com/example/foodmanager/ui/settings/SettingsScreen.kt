@@ -311,12 +311,14 @@ fun SettingsScreen(
                             }
                         }
 
-                        Button(
-                            onClick = { viewModel.generateCodeHousehold() },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(24.dp)
-                        ) {
-                            Text(if (currentHousehold?.joinCode == null) "Generate Code" else "Regenerate Code")
+                        if (currentHousehold?.joinCode == null) {
+                            Button(
+                                onClick = { viewModel.generateCodeHousehold() },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(24.dp)
+                            ) {
+                                Text("Generate Code")
+                            }
                         }
                     }
                 }

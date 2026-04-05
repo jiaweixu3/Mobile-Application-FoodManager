@@ -20,15 +20,17 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,8 +53,19 @@ fun HouseholdScreen(
     val members by viewModel.members.collectAsState()
     val currentUserId by viewModel.currentUserId.collectAsState()
     val currentUserIsOwner by viewModel.currentUserIsOwner.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is HouseholdUiEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
+                HouseholdUiEvent.NavigateBack -> onBackClick()
+            }
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(currentHousehold?.name ?: "Household Members") },
@@ -106,8 +119,11 @@ fun HouseholdScreen(
                     items(members, key = { it.id ?: it.userId }) { member ->
                         HouseholdMemberCard(
                             member = member,
+                            currentUserId = currentUserId,
+                            currentUserIsOwner = currentUserIsOwner,
                             canDelete = currentUserIsOwner || member.userId == currentUserId,
-                            onDelete = { viewModel.removeMember(member) }
+                            onDelete = { viewModel.removeMember(member) },
+                            onDeleteHousehold = { viewModel.deleteCurrentHousehold() }
                         )
                     }
                 }
@@ -119,10 +135,16 @@ fun HouseholdScreen(
 @Composable
 private fun HouseholdMemberCard(
     member: HouseholdMember,
+    currentUserId: String?,
+    currentUserIsOwner: Boolean,
     canDelete: Boolean,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onDeleteHousehold: () -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showOwnerExitDialog by remember { mutableStateOf(false) }
+
+    val isCurrentOwner = currentUserIsOwner && member.userId == currentUserId && member.role == "Owner"
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -157,11 +179,46 @@ private fun HouseholdMemberCard(
                 }
             }
             if (canDelete) {
-                IconButton(onClick = { showDeleteDialog = true }) {
+                IconButton(
+                    onClick = {
+                        if (isCurrentOwner) {
+                            showOwnerExitDialog = true
+                        } else {
+                            showDeleteDialog = true
+                        }
+                    }
+                ) {
                     Icon(Icons.Default.Delete, contentDescription = "Remove", tint = Color.Red)
                 }
             }
         }
+    }
+
+    if (showOwnerExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showOwnerExitDialog = false },
+            title = { Text("Leave or delete household?") },
+            text = {
+                Text(
+                    "As the owner, you cannot leave the household without deleting it completely."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showOwnerExitDialog = false
+                        onDeleteHousehold()
+                    }
+                ) {
+                    Text("Delete Household", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showOwnerExitDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     if (showDeleteDialog) {
