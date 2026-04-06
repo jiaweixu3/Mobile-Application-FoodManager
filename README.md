@@ -37,17 +37,6 @@ Our [Database Schema (ERD)](https://git.uwaterloo.ca/j2mascar/mobileapplications
 Our [Grading Instructions](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Grading-Instructions) contains information on using the app, such as users to make it easier to test the app.
 
 
-### **Milestones**
-
-Our milestone for [Sprint 1](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/2) is included here.
-
-Our milestone for [Sprint 2](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/3) is included here
-
-Our milestone for [Sprint 3](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/4) is included here
-
-Our milestone for [Sprint 4](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/5) is included here
-
-
 ### **Release Notes**
 
 [Release Notes Version 1.0.0](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Release-Notes---Version-1.0.0) can be found here
