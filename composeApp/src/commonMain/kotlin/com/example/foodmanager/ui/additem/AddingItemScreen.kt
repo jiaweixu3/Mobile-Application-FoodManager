@@ -106,6 +106,34 @@ fun AddingItemScreen(
                 }
             }
 
+            // 1. Product name handling
+            CustomNotchedField(label = "Product Name") {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { saveAsFavorite = !saveAsFavorite }) {
+                        Icon(
+                            imageVector = if (saveAsFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = null,
+                            tint = if (saveAsFavorite) Color(0xFFE53935) else Color.LightGray
+                        )
+                    }
+                    TextField(
+                        value = productName,
+                        onValueChange = { productName = it },
+                        placeholder = { Text("Enter name...") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    )
+                }
+            }
+
+            // 2. Choose a favorite
             CustomNotchedField(label = "Choose a favorite") {
                 var expanded by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
@@ -145,33 +173,6 @@ fun AddingItemScreen(
                             }
                         }
                     }
-                }
-            }
-
-            // Product name handling
-            CustomNotchedField(label = "Product Name") {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { saveAsFavorite = !saveAsFavorite }) {
-                        Icon(
-                            imageVector = if (saveAsFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = null,
-                            tint = if (saveAsFavorite) Color(0xFFE53935) else Color.LightGray
-                        )
-                    }
-                    TextField(
-                        value = productName,
-                        onValueChange = { productName = it },
-                        placeholder = { Text("Enter name...") },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-                    )
                 }
             }
 
@@ -219,16 +220,19 @@ fun AddingItemScreen(
                     }
                 }
 
-                // Quantity type selector (grams, litres, units, etc.)
+                // Quantity type selector
                 CustomNotchedField(
                     label = "Unit",
                     modifier = Modifier.weight(1f)
                 ) {
-                    Box {
+                    ExposedDropdownMenuBox(
+                        expanded = expandedUnitDropdown,
+                        onExpandedChange = { expandedUnitDropdown = it }
+                    ) {
                         TextField(
                             value = selectedUnit,
                             onValueChange = {},
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
                             readOnly = true,
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
@@ -236,9 +240,9 @@ fun AddingItemScreen(
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent
                             ),
-                            trailingIcon = { Icon(Icons.Filled.ArrowDropDown, null, Modifier.clickable { expandedUnitDropdown = true }) }
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedUnitDropdown) }
                         )
-                        DropdownMenu(expanded = expandedUnitDropdown, onDismissRequest = { expandedUnitDropdown = false }) {
+                        ExposedDropdownMenu(expanded = expandedUnitDropdown, onDismissRequest = { expandedUnitDropdown = false }) {
                             quantityTypes.forEach { unit ->
                                 DropdownMenuItem(text = { Text(unit) }, onClick = { selectedUnit = unit; expandedUnitDropdown = false })
                             }
@@ -249,11 +253,14 @@ fun AddingItemScreen(
 
             // Category Selector
             CustomNotchedField(label = "Category") {
-                Box {
+                ExposedDropdownMenuBox(
+                    expanded = expandedDropdown,
+                    onExpandedChange = { expandedDropdown = it }
+                ) {
                     TextField(
                         value = selectedCategory,
                         onValueChange = {},
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().menuAnchor(),
                         readOnly = true,
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
@@ -261,9 +268,9 @@ fun AddingItemScreen(
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent
                         ),
-                        trailingIcon = { Icon(Icons.Filled.ArrowDropDown, null, Modifier.clickable { expandedDropdown = true }) }
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown) }
                     )
-                    DropdownMenu(expanded = expandedDropdown, onDismissRequest = { expandedDropdown = false }) {
+                    ExposedDropdownMenu(expanded = expandedDropdown, onDismissRequest = { expandedDropdown = false }) {
                         categories.forEach { category ->
                             DropdownMenuItem(
                                 text = { Text(category) },
