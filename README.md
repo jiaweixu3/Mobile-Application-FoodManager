@@ -19,6 +19,7 @@ Our [Project Proposal](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wi
 
 Our [Team Meeting Minutes](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Meeting-Minutes) summarize what was discussed in each meeting.
 
+Our [Team Reflections](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Team-Reflections) describe the team's journey with this project.
 
 ### **User Guide**
 
