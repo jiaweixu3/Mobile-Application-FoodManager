@@ -4,6 +4,8 @@
 
 FoodManager is an app that helps households manage their pantry and grocery shopping in one shared place. It tracks expiry dates with different colour warnings, keeps the shared inventory updated in real time, and makes it easy to restock products directly from the pantry to the shopping list.
 
+Our demo video https://youtu.be/NfZ3GAmXHZY describes how a user can use the app.
+
 ![Screenshot](assets/image.png)
 
 **Team 102-13**
@@ -14,6 +16,7 @@ Our team consists of 4 members:
 - Álvaro del Cañizo Angurel adelcani@uwaterloo.ca
 - Jiawei Xu j695xu@uwaterloo.ca
 - Sandra Perez Bueno sperezbu@uwaterloo.ca
+
 
 Acknowlegdments: 
 
@@ -56,17 +59,6 @@ Our [Database Schema (ERD)](https://git.uwaterloo.ca/j2mascar/mobileapplications
 ### **Grading Instructions**
 
 Our [Grading Instructions](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Grading-Instructions) contains information on using the app, such as users to make it easier to test the app.
-
-
-### **Milestones**
-
-Our milestone for [Sprint 1](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/2) is included here.
-
-Our milestone for [Sprint 2](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/3) is included here
-
-Our milestone for [Sprint 3](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/4) is included here
-
-Our milestone for [Sprint 4](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/milestones/5) is included here
 
 
 ### **Release Notes**
