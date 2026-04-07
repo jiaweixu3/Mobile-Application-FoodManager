@@ -1,6 +1,10 @@
 # **FoodManager**
 
+### **Description**
+
 FoodManager is an app that helps households manage their pantry and grocery shopping in one shared place. It tracks expiry dates with different colour warnings, keeps the shared inventory updated in real time, and makes it easy to restock products directly from the pantry to the shopping list.
+
+![Screenshot](assets/image.png)
 
 **Team 102-13**
 
@@ -10,6 +14,22 @@ Our team consists of 4 members:
 - Álvaro del Cañizo Angurel adelcani@uwaterloo.ca
 - Jiawei Xu j695xu@uwaterloo.ca
 - Sandra Perez Bueno sperezbu@uwaterloo.ca
+
+Acknowlegdments: 
+
+- [Compose Multiplatform / Jetpack Compose](https://www.jetbrains.com/compose-multiplatform/)
+- [Material 3 for Compose](https://developer.android.com/develop/ui/compose/designsystems/material3)
+- [AndroidX Activity Compose](https://developer.android.com/jetpack/androidx/releases/activity)
+- [AndroidX Lifecycle Compose](https://developer.android.com/jetpack/androidx/releases/lifecycle)
+- [AndroidX Navigation Compose](https://developer.android.com/develop/ui/compose/navigation)
+- [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
+- [Kotlinx Datetime](https://github.com/Kotlin/kotlinx-datetime)
+- [Kotlinx Coroutines](https://github.com/Kotlin/kotlinx.coroutines)
+- [Supabase Kotlin](https://supabase.com/docs/reference/kotlin/introduction)
+- [Ktor Client](https://ktor.io/)
+- [JUnit](https://junit.org/junit4/)
+- [Kotlin Official Documentation](https://kotlinlang.org/docs/home.html)
+
 
 ### **Project Information**
 
