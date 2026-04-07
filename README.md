@@ -11,6 +11,8 @@ Our team consists of 4 members:
 - Jiawei Xu j695xu@uwaterloo.ca
 - Sandra Perez Bueno sperezbu@uwaterloo.ca
 
+Our demo video https://youtu.be/NfZ3GAmXHZY describes how a user can use the app.
+
 ### **Project Information**
 
 Our [Team Contract](https://git.uwaterloo.ca/j2mascar/mobileapplications/-/wikis/Team-Contract) explains how the team is expected to work together.
