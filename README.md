@@ -6,7 +6,7 @@ FoodManager is an app that helps households manage their pantry and grocery shop
 
 Our demo video https://youtu.be/NfZ3GAmXHZY describes how a user can use the app.
 
-![Screenshot](assets/image.png)
+<img src="assets/image.png" alt="Screenshot" width="255">
 
 **Team 102-13**
 
